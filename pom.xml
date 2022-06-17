@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.jfireframework</groupId>
+		<artifactId>framework-parent</artifactId>
+		<version>1.0</version>
+	</parent>
+	<version>1.0-SNAPSHOT</version>
+	<artifactId>jfire</artifactId>
+	<name>context</name>
+	<description> 
+	Jfire is a IOC and AOP container. Provides a transparent object management. And provide a simple and efficient AOP API operation. At the same time also supports transparent transaction management.
+	</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>com.jfireframework</groupId>
+			<artifactId>jfire-codejson</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jfireframework</groupId>
+			<artifactId>jfire-baseutil</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.8.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.jfireframework</groupId>
+			<artifactId>jfire-licp</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.jfireframework</groupId>
+			<artifactId>jfire-coordinator</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>jfire</finalName>
+	</build>
+</project>

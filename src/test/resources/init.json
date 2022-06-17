@@ -1,0 +1,8 @@
+{
+    "beans": [
+        {
+            "beanName": "p2",
+            "postConstructMethod": "initage"
+        }
+    ]
+}
