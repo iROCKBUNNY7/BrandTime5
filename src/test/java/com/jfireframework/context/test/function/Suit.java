@@ -8,12 +8,11 @@ import com.jfireframework.context.test.function.base.ContextTest;
 import com.jfireframework.context.test.function.base.Properties;
 import com.jfireframework.context.test.function.base.maptest.MapTest;
 import com.jfireframework.context.test.function.cachetest.CacheTest;
-import com.jfireframework.context.test.function.event.EventTest;
 import com.jfireframework.context.test.function.initmethod.InitMethodTest;
 import com.jfireframework.context.test.function.loader.HolderTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ AliasTest.class, AopTest.class, ContextTest.class, MapTest.class, CacheTest.class, EventTest.class, InitMethodTest.class, //
+@Suite.SuiteClasses({ AliasTest.class, AopTest.class, ContextTest.class, MapTest.class, CacheTest.class, InitMethodTest.class, //
         HolderTest.class, Properties.class, com.jfireframework.context.test.function.map.MapTest.class
 })
 public class Suit

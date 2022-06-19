@@ -40,12 +40,6 @@
 			<version>1.0</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>com.jfireframework</groupId>
-			<artifactId>jfire-coordinator</artifactId>
-			<version>1.0</version>
-			<optional>true</optional>
-		</dependency>
 	</dependencies>
 	<build>
 		<finalName>jfire</finalName>
