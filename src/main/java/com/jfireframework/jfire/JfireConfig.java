@@ -48,8 +48,7 @@ import com.jfireframework.jfire.bean.impl.LoadByBean;
 import com.jfireframework.jfire.bean.impl.OuterEntityBean;
 import com.jfireframework.jfire.bean.load.LoadBy;
 import com.jfireframework.jfire.config.Condition;
-import com.jfireframework.jfire.config.Environment;
-import com.jfireframework.jfire.config.ImportBeanDefinition;
+import com.jfireframework.jfire.config.ImportTrigger;
 import com.jfireframework.jfire.config.JfireInitializationCfg;
 import com.jfireframework.jfire.config.annotation.BeanDefinitions;
 import com.jfireframework.jfire.config.annotation.ComponentScan;
@@ -57,6 +56,8 @@ import com.jfireframework.jfire.config.annotation.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.annotation.PropertyPaths;
+import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.util.EnvironmentUtil;
 import sun.reflect.MethodAccessor;
 
@@ -130,6 +131,19 @@ public class JfireConfig
         {
             each.enablePrototype(each.getCfgPrototype());
             each.switchDefault();
+            if (StringUtil.isNotBlank(each.getClassName()))
+            {
+                try
+                {
+                    Class<?> ckass = classLoader.loadClass(each.getClassName());
+                    each.setOriginType(ckass);
+                    each.setType(ckass);
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
+            }
         }
         registerBeanDefinition(cfg.getBeanDefinitions());
         resolvePropertyFile(cfg.getPropertyPaths());
@@ -191,38 +205,11 @@ public class JfireConfig
         }
     }
     
-    public JfireConfig registerBeanDefinition(Class<?>... srcs)
+    public JfireConfig registerBeanDefinition(Class<?>... ckasses)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
-        for (Class<?> src : srcs)
+        for (Class<?> ckass : ckasses)
         {
-            if (annotationUtil.isPresent(Resource.class, src))
-            {
-                Resource resource = annotationUtil.getAnnotation(Resource.class, src);
-                String beanName = "".equals(resource.name()) ? src.getName() : resource.name();
-                boolean prototype = (resource.shareable() == false);
-                BeanDefinition definition = new BeanDefinition();
-                definition.setBeanName(beanName);
-                definition.setClassName(src.getName());
-                definition.setOriginType(src);
-                definition.setType(src);
-                definition.enablePrototype(prototype);
-                if (annotationUtil.isPresent(LoadBy.class, src))
-                {
-                    definition.switchLoadBy();
-                    definition.setLoadByFactoryName(annotationUtil.getAnnotation(LoadBy.class, src).factoryBeanName());
-                }
-                else
-                {
-                    definition.switchDefault();
-                }
-                if (annotationUtil.isPresent(Configuration.class, src))
-                {
-                    definition.enableConfiguration();
-                    environment.addConfigClass(src);
-                }
-                putBeanDefinition(definition);
-            }
+            mergeBeanDefinition(buildBeanDefinition(ckass));
         }
         return this;
     }
@@ -232,9 +219,11 @@ public class JfireConfig
         BeanDefinition beanDefinition = new BeanDefinition();
         beanDefinition.setBeanName(resourceName);
         beanDefinition.setType(src);
+        beanDefinition.setOriginType(src);
+        beanDefinition.setClassName(src.getName());
         beanDefinition.enablePrototype(prototype);
         beanDefinition.switchDefault();
-        putBeanDefinition(beanDefinition);
+        mergeBeanDefinition(beanDefinition);
         return this;
     }
     
@@ -242,7 +231,7 @@ public class JfireConfig
     {
         for (BeanDefinition definition : beanInfos)
         {
-            putBeanDefinition(definition);
+            mergeBeanDefinition(definition);
         }
         return this;
     }
@@ -253,15 +242,14 @@ public class JfireConfig
         Plugin[] plugins = new Plugin[] { //
                 new PreparationPlugin(jfire), //
                 new ResolveClassNamesPlugin(), //
-                new ComplementedBeanDefinition(), //
                 new ResolveBeanConfigurationAnnoPlugin(), //
                 new FindAnnoatateBeanDefinitionPlugin(), //
+                new ImportTriggerPlugin(), //
                 new ProcessPlaceHolderPlugin(), //
                 new FindAnnoedPostAndPreDestoryMethod(), //
                 new EnhancePlugin(), //
                 new InitDependencyAndParamFieldsPlugin(), //
                 new ConstructBeanPlugin(), //
-                new InitSingletonBeanPlugin(), //
                 new DetectJfireInitFinishInterfacePlugin(), //
                 new TriggerJfireInitFinishPlugin()
         };
@@ -303,7 +291,7 @@ public class JfireConfig
         beanDefinition.setOriginType(entity.getClass());
         beanDefinition.switchOutter();
         beanDefinition.setOutterEntity(entity);
-        putBeanDefinition(beanDefinition);
+        mergeBeanDefinition(beanDefinition);
         return this;
     }
     
@@ -344,7 +332,53 @@ public class JfireConfig
                 });
     }
     
-    private void putBeanDefinition(BeanDefinition definition)
+    private BeanDefinition buildBeanDefinition(Class<?> ckass)
+    {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
+        String beanName;
+        boolean prototype;
+        if (resource == null)
+        {
+            prototype = false;
+            beanName = ckass.getName();
+        }
+        else
+        {
+            prototype = resource.shareable() == false;
+            beanName = resource.name().equals("") ? ckass.getName() : resource.name();
+        }
+        BeanDefinition beanDefinition = beanDefinitions.get(beanName);
+        beanDefinition = new BeanDefinition();
+        beanDefinition.setBeanName(beanName);
+        beanDefinition.enablePrototype(prototype);
+        beanDefinition.setOriginType(ckass);
+        beanDefinition.setType(ckass);
+        beanDefinition.setClassName(ckass.getName());
+        beanDefinition.switchDefault();
+        if (annotationUtil.isPresent(LoadBy.class, ckass))
+        {
+            LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, ckass);
+            beanDefinition.switchLoadBy();
+            beanDefinition.setLoadByFactoryName(loadBy.factoryBeanName());
+        }
+        else if (ckass.isInterface() == false)
+        {
+            ;
+        }
+        else
+        {
+            throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", ckass.getName()));
+        }
+        if (annotationUtil.isPresent(Configuration.class, ckass))
+        {
+            beanDefinition.enableConfiguration();
+            environment.addConfigClass(ckass);
+        }
+        return beanDefinition;
+    }
+    
+    private void mergeBeanDefinition(BeanDefinition definition)
     {
         BeanDefinition exist = beanDefinitions.get(definition.getBeanName());
         if (exist == null)
@@ -457,53 +491,24 @@ public class JfireConfig
         @Override
         public void process()
         {
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
             for (String each : classNames)
             {
-                Class<?> res = null;
+                Class<?> ckass = null;
                 try
                 {
-                    res = classLoader.loadClass(each);
+                    ckass = classLoader.loadClass(each);
                 }
                 catch (ClassNotFoundException e)
                 {
                     throw new RuntimeException("对应的类不存在", e);
                 }
                 // 如果本身是一个注解或者没有使用resource注解，则忽略
-                if (res.isAnnotation() || EnvironmentUtil.getAnnoUtil().isPresent(Resource.class, res) == false)
+                if (ckass.isAnnotation() || annotationUtil.isPresent(Resource.class, ckass) == false)
                 {
                     continue;
                 }
-                AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
-                Resource resource = annotationUtil.getAnnotation(Resource.class, res);
-                String beanName = resource.name().equals("") ? res.getName() : resource.name();
-                BeanDefinition beanDefinition = beanDefinitions.get(beanName);
-                beanDefinition = new BeanDefinition();
-                beanDefinition.setBeanName(beanName);
-                beanDefinition.enablePrototype(resource.shareable() == false);
-                beanDefinition.setOriginType(res);
-                beanDefinition.setType(res);
-                beanDefinition.setClassName(res.getName());
-                beanDefinition.switchDefault();
-                if (annotationUtil.isPresent(LoadBy.class, res))
-                {
-                    LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, res);
-                    beanDefinition.switchLoadBy();
-                    beanDefinition.setLoadByFactoryName(loadBy.factoryBeanName());
-                }
-                else if (res.isInterface() == false)
-                {
-                    ;
-                }
-                else
-                {
-                    throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", res.getName()));
-                }
-                if (annotationUtil.isPresent(Configuration.class, res))
-                {
-                    beanDefinition.enableConfiguration();
-                    environment.addConfigClass(res);
-                }
-                putBeanDefinition(beanDefinition);
+                mergeBeanDefinition(buildBeanDefinition(ckass));
             }
         }
         
@@ -523,8 +528,15 @@ public class JfireConfig
                     configurations.add(each.getType());
                 }
             }
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
             for (Class<?> each : configurations)
             {
+                if (annotationUtil.isPresent(Conditional.class, each) && //
+                        match(environment.readOnlyEnvironment(), annotationUtil.getAnnotations(Conditional.class, each), annotationUtil) == false//
+                )
+                {
+                    continue;
+                }
                 processBeanDefinition(each);
                 processProperties(each);
                 processPropertyPaths(each);
@@ -584,6 +596,7 @@ public class JfireConfig
             if (StringUtil.isNotBlank(anno.className()))
             {
                 beanDefinition.setType(classLoader.loadClass(anno.className()));
+                beanDefinition.setOriginType(beanDefinition.getType());
                 beanDefinition.setClassName(anno.className());
             }
             if (StringUtil.isNotBlank(anno.postConstructMethod()))
@@ -614,33 +627,27 @@ public class JfireConfig
                 }
                 beanDefinition.setParams(map);
             }
-            putBeanDefinition(beanDefinition);
+            mergeBeanDefinition(beanDefinition);
         }
         
         private void processImport(final Class<?> ckass)
         {
+            
             processAnnoValue(ckass, Import.class, new AnnoValueProcessor<Import>() {
                 
                 @Override
                 public void process(Import anno)
                 {
+                    AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
                     for (Class<?> each : anno.value())
                     {
-                        if (beanDefinitions.containsKey(each.getName()) == false)
+                        if (annotationUtil.isPresent(Conditional.class, each) && //
+                                match(environment.readOnlyEnvironment(), annotationUtil.getAnnotations(Conditional.class, each), annotationUtil) == false//
+                        )
                         {
-                            registerBeanDefinition(each);
+                            continue;
                         }
-                        else
-                        {
-                            BeanDefinition definition = beanDefinitions.get(each.getName());
-                            definition.enableConfiguration();
-                            environment.addConfigClass(each);
-                            if (ImportBeanDefinition.class.isAssignableFrom(definition.getOriginType()))
-                            {
-                                definition.setAnnotationEnvironment(environment);
-                                definition.enableImportBean();
-                            }
-                        }
+                        registerBeanDefinition(each);
                         processBeanDefinition(each);
                         processProperties(each);
                         processPropertyPaths(each);
@@ -667,43 +674,6 @@ public class JfireConfig
                         }
                     });
         }
-    }
-    
-    class ComplementedBeanDefinition implements Plugin
-    {
-        
-        @Override
-        public void process()
-        {
-            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
-            for (BeanDefinition each : beanDefinitions.values())
-            {
-                try
-                {
-                    if (each.getType() == null && each.getClassName() != null)
-                    {
-                        each.setType(classLoader.loadClass(each.getClassName()));
-                    }
-                    if (each.getOriginType() == null)
-                    {
-                        each.setOriginType(each.getType());
-                    }
-                    if (each.getOriginType() != null && JfireInitFinish.class.isAssignableFrom(each.getOriginType()))
-                    {
-                        each.enableJfireInitFinish();
-                    }
-                    if (each.getOriginType() != null && annotationUtil.isPresent(Configuration.class, each.getOriginType()))
-                    {
-                        each.enableConfiguration();
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new JustThrowException(e);
-                }
-            }
-        }
-        
     }
     
     class FindAnnoedPostAndPreDestoryMethod implements Plugin
@@ -883,7 +853,7 @@ public class JfireConfig
             {
                 bean = new OuterEntityBean(beanDefinition.getBeanName(), beanDefinition.getOutterEntity());
             }
-            else if (beanDefinition.isAnnotationConfig())
+            else if (beanDefinition.isMethodBeanConfig())
             {
                 try
                 {
@@ -980,23 +950,6 @@ public class JfireConfig
         }
     }
     
-    class InitSingletonBeanPlugin implements Plugin
-    {
-        
-        @Override
-        public void process()
-        {
-            for (BeanDefinition beanDefinition : beanDefinitions.values())
-            {
-                if (beanDefinition.isPrototype() == false)
-                {
-                    beanDefinition.getInstance();
-                }
-            }
-        }
-        
-    }
-    
     class TriggerJfireInitFinishPlugin implements Plugin
     {
         
@@ -1079,7 +1032,7 @@ public class JfireConfig
             beanDefinition.setClassName(beanDefinition.getType().getName());
             beanDefinition.setHostBeanName(host.getBeanName());
             beanDefinition.setBeanAnnotatedMethod(method.getName());
-            beanDefinition.switchAnnotationConfig();
+            beanDefinition.switchMethodBeanConfig();
             if ("".equals(annotatedBean.destroyMethod()) == false)
             {
                 beanDefinition.setCloseMethod(annotatedBean.destroyMethod());
@@ -1112,10 +1065,10 @@ public class JfireConfig
             }
             for (BeanDefinition each : newDefinitions)
             {
-                putBeanDefinition(each);
+                mergeBeanDefinition(each);
             }
             newDefinitions.clear();
-            Map<Class<? extends Condition>, Condition> conditions = new HashMap<Class<? extends Condition>, Condition>();
+            ReadOnlyEnvironment readOnlyEnvironment = environment.readOnlyEnvironment();
             for (BeanDefinition each : beanDefinitions.values())
             {
                 if (each.isConfiguration())
@@ -1126,7 +1079,7 @@ public class JfireConfig
                                 && annotationUtil.isPresent(Conditional.class, method))
                         {
                             
-                            if (match(method, annotationUtil, conditions))
+                            if (match(readOnlyEnvironment, annotationUtil.getAnnotations(Conditional.class, method), annotationUtil))
                             {
                                 newDefinitions.add(generated(method, each, annotationUtil));
                             }
@@ -1136,46 +1089,57 @@ public class JfireConfig
             }
             for (BeanDefinition each : newDefinitions)
             {
-                putBeanDefinition(each);
+                mergeBeanDefinition(each);
             }
         }
         
-        boolean match(Method method, AnnotationUtil annotationUtil, Map<Class<? extends Condition>, Condition> conditions)
+    }
+    
+    boolean match(ReadOnlyEnvironment readOnlyEnvironment, Conditional[] conditionals, AnnotationUtil annotationUtil)
+    {
+        boolean match = true;
+        for (Conditional conditional : conditionals)
         {
-            boolean match = true;
-            if (annotationUtil.isPresent(Conditional.class, method))
-            {
-                for (Conditional conditional : annotationUtil.getAnnotations(Conditional.class, method))
-                {
-                    Condition condition = conditions.get(conditional.value());
-                    if (condition == null)
-                    {
-                        try
-                        {
-                            condition = conditional.value().newInstance();
-                        }
-                        catch (Exception e)
-                        {
-                            throw new JustThrowException(e);
-                        }
-                        conditions.put(conditional.value(), condition);
-                    }
-                    if (condition.match(environment, method, annotationUtil))
-                    {
-                        match = true;
-                    }
-                    else
-                    {
-                        match = false;
-                    }
-                }
-            }
-            else
+            Condition condition = EnvironmentUtil.getCondition(conditional.value());
+            if (condition.match(readOnlyEnvironment, annotationUtil))
             {
                 match = true;
             }
-            return match;
+            else
+            {
+                match = false;
+            }
         }
+        return match;
     }
     
+    class ImportTriggerPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            List<BeanDefinition> importTriggers = new ArrayList<BeanDefinition>();
+            for (BeanDefinition definition : beanDefinitions.values())
+            {
+                if (ImportTrigger.class.isAssignableFrom(definition.getOriginType()))
+                {
+                    definition.enableImportTrigger();
+                    importTriggers.add(definition);
+                }
+            }
+            try
+            {
+                for (BeanDefinition definition : importTriggers)
+                {
+                    ((ImportTrigger) definition.getOriginType().newInstance()).trigger(environment);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new JustThrowException(e);
+            }
+        }
+        
+    }
 }

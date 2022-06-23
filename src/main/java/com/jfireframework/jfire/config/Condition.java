@@ -1,9 +1,9 @@
 package com.jfireframework.jfire.config;
 
-import java.lang.reflect.Method;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
 
 public interface Condition
 {
-    boolean match(Environment environment, Method method, AnnotationUtil annotationUtil);
+    boolean match(ReadOnlyEnvironment readOnlyEnvironment, AnnotationUtil annotationUtil);
 }

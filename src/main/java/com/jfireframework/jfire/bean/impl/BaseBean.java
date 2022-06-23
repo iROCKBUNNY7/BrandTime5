@@ -20,7 +20,7 @@ public abstract class BaseBean implements Bean
                                                                                     }
                                                                                 };
     /** 单例的引用对象 */
-    protected Object                                            singletonInstance;
+    protected volatile Object                                   singletonInstance;
     protected ParamField[]                                      paramFields;
     protected DIField[]                                         diFields;
     protected final boolean                                     prototype;

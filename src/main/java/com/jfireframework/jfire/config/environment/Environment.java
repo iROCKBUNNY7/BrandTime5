@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.config;
+package com.jfireframework.jfire.config.environment;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
@@ -10,14 +10,45 @@ import com.jfireframework.jfire.util.EnvironmentUtil;
 
 public class Environment
 {
-    private Map<String, String>               properties;
-    private Set<Class<?>>                     configClasses = new HashSet<Class<?>>();
-    private final Map<String, BeanDefinition> beanDefinitions;
+    protected Map<String, String>               properties;
+    protected Set<Class<?>>                     configClasses = new HashSet<Class<?>>();
+    protected final Map<String, BeanDefinition> beanDefinitions;
     
     public Environment(Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties)
     {
         this.beanDefinitions = beanDefinitions;
         this.properties = properties;
+    }
+    
+    public static class ReadOnlyEnvironment
+    {
+        private final Environment host;
+        
+        public ReadOnlyEnvironment(Environment host)
+        {
+            this.host = host;
+        }
+        
+        public boolean isAnnotationPresent(Class<? extends Annotation> annoType)
+        {
+            return host.isAnnotationPresent(annoType);
+        }
+        
+        public <T extends Annotation> T getAnnotation(Class<T> type)
+        {
+            return host.getAnnotation(type);
+        }
+        
+        public String getProperty(String name)
+        {
+            return host.getProperty(name);
+        }
+        
+    }
+    
+    public ReadOnlyEnvironment readOnlyEnvironment()
+    {
+        return new ReadOnlyEnvironment(this);
     }
     
     public void addConfigClass(Class<?> configClass)
@@ -59,5 +90,15 @@ public class Environment
     public String getProperty(String name)
     {
         return properties.get(name);
+    }
+    
+    public void putProperty(String name, String value)
+    {
+        properties.put(name, value);
+    }
+    
+    public void removeProperty(String name)
+    {
+        properties.remove(name);
     }
 }

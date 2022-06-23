@@ -48,12 +48,9 @@ public class AnnotationConfigBean extends BaseBean
         {
             if (singletonInstance == null)
             {
-                return buildInstance(beanInstanceMap);
+                initSingletonInstance(beanInstanceMap);
             }
-            else
-            {
-                return singletonInstance;
-            }
+            return singletonInstance;
         }
     }
     
@@ -67,11 +64,28 @@ public class AnnotationConfigBean extends BaseBean
             {
                 postConstructMethod.invoke(instance, null);
             }
-            if (prototype == false)
+            return instance;
+        }
+        catch (Exception e)
+        {
+            throw new UnSupportException(StringUtil.format("初始化bean实例错误，实例名称:{},对象类名:{}", beanName, type.getName()), e);
+        }
+    }
+    
+    private synchronized void initSingletonInstance(Map<String, Object> beanInstanceMap)
+    {
+        try
+        {
+            if (singletonInstance == null)
             {
+                Object instance = methodAccessor.invoke(hostBean.getInstance(beanInstanceMap), null);
+                beanInstanceMap.put(beanName, instance);
+                if (postConstructMethod != null)
+                {
+                    postConstructMethod.invoke(instance, null);
+                }
                 singletonInstance = instance;
             }
-            return instance;
         }
         catch (Exception e)
         {

@@ -31,20 +31,21 @@ public class DefaultBean extends BaseBean
         {
             return beanInstanceMap.get(beanName);
         }
-        if (prototype)
-        {
-            return buildInstance(beanInstanceMap);
-        }
-        else
+        if (prototype == false)
         {
             if (singletonInstance == null)
             {
-                return buildInstance(beanInstanceMap);
+                initSingletonInstance(beanInstanceMap);
+                return singletonInstance;
             }
             else
             {
                 return singletonInstance;
             }
+        }
+        else
+        {
+            return buildInstance(beanInstanceMap);
         }
     }
     
@@ -66,11 +67,36 @@ public class DefaultBean extends BaseBean
             {
                 postConstructMethod.invoke(instance, null);
             }
-            if (prototype == false)
+            return instance;
+        }
+        catch (Exception e)
+        {
+            throw new UnSupportException(StringUtil.format("初始化bean实例错误，实例名称:{},对象类名:{}", beanName, type.getName()), e);
+        }
+    }
+    
+    private synchronized void initSingletonInstance(Map<String, Object> beanInstanceMap)
+    {
+        try
+        {
+            if (singletonInstance == null)
             {
+                Object instance = type.newInstance();
+                beanInstanceMap.put(beanName, instance);
+                for (DIField each : diFields)
+                {
+                    each.inject(instance, beanInstanceMap);
+                }
+                for (ParamField each : paramFields)
+                {
+                    each.setParam(instance);
+                }
+                if (postConstructMethod != null)
+                {
+                    postConstructMethod.invoke(instance, null);
+                }
                 singletonInstance = instance;
             }
-            return instance;
         }
         catch (Exception e)
         {

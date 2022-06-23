@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import javax.annotation.Resource;
+import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
@@ -12,7 +13,7 @@ import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.config.JfireInitializationCfg;
 import com.jfireframework.jfire.util.EnvironmentUtil;
 
-@Testalis3(t = "sada", s = false)
+@Testalis3(t = "sada")
 public class AliasTest
 {
     @Autowired(wiredName = "demo")
@@ -29,8 +30,7 @@ public class AliasTest
     {
         AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         Resource resource = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
-        assertEquals("sada", resource.name());
-        assertFalse(resource.shareable());
+        Assert.assertTrue(resource.shareable());
         Method method = AliasTest.class.getMethod("take");
         InitMethod initMethod = annotationUtil.getAnnotation(InitMethod.class, method);
         assertEquals("ss", initMethod.name());
