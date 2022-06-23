@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 
 public class ListField extends AbstractDependencyField
 {
-    private Bean[] dependencyBeans;
-    private String msg;
+    private BeanDefinition[] dependencyBeans;
+    private String           msg;
     
-    public ListField(Field field, Bean[] beans)
+    public ListField(Field field, BeanDefinition[] beans)
     {
         super(field);
         dependencyBeans = beans;
@@ -25,9 +25,9 @@ public class ListField extends AbstractDependencyField
     {
         List list = (List) unsafe.getObject(src, offset);
         Verify.exist(list, msg);
-        for (Bean each : dependencyBeans)
+        for (BeanDefinition each : dependencyBeans)
         {
-            list.add(each.getInstance(beanInstanceMap));
+            list.add(each.getConstructedBean().getInstance(beanInstanceMap));
         }
     }
     

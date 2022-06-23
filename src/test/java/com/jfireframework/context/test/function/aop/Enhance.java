@@ -10,7 +10,6 @@ import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
 import com.jfireframework.jfire.aop.annotation.EnhanceClass;
 import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
 
-@Resource
 @EnhanceClass("com.jfireframework.context.*.aop.Person")
 public class Enhance
 {

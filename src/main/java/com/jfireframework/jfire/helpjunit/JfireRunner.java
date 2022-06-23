@@ -11,10 +11,10 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.codejson.JsonObject;
 import com.jfireframework.codejson.JsonTool;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.config.JfireInitializationCfg;
 
 public class JfireRunner extends BlockJUnit4ClassRunner
 {
@@ -27,10 +27,10 @@ public class JfireRunner extends BlockJUnit4ClassRunner
         this.klass = klass;
         ConfigPath path = klass.getAnnotation(ConfigPath.class);
         String value = path.value();
-        JfireConfig jfireConfig = new JfireConfig();
+        JfireInitializationCfg cfg = null;
         if (value.startsWith("classpath:"))
         {
-            jfireConfig.readConfig((JsonObject) JsonTool.fromString(StringUtil.readFromClasspath(value.substring(10), Charset.forName("utf8"))));
+            cfg = (JfireInitializationCfg) JsonTool.read(JfireInitializationCfg.class, StringUtil.readFromClasspath(value.substring(10), Charset.forName("utf8")));
         }
         else if (value.startsWith("file:"))
         {
@@ -40,7 +40,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
                 inputStream = new FileInputStream(new File(value.substring(5)));
                 byte[] src = new byte[inputStream.available()];
                 inputStream.read(src);
-                jfireConfig.readConfig((JsonObject) JsonTool.fromString(new String(src, Charset.forName("utf8"))));
+                cfg = (JfireInitializationCfg) JsonTool.read(JfireInitializationCfg.class, new String(src, Charset.forName("utf8")));
             }
             catch (IOException e)
             {
@@ -61,7 +61,8 @@ public class JfireRunner extends BlockJUnit4ClassRunner
                 }
             }
         }
-        jfireConfig.addBean(klass.getName(), false, klass);
+        JfireConfig jfireConfig = new JfireConfig(cfg);
+        jfireConfig.registerBeanDefinition(klass.getName(), false, klass);
         if (klass.isAnnotationPresent(PropertyAdd.class))
         {
             Properties properties = new Properties();

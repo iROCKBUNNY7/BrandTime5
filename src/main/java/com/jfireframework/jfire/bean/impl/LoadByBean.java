@@ -1,46 +1,25 @@
 package com.jfireframework.jfire.bean.impl;
 
 import java.util.Map;
-import javax.annotation.Resource;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.load.BeanLoadFactory;
 
 public class LoadByBean extends BaseBean
 {
-    private final String factoryBeanName;
-    private Bean         factoryBean;
     
-    public LoadByBean(Class<?> ckass, String factoryBeanName)
-    {
-        this.factoryBeanName = factoryBeanName;
-        prototype = false;
-        Resource resource = AnnotationUtil.getAnnotation(Resource.class, ckass);
-        if ("".equals(resource.name()))
-        {
-            beanName = ckass.getName();
-        }
-        else
-        {
-            beanName = resource.name();
-        }
-        type = ckass;
-        originType = ckass;
-        canEnhance = false;
-        canInject = false;
-    }
+    private final Bean loadByFactoryBean;
     
-    @Override
-    public void decorateSelf(Map<String, Bean> beanNameMap, Map<Class<?>, Bean> beanTypeMap)
+    public LoadByBean(Class<?> type, String beanName, Bean loadByFactoryBean)
     {
-        factoryBean = beanNameMap.get(factoryBeanName);
+        super(type, beanName, false, null, null);
+        this.loadByFactoryBean = loadByFactoryBean;
     }
     
     @Override
     public Object getInstance()
     {
-        BeanLoadFactory factory = (BeanLoadFactory) factoryBean.getInstance();
-        return factory.load(originType);
+        BeanLoadFactory factory = (BeanLoadFactory) loadByFactoryBean.getInstance();
+        return factory.load(type);
     }
     
     @Override
@@ -52,8 +31,8 @@ public class LoadByBean extends BaseBean
         }
         else
         {
-            BeanLoadFactory factory = (BeanLoadFactory) factoryBean.getInstance(beanInstanceMap);
-            Object entity = factory.load(originType);
+            BeanLoadFactory factory = (BeanLoadFactory) loadByFactoryBean.getInstance(beanInstanceMap);
+            Object entity = factory.load(type);
             beanInstanceMap.put(beanName, entity);
             return entity;
         }

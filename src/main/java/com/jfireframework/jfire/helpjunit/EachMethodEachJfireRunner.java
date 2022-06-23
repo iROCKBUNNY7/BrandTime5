@@ -1,12 +1,7 @@
 package com.jfireframework.jfire.helpjunit;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Properties;
 import org.junit.rules.RunRules;
@@ -15,25 +10,17 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
-import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.codejson.JsonObject;
-import com.jfireframework.codejson.JsonTool;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 
 public class EachMethodEachJfireRunner extends BlockJUnit4ClassRunner
 {
     private Class<?> klass;
-    private String   path;
     
     public EachMethodEachJfireRunner(Class<?> klass) throws InitializationError, URISyntaxException
     {
         super(klass);
         this.klass = klass;
-        ConfigPath path = klass.getAnnotation(ConfigPath.class);
-        this.path = path.value();
-        
     }
     
     @SuppressWarnings("deprecation")
@@ -83,41 +70,7 @@ public class EachMethodEachJfireRunner extends BlockJUnit4ClassRunner
     
     protected Object createTest(Method method)
     {
-        JfireConfig jfireConfig = new JfireConfig();
-        if (path.startsWith("classpath:"))
-        {
-            jfireConfig.readConfig((JsonObject) JsonTool.fromString(StringUtil.readFromClasspath(path.substring(10), Charset.forName("utf8"))));
-        }
-        else if (path.startsWith("file:"))
-        {
-            InputStream inputStream = null;
-            try
-            {
-                inputStream = new FileInputStream(new File(path.substring(5)));
-                byte[] src = new byte[inputStream.available()];
-                inputStream.read(src);
-                jfireConfig.readConfig((JsonObject) JsonTool.fromString(new String(src, Charset.forName("utf8"))));
-            }
-            catch (IOException e)
-            {
-                throw new JustThrowException(e);
-            }
-            finally
-            {
-                if (inputStream != null)
-                {
-                    try
-                    {
-                        inputStream.close();
-                    }
-                    catch (IOException e)
-                    {
-                        throw new JustThrowException(e);
-                    }
-                }
-            }
-        }
-        jfireConfig.addBean(klass.getName(), false, klass);
+        JfireConfig jfireConfig = new JfireConfig(klass);
         if (method.isAnnotationPresent(PropertyAdd.class))
         {
             Properties properties = new Properties();

@@ -2,8 +2,9 @@ package com.jfireframework.jfire.bean;
 
 import java.util.Map;
 
-public interface Bean extends BeanBootstrap
+public interface Bean
 {
+    Class<?> getType();
     
     public Object getInstance();
     

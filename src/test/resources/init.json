@@ -1,5 +1,5 @@
 {
-    "beans": [
+    "beanDefinitions": [
         {
             "beanName": "p2",
             "postConstructMethod": "initage"

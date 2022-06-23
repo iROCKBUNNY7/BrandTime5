@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 import sun.reflect.MethodAccessor;
 
 /**
@@ -13,16 +13,16 @@ import sun.reflect.MethodAccessor;
  */
 public class MethodMapField extends AbstractDependencyField
 {
-    private Bean[]                dependencyBeans;
+    private BeanDefinition[]      dependencyBeans;
     private static final Object[] param = new Object[0];
-    private MethodAccessor[]      methods;
+    private MethodAccessor        keyValueMethod;
     private String                msg;
     
-    public MethodMapField(Field field, Bean[] beans, MethodAccessor[] methods)
+    public MethodMapField(Field field, BeanDefinition[] beans, MethodAccessor keyValueMethod)
     {
         super(field);
         this.dependencyBeans = beans;
-        this.methods = methods;
+        this.keyValueMethod = keyValueMethod;
         msg = StringUtil.format("属性{}.{}不能为空", field.getDeclaringClass(), field.getName());
     }
     
@@ -39,8 +39,8 @@ public class MethodMapField extends AbstractDependencyField
         {
             try
             {
-                entryValue = dependencyBeans[i].getInstance();
-                entryKey = methods[i].invoke(entryValue, param);
+                entryValue = dependencyBeans[i].getConstructedBean().getInstance();
+                entryKey = keyValueMethod.invoke(entryValue, param);
                 map.put(entryKey, entryValue);
             }
             catch (Exception e)

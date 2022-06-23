@@ -2,17 +2,18 @@ package com.jfireframework.jfire.aop;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
-import com.jfireframework.baseutil.el.JelException;
-import com.jfireframework.baseutil.el.JelExplain;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
@@ -20,17 +21,24 @@ import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.simplelog.ConsoleLogFactory;
 import com.jfireframework.baseutil.simplelog.Logger;
 import com.jfireframework.baseutil.verify.Verify;
+import com.jfireframework.jfire.aop.annotation.AfterEnhance;
+import com.jfireframework.jfire.aop.annotation.AroundEnhance;
 import com.jfireframework.jfire.aop.annotation.AutoResource;
+import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
 import com.jfireframework.jfire.aop.annotation.EnhanceClass;
+import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
 import com.jfireframework.jfire.aop.annotation.Transaction;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.cache.CacheManager;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
+import com.jfireframework.jfire.cache.el.JelException;
+import com.jfireframework.jfire.cache.el.JelExplain;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionIsolate;
 import com.jfireframework.jfire.tx.TransactionManager;
+import com.jfireframework.jfire.util.EnvironmentUtil;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -49,14 +57,17 @@ import javassist.bytecode.annotation.Annotation;
 
 public class AopUtil
 {
-    private ClassPool classPool;
-    private CtClass   txManagerCtClass;
-    private CtClass   resManagerCtClass;
-    private CtClass   cacheManagerCtClass;
-    private Logger    logger = ConsoleLogFactory.getLogger();
+    private ClassPool                            classPool;
+    private CtClass                              txManagerCtClass;
+    private CtClass                              resManagerCtClass;
+    private CtClass                              cacheManagerCtClass;
+    private Logger                               logger             = ConsoleLogFactory.getLogger();
+    private final ClassLoader                    classLoader;
+    private final Map<String, BeanAopDefinition> beanAopDefinitions = new HashMap<String, AopUtil.BeanAopDefinition>();
     
     public AopUtil(ClassLoader classLoader)
     {
+        this.classLoader = classLoader;
         classPool = new ClassPool();
         ClassPool.doPruning = true;
         classPool.importPackage("com.jfireframework.jfire.aop");
@@ -79,46 +90,29 @@ public class AopUtil
         }
     }
     
-    {
-        initClassPool();
-    }
-    
-    public void initClassPool(ClassLoader classLoader)
-    {
-        
-    }
-    
-    public void initClassPool()
-    {
-        initClassPool(null);
-    }
-    
     /**
      * 根据给定的包名以及beanNameMap，对其中的bean进行aop增强，并且将增强后的class设置到对应的Bean中。
      * 
      * @param packageNames
      * @param beanMap
      */
-    public void enhance(Map<String, Bean> beanMap, ClassLoader classLoader)
+    public void enhance(Map<String, BeanDefinition> beanMap)
     {
-        initAopMethods(beanMap);
-        initAopbeanSet(beanMap);
-        for (Bean bean : beanMap.values())
+        scanForEmbedEnhanceMethods(beanMap);
+        scanForAspect(beanMap);
+        try
         {
-            bean.setAopUitl(this);
-            try
+            for (BeanAopDefinition beanAopDefinition : beanAopDefinitions.values())
             {
-                if (bean.needEnhance())
-                {
-                    enhanceBean(bean, classLoader);
-                }
+                enhance(beanAopDefinition);
+                beanMap.get(beanAopDefinition.beanName).setType(beanAopDefinition.type);
             }
-            catch (Exception e)
-            {
-                throw new JustThrowException("aop增强出现异常", e);
-            }
+            logger.trace("Aop增强分析完毕");
         }
-        
+        catch (Exception e)
+        {
+            throw new JustThrowException(e);
+        }
     }
     
     /**
@@ -126,36 +120,47 @@ public class AopUtil
      * 
      * @param beanMap
      */
-    private void initAopMethods(Map<String, Bean> beanMap)
+    private void scanForEmbedEnhanceMethods(Map<String, BeanDefinition> beanDefinitions)
     {
-        for (Bean bean : beanMap.values())
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        for (BeanDefinition candidate : beanDefinitions.values())
         {
-            if (bean.canEnhance() == false)
+            if (candidate.isDefault() == false || candidate.getOriginType() != candidate.getType())
             {
                 continue;
             }
+            BeanAopDefinition beanAopDefinition = new BeanAopDefinition(candidate.getBeanName(), candidate.getType());
+            boolean needPut = false;
             // 由于增强是采用子类来实现的,所以事务注解只对当前的类有效.如果当前类的父类也有事务注解,在本次增强中就无法起作用
-            for (Method method : ReflectUtil.getAllMehtods(bean.getType()))
+            for (Method method : ReflectUtil.getAllMehtods(candidate.getType()))
             {
-                if (AnnotationUtil.isPresent(Transaction.class, method))
+                if (annotationUtil.isPresent(Transaction.class, method))
                 {
-                    Verify.False(AnnotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
+                    Verify.False(annotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
                     Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有事务注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    bean.addTxMethod(method);
+                    beanAopDefinition.addTxMethod(method);
+                    needPut = true;
                     logger.trace("发现事务方法{}", method.toString());
                 }
-                else if (AnnotationUtil.isPresent(AutoResource.class, method))
+                else if (annotationUtil.isPresent(AutoResource.class, method))
                 {
                     Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有自动关闭注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    bean.addResMethod(method);
+                    beanAopDefinition.addAutoResourceMethod(method);
+                    needPut = true;
                     logger.trace("发现自动关闭方法{}", method.toString());
                 }
-                if (AnnotationUtil.isPresent(CachePut.class, method) || AnnotationUtil.isPresent(CacheGet.class, method) || AnnotationUtil.isPresent(CacheDelete.class, method))
+                if (annotationUtil.isPresent(CachePut.class, method) || annotationUtil.isPresent(CacheGet.class, method) || annotationUtil.isPresent(CacheDelete.class, method))
                 {
                     Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有缓存注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    bean.addCacheMethod(method);
+                    beanAopDefinition.addCacheMethod(method);
+                    needPut = true;
                     logger.trace("发现缓存方法{}", method.toString());
                 }
+            }
+            if (needPut)
+            {
+                logger.debug("准备增强bean：{}", beanAopDefinition.beanName);
+                beanAopDefinitions.put(beanAopDefinition.beanName, beanAopDefinition);
             }
         }
     }
@@ -165,30 +170,34 @@ public class AopUtil
      * 
      * @param beanMap
      */
-    private void initAopbeanSet(Map<String, Bean> beanMap)
+    private void scanForAspect(Map<String, BeanDefinition> beanDefinitions)
     {
-        for (Bean aopBean : beanMap.values())
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        for (BeanDefinition enhanceBeanDefinition : beanDefinitions.values())
         {
-            EnhanceClass enhanceClass = AnnotationUtil.getAnnotation(EnhanceClass.class, aopBean.getType());
-            if (enhanceClass != null)
+            if (annotationUtil.isPresent(EnhanceClass.class, enhanceBeanDefinition.getType()))
             {
-                String rule = enhanceClass.value();
-                for (Bean targetBean : beanMap.values())
+                String rule = annotationUtil.getAnnotation(EnhanceClass.class, enhanceBeanDefinition.getType()).value();
+                for (BeanDefinition candidate : beanDefinitions.values())
                 {
-                    if (targetBean.canEnhance())
+                    if (candidate.isDefault() //
+                            && StringUtil.match(candidate.getClassName(), rule)//
+                            && candidate.getType() == candidate.getOriginType())
                     {
-                        if (StringUtil.match(targetBean.getOriginType().getName(), rule))
+                        BeanAopDefinition beanAopDefinition = beanAopDefinitions.get(candidate.getClassName());
+                        if (beanAopDefinition == null)
                         {
-                            if (AnnotationUtil.isPresent(EnhanceClass.class, targetBean.getOriginType()) == false)
-                            {
-                                targetBean.addEnhanceBean(aopBean);
-                            }
+                            beanAopDefinition = new BeanAopDefinition(candidate.getBeanName(), candidate.getType());
+                            beanAopDefinitions.put(candidate.getBeanName(), beanAopDefinition);
                         }
+                        beanAopDefinition.resolveEnhanceBeanDefinition(enhanceBeanDefinition);
                     }
                 }
             }
         }
     }
+    
+    private static final AtomicInteger enhanceCount = new AtomicInteger(0);
     
     /**
      * 对目标bean进行aop增强。 增强的原理就是构造一个目标类的子类，并且子类中新增属性，属性上打上@resource注解，用来注入aopbean。
@@ -199,71 +208,61 @@ public class AopUtil
      * @throws CannotCompileException
      * @throws ClassNotFoundException
      */
-    private void enhanceBean(Bean bean, ClassLoader classLoader) throws NotFoundException, CannotCompileException, ClassNotFoundException
+    private void enhance(BeanAopDefinition beanAopDefinition) throws NotFoundException, CannotCompileException, ClassNotFoundException
     {
-        classPool.appendClassPath(new ClassClassPath(bean.getType()));
-        CtClass parentCc = classPool.get(bean.getType().getName());
+        classPool.appendClassPath(new ClassClassPath(beanAopDefinition.originType));
+        CtClass parentCc = classPool.get(beanAopDefinition.originType.getName());
         /**
          * 名字最后跟上时间戳，这样可以保证名字唯一，也就是可以生成不同子类而不冲突
          * 其实在正常的使用中是不必的,但是在测试中,因为在同一个classloader中反复加载就会出问题
          */
-        CtClass childCc = classPool.makeClass(bean.getType().getName() + "_jfire_core_Enhance_" + System.nanoTime());
+        CtClass childCc = classPool.makeClass(beanAopDefinition.originType.getName() + "_jfire_Enhance_$" + enhanceCount.incrementAndGet());
         /**
          * 由于需要增强的class之前已经被加载到了classloader中,所以要增强只能通过实现一个子类的方式进行
          * 由于是对子类操作,所以能够增强的只有目标类的自己的public或者protected方法
          */
         childCc.setSuperclass(parentCc);
         createchildClassMethod(childCc, parentCc);
-        if (bean.getTxMethodSet().size() > 0)
+        if (beanAopDefinition.getTxMethods().size() > 0)
         {
             String txFieldName = "tx_" + System.nanoTime();
             addField(childCc, txManagerCtClass, txFieldName);
-            addTxToMethod(childCc, txFieldName, bean.getTxMethodSet().toArray(new Method[bean.getTxMethodSet().size()]));
+            addTxToMethod(childCc, txFieldName, beanAopDefinition.getTxMethods());
         }
-        if (bean.getResMethods().size() > 0)
+        if (beanAopDefinition.getAutoResourceMethods().size() > 0)
         {
             String resFieldName = "ac_" + System.nanoTime();
             addField(childCc, resManagerCtClass, resFieldName);
-            addResToMethod(childCc, resFieldName, bean.getResMethods().toArray(new Method[bean.getResMethods().size()]));
+            addResToMethod(childCc, resFieldName, beanAopDefinition.getAutoResourceMethods());
         }
-        if (bean.getCacheMethods().size() > 0)
+        if (beanAopDefinition.getCacheMethods().size() > 0)
         {
             String cacheFieldName = "cache_" + System.nanoTime();
             addField(childCc, cacheManagerCtClass, cacheFieldName);
-            addCacheToMethod(childCc, cacheFieldName, bean.getCacheMethods().toArray(new Method[bean.getCacheMethods().size()]));
+            addCacheToMethod(childCc, cacheFieldName, beanAopDefinition.getCacheMethods());
         }
-        if (bean.getEnHanceAnnos().size() > 0)
+        if (beanAopDefinition.getEnhanceAnnoInfos().size() > 0)
         {
             /**
              * aop增强,采用的是将增强类作为目标类的属性注入到目标类中.所以在开始增强前,需要确定注入属性的名称.
              * 由于一个增强类中的多个EnhanceAnnoInfo的共用同一个属性名，所以在这里进行去重。只要放入一个即可
              */
             HashSet<String> enHanceNameSet = new HashSet<String>();
-            for (EnhanceAnnoInfo info : bean.getEnHanceAnnos())
+            for (EnhanceAnnoInfo info : beanAopDefinition.getEnhanceAnnoInfos())
             {
                 if (enHanceNameSet.contains(info.getEnhanceFieldName()) == false)
                 {
-                    addField(childCc, classPool.get(info.getEnhanceBean().getType().getName()), info.getEnhanceFieldName());
+                    addField(childCc, classPool.get(info.getEnhanceBeanType().getName()), info.getEnhanceFieldName());
                     enHanceNameSet.add(info.getEnhanceFieldName());
                 }
             }
         }
-        List<EnhanceAnnoInfo> infos = new LinkedList<EnhanceAnnoInfo>();
+        Collections.sort(beanAopDefinition.getEnhanceAnnoInfos(), new AescComparator());
         for (CtMethod each : childCc.getDeclaredMethods())
         {
             // 针对每一个方法,取出该方法对应的所有增强,并且进行排序
-            infos.clear();
-            for (EnhanceAnnoInfo enhanceAnnoInfo : bean.getEnHanceAnnos())
-            {
-                if (enhanceAnnoInfo.match(each))
-                {
-                    infos.add(enhanceAnnoInfo);
-                }
-            }
-            EnhanceAnnoInfo[] enhanceAnnoInfos = infos.toArray(new EnhanceAnnoInfo[infos.size()]);
-            Arrays.sort(enhanceAnnoInfos, new AescComparator());
             String originName = each.getName();
-            for (EnhanceAnnoInfo enhanceAnnoInfo : enhanceAnnoInfos)
+            for (EnhanceAnnoInfo enhanceAnnoInfo : beanAopDefinition.getEnhanceAnnoInfos())
             {
                 /**
                  * 因为后置增强和环绕增强都是在修改了原方法的名称,生成了新的同名方法来完成的.所以一开始要保存方法的原始名称
@@ -273,21 +272,35 @@ public class AopUtil
                 switch (enhanceAnnoInfo.getType())
                 {
                     case EnhanceAnnoInfo.BEFORE:
-                        enhanceBefore(ctMethod, enhanceAnnoInfo);
+                        logger.debug("准备检查方法:{}", each.getName());
+                        if (enhanceAnnoInfo.match(ctMethod))
+                        {
+                            logger.debug("方法:{}匹配规则:{},准备进行前置增强", each.getName(), enhanceAnnoInfo.getPath());
+                            enhanceBefore(ctMethod, enhanceAnnoInfo);
+                        }
                         break;
                     case EnhanceAnnoInfo.AFTER:
-                        enhanceAfter(ctMethod, enhanceAnnoInfo, childCc);
+                        if (enhanceAnnoInfo.match(ctMethod))
+                        {
+                            enhanceAfter(ctMethod, enhanceAnnoInfo, childCc);
+                        }
                         break;
                     case EnhanceAnnoInfo.AROUND:
-                        enhanceAround(ctMethod, enhanceAnnoInfo, childCc);
+                        if (enhanceAnnoInfo.match(ctMethod))
+                        {
+                            enhanceAround(ctMethod, enhanceAnnoInfo, childCc);
+                        }
                         break;
                     case EnhanceAnnoInfo.THROW:
-                        enhanceThrow(ctMethod, enhanceAnnoInfo);
+                        if (enhanceAnnoInfo.match(ctMethod))
+                        {
+                            enhanceThrow(ctMethod, enhanceAnnoInfo);
+                        }
                         break;
                 }
             }
         }
-        bean.setType(childCc.toClass(classLoader, null));
+        beanAopDefinition.type = (childCc.toClass(classLoader, null));
         // 进行脱离操作，减少内存占用
         parentCc.detach();
         childCc.detach();
@@ -345,7 +358,7 @@ public class AopUtil
         /**
          * 新建一个子类集成ProceedPointImpl，并且改写其中的invoke方法，使其调用目标类的目标方法（修改名字后的）
          */
-        CtClass pointImpl = classPool.makeClass(ProceedPointImpl.class.getName() + "_" + System.nanoTime());
+        CtClass pointImpl = classPool.makeClass(ProceedPointImpl.class.getName() + "_" + enhanceCount.incrementAndGet());
         pointImpl.setSuperclass(ProceedPointImplCtClass);
         CtMethod invoke = new CtMethod(objectCtClass, "invoke", null, pointImpl);
         invoke.setModifiers(Modifier.PUBLIC);
@@ -431,11 +444,12 @@ public class AopUtil
      * @throws NotFoundException
      * @throws CannotCompileException
      */
-    private void addTxToMethod(CtClass targetCc, String txFieldName, Method[] txMethods) throws NotFoundException, CannotCompileException
+    private void addTxToMethod(CtClass targetCc, String txFieldName, List<Method> txMethods) throws NotFoundException, CannotCompileException
     {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method method : txMethods)
         {
-            Transaction transaction = AnnotationUtil.getAnnotation(Transaction.class, method);
+            Transaction transaction = annotationUtil.getAnnotation(Transaction.class, method);
             Class<?>[] types = transaction.exceptions();
             CtClass[] exCcs = new CtClass[types.length];
             for (int i = 0; i < types.length; i++)
@@ -477,11 +491,12 @@ public class AopUtil
      * @throws NotFoundException
      * @throws CannotCompileException
      */
-    private void addResToMethod(CtClass targetCc, String resFieldName, Method[] resMethods) throws NotFoundException, CannotCompileException
+    private void addResToMethod(CtClass targetCc, String resFieldName, List<Method> resMethods) throws NotFoundException, CannotCompileException
     {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method method : resMethods)
         {
-            AutoResource autoClose = AnnotationUtil.getAnnotation(AutoResource.class, method);
+            AutoResource autoClose = annotationUtil.getAnnotation(AutoResource.class, method);
             Class<?>[] types = autoClose.exceptions();
             CtClass[] exCcs = new CtClass[types.length];
             for (int i = 0; i < types.length; i++)
@@ -498,8 +513,9 @@ public class AopUtil
         }
     }
     
-    private void addCacheToMethod(CtClass targetCc, String cacheFieldName, Method[] cacheMethods) throws CannotCompileException, NotFoundException
+    private void addCacheToMethod(CtClass targetCc, String cacheFieldName, List<Method> cacheMethods) throws CannotCompileException, NotFoundException
     {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method each : cacheMethods)
         {
             try
@@ -508,7 +524,7 @@ public class AopUtil
                 Class<?>[] types = each.getParameterTypes();
                 CtMethod ctMethod = targetCc.getDeclaredMethod(each.getName(), getParamTypes(each));
                 String methodBody = null;
-                if (AnnotationUtil.isPresent(CacheGet.class, each))
+                if (annotationUtil.isPresent(CacheGet.class, each))
                 {
                     if (each.getReturnType() == Void.class)
                     {
@@ -516,7 +532,7 @@ public class AopUtil
                     }
                     String returnTypeName = each.getReturnType().getName();
                     String resultName = "result_" + System.nanoTime();
-                    CacheGet cacheGet = AnnotationUtil.getAnnotation(CacheGet.class, each);
+                    CacheGet cacheGet = annotationUtil.getAnnotation(CacheGet.class, each);
                     String key = cacheGet.value();
                     String finalKey = JelExplain.createValue(key, names, types);
                     String cacheName = cacheGet.cacheName();
@@ -561,13 +577,13 @@ public class AopUtil
                         ctMethod.setBody(methodBody);
                     }
                 }
-                if (AnnotationUtil.isPresent(CachePut.class, each))
+                if (annotationUtil.isPresent(CachePut.class, each))
                 {
                     if (each.getReturnType() == Void.class)
                     {
                         throw new JelException(StringUtil.format("使用CachePut注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
                     }
-                    CachePut cachePut = AnnotationUtil.getAnnotation(CachePut.class, each);
+                    CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, each);
                     String key = cachePut.value();
                     String finalKey = JelExplain.createValue(key, names, types);
                     String cacheName = cachePut.cacheName();
@@ -604,9 +620,9 @@ public class AopUtil
                     }
                     ctMethod.insertAfter(methodBody);
                 }
-                if (AnnotationUtil.isPresent(CacheDelete.class, each))
+                if (annotationUtil.isPresent(CacheDelete.class, each))
                 {
-                    CacheDelete cacheDelete = AnnotationUtil.getAnnotation(CacheDelete.class, each);
+                    CacheDelete cacheDelete = annotationUtil.getAnnotation(CacheDelete.class, each);
                     String key = cacheDelete.value();
                     String finalKey = JelExplain.createValue(key, names, types);
                     String cacheName = cacheDelete.cacheName();
@@ -880,5 +896,102 @@ public class AopUtil
             list.add(ClassPool.getDefault().get(each.getName()));
         }
         return ctClass.getDeclaredMethod(method.getName(), list.toArray(new CtClass[list.size()]));
+    }
+    
+    class BeanAopDefinition
+    {
+        private List<Method>          autoResourceMethods = new ArrayList<Method>(8);
+        private List<Method>          txMethods           = new ArrayList<Method>(8);
+        private List<Method>          cacheMethods        = new ArrayList<Method>(8);
+        private List<EnhanceAnnoInfo> enhanceAnnoInfos    = new ArrayList<EnhanceAnnoInfo>(8);
+        private final String          beanName;
+        private final Class<?>        originType;
+        private Class<?>              type;
+        
+        public BeanAopDefinition(String beanName, Class<?> originType)
+        {
+            this.beanName = beanName;
+            this.originType = originType;
+        }
+        
+        void addAutoResourceMethod(Method method)
+        {
+            autoResourceMethods.add(method);
+        }
+        
+        void addTxMethod(Method method)
+        {
+            txMethods.add(method);
+        }
+        
+        void addCacheMethod(Method method)
+        {
+            cacheMethods.add(method);
+        }
+        
+        void resolveEnhanceBeanDefinition(BeanDefinition enhanceBeanDefinition)
+        {
+            String enhanceBeanfieldName = "jfireinvoker$" + enhanceCount.incrementAndGet();
+            String path;
+            int order;
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+            for (Method each : enhanceBeanDefinition.getType().getDeclaredMethods())
+            {
+                if (annotationUtil.isPresent(AfterEnhance.class, each))
+                {
+                    AfterEnhance afterEnhance = annotationUtil.getAnnotation(AfterEnhance.class, each);
+                    path = afterEnhance.value().equals("") ? each.getName() + "(*)" : afterEnhance.value();
+                    order = afterEnhance.order();
+                }
+                else if (annotationUtil.isPresent(AroundEnhance.class, each))
+                {
+                    AroundEnhance aroundEnhance = annotationUtil.getAnnotation(AroundEnhance.class, each);
+                    path = aroundEnhance.value().equals("") ? each.getName() + "(*)" : aroundEnhance.value();
+                    order = aroundEnhance.order();
+                }
+                else if (annotationUtil.isPresent(BeforeEnhance.class, each))
+                {
+                    BeforeEnhance beforeEnhance = annotationUtil.getAnnotation(BeforeEnhance.class, each);
+                    path = beforeEnhance.value().equals("") ? each.getName() + "(*)" : beforeEnhance.value();
+                    order = beforeEnhance.order();
+                }
+                else if (annotationUtil.isPresent(ThrowEnhance.class, each))
+                {
+                    ThrowEnhance throwEnhance = annotationUtil.getAnnotation(ThrowEnhance.class, each);
+                    path = throwEnhance.value().equals("") ? each.getName() + "(*)" : throwEnhance.value();
+                    order = throwEnhance.order();
+                    EnhanceAnnoInfo enhanceAnnoInfo = new EnhanceAnnoInfo(enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each);
+                    enhanceAnnoInfo.setThrowtype(throwEnhance.type());
+                    enhanceAnnoInfos.add(enhanceAnnoInfo);
+                    continue;
+                }
+                else
+                {
+                    continue;
+                }
+                enhanceAnnoInfos.add(new EnhanceAnnoInfo(enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each));
+            }
+        }
+        
+        public List<Method> getAutoResourceMethods()
+        {
+            return autoResourceMethods;
+        }
+        
+        public List<Method> getTxMethods()
+        {
+            return txMethods;
+        }
+        
+        public List<Method> getCacheMethods()
+        {
+            return cacheMethods;
+        }
+        
+        public List<EnhanceAnnoInfo> getEnhanceAnnoInfos()
+        {
+            return enhanceAnnoInfos;
+        }
+        
     }
 }

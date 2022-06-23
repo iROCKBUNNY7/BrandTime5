@@ -7,79 +7,82 @@ import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.UnSupportException;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.util.EnvironmentUtil;
 
 public class Jfire
 {
-    protected Map<String, Bean>   beanNameMap = new HashMap<String, Bean>();
-    protected Map<Class<?>, Bean> beanTypeMap = new HashMap<Class<?>, Bean>();
+    protected Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
     
     public Jfire(JfireConfig jfireConfig)
     {
-        jfireConfig.initContext(this);
-        beanNameMap = jfireConfig.beanNameMap;
-        beanTypeMap = jfireConfig.beanTypeMap;
+        jfireConfig.initJfire(this);
+        beanDefinitions = jfireConfig.beanDefinitions;
     }
     
-    public Object getBean(String name)
+    @SuppressWarnings("unchecked")
+    public <T> T getBean(String name)
     {
-        Bean bean = beanNameMap.get(name);
-        if (bean != null)
+        BeanDefinition beanDefinition = beanDefinitions.get(name);
+        if (beanDefinition != null)
         {
-            return bean.getInstance();
+            return (T) beanDefinition.getInstance();
         }
         else
         {
-            throw new UnSupportException("bean:" + name + "不存在");
+            return null;
         }
     }
     
     @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> src)
     {
-        Bean bean = getBeanInfo(src);
-        return (T) bean.getInstance();
+        return (T) getBeanDefinition(src).getConstructedBean().getInstance();
     }
     
-    public Bean getBeanInfo(Class<?> beanClass)
+    public BeanDefinition getBeanDefinition(Class<?> beanClass)
     {
-        Bean bean = beanTypeMap.get(beanClass);
-        if (bean != null)
+        for (BeanDefinition each : beanDefinitions.values())
         {
-            return bean;
+            if (each.getOriginType() == beanClass)
+            {
+                return each;
+            }
         }
         throw new UnSupportException("bean" + beanClass.getName() + "不存在");
     }
     
-    public Bean getBeanInfo(String resName)
+    public BeanDefinition getBeanDefinition(String resName)
     {
-        return beanNameMap.get(resName);
+        return beanDefinitions.get(resName);
     }
     
-    public Bean[] getBeanByAnnotation(Class<? extends Annotation> annotationType)
+    public BeanDefinition[] getBeanDefinitionByAnnotation(Class<? extends Annotation> annotationType)
     {
-        List<Bean> beans = new LinkedList<Bean>();
-        for (Bean each : beanNameMap.values())
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        List<BeanDefinition> result = new LinkedList<BeanDefinition>();
+        for (BeanDefinition each : beanDefinitions.values())
         {
-            if (AnnotationUtil.isPresent(annotationType, each.getOriginType()))
+            if (annotationUtil.isPresent(annotationType, each.getOriginType()))
             {
-                beans.add(each);
+                result.add(each);
             }
         }
-        return beans.toArray(new Bean[beans.size()]);
+        annotationUtil.clear();
+        return result.toArray(new BeanDefinition[result.size()]);
     }
     
-    public Bean[] getBeanByInterface(Class<?> type)
+    public BeanDefinition[] getBeanDefinitionByInterface(Class<?> type)
     {
-        List<Bean> list = new LinkedList<Bean>();
-        for (Bean each : beanNameMap.values())
+        List<BeanDefinition> list = new LinkedList<BeanDefinition>();
+        for (BeanDefinition each : beanDefinitions.values())
         {
             if (type.isAssignableFrom(each.getOriginType()))
             {
-                list.add(each);
+                list.add(beanDefinitions.get(each.getBeanName()));
             }
         }
-        return list.toArray(new Bean[list.size()]);
+        return list.toArray(new BeanDefinition[list.size()]);
     }
     
     /**
@@ -87,9 +90,9 @@ public class Jfire
      */
     public void close()
     {
-        for (Bean each : beanNameMap.values())
+        for (BeanDefinition each : beanDefinitions.values())
         {
-            each.close();
+            each.getConstructedBean().close();
         }
     }
 }

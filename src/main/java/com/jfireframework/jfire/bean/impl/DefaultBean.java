@@ -1,78 +1,18 @@
 package com.jfireframework.jfire.bean.impl;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.UnSupportException;
-import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.JfireInitFinish;
-import com.jfireframework.jfire.bean.field.dependency.DependencyField;
+import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 
 public class DefaultBean extends BaseBean
 {
-    public DefaultBean(Class<?> ckass)
-    {
-        if (AnnotationUtil.isPresent(Resource.class, ckass) == false)
-        {
-            throw new NullPointerException();
-        }
-        Resource resource = AnnotationUtil.getAnnotation(Resource.class, ckass);
-        if ("".equals(resource.name()))
-        {
-            beanName = ckass.getName();
-        }
-        else
-        {
-            beanName = resource.name();
-        }
-        prototype = (resource.shareable() == false);
-        configBean(beanName, prototype, ckass);
-    }
     
-    public DefaultBean(String beanName, Class<?> ckass, boolean prototype)
+    public DefaultBean(Class<?> type, String beanName, boolean prototype, DIField[] diFields, ParamField[] paramFields)
     {
-        configBean(beanName, prototype, ckass);
-    }
-    
-    /**
-     * 配置Bean信息，设置该bean的资源名称，是否多例，以及该Bean的类型和原始类型。并且判断是否实现了容器初始化完毕接口
-     * 
-     * @param beanName 该bean的名称
-     * @param prototype 该bean是否多例
-     * @param src 该bean的类
-     */
-    protected void configBean(String beanName, boolean prototype, Class<?> src)
-    {
-        this.beanName = beanName;
-        type = src;
-        originType = src;
-        this.prototype = prototype;
-        if (JfireInitFinish.class.isAssignableFrom(src))
-        {
-            hasFinishAction = true;
-        }
-        for (Method each : ReflectUtil.getAllMehtods(src))
-        {
-            if (each.isAnnotationPresent(PostConstruct.class))
-            {
-                Verify.True(postConstructMethod == null, "一个类只能有一个方法使用注解PostConstruct");
-                Verify.True(each.getParameterTypes().length == 0, "使用PostConstruct注解的方法必须是无参方法，请检查{}.{}", each.getDeclaringClass().getName(), each.getName());
-                postConstructMethod = ReflectUtil.fastMethod(each);
-            }
-            if (each.isAnnotationPresent(PreDestroy.class))
-            {
-                Verify.True(preDestoryMethod == null, "一个雷只能有一个方法使用注解PreDestory");
-                Verify.True(each.getParameterTypes().length == 0, "使用PreDestory注解的方法必须是无参方法，请检查{}.{}", each.getDeclaringClass().getName(), each.getName());
-                preDestoryMethod = ReflectUtil.fastMethod(each);
-            }
-        }
+        super(type, beanName, prototype, diFields, paramFields);
     }
     
     @Override
@@ -114,7 +54,7 @@ public class DefaultBean extends BaseBean
         {
             Object instance = type.newInstance();
             beanInstanceMap.put(beanName, instance);
-            for (DependencyField each : injectFields)
+            for (DIField each : diFields)
             {
                 each.inject(instance, beanInstanceMap);
             }

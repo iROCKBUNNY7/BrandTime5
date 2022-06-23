@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 
 /**
  * Map注入，map的key是bean的名称，也就是value的bean的名称
@@ -14,13 +14,15 @@ import com.jfireframework.jfire.bean.Bean;
  */
 public class BeanNameMapField extends AbstractDependencyField
 {
-    private Bean[] dependencyBeans;
-    private String msg;
+    private BeanDefinition[] dependencyBeans;
+    private String[]         beanNames;
+    private String           msg;
     
-    public BeanNameMapField(Field field, Bean[] beans)
+    public BeanNameMapField(Field field, BeanDefinition[] beans, String[] beanNames)
     {
         super(field);
         this.dependencyBeans = beans;
+        this.beanNames = beanNames;
         msg = StringUtil.format("属性{}.{}不能为空", field.getDeclaringClass(), field.getName());
     }
     
@@ -30,16 +32,9 @@ public class BeanNameMapField extends AbstractDependencyField
     {
         Map map = (Map) unsafe.getObject(src, offset);
         Verify.notNull(map, msg);
-        for (Bean each : dependencyBeans)
+        for (int i = 0; i < dependencyBeans.length; i++)
         {
-            try
-            {
-                map.put(each.getBeanName(), each.getInstance());
-            }
-            catch (IllegalArgumentException e)
-            {
-                throw new RuntimeException(e);
-            }
+            map.put(beanNames[i], dependencyBeans[i].getConstructedBean().getInstance());
         }
     }
 }

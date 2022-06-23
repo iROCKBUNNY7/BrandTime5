@@ -1,7 +1,8 @@
 package com.jfireframework.context.test.function.cachetest;
 
+import java.util.Random;
 import javax.annotation.Resource;
-import com.jfireframework.baseutil.code.RandomString;
+import com.jfireframework.baseutil.uniqueid.AutumnId;
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
@@ -33,7 +34,7 @@ public class CacheTarget
     public String get()
     {
         System.out.println("setarray");
-        return RandomString.randomString(4);
+        return AutumnId.instance().generate();
     }
     
     @CachePut("\"abc\"")

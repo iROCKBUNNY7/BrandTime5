@@ -1,5 +1,5 @@
 {
-    "beans": [
+    "beanDefinitions": [
         {
             "beanName": "com.jfireframework.context.test.function.base.data.House",
             "prototype": false,

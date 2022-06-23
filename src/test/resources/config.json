@@ -1,8 +1,8 @@
 {
-    "packageNames": [
+    "scanPackageNames": [
         "com.jfireframework.context.test.function.base"
     ],
-    "beans": [
+    "beanDefinitions": [
         {
             "beanName": "com.jfireframework.context.test.function.base.data.ImmutablePerson",
             "params": {

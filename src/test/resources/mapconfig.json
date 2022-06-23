@@ -1,8 +1,8 @@
 {
-    "packageNames": [
+    "scanPackageNames": [
         "com.jfireframework.context.test.function.base.maptest"
     ],
-    "beans": [
+    "beanDefinitions": [
         {
             "beanName": "house",
             "prototype": false,

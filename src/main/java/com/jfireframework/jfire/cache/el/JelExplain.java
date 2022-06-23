@@ -9,8 +9,8 @@ import com.jfireframework.baseutil.verify.Verify;
 public class JelExplain
 {
     /**
-     * 将表达式进行解析。比如user.age >15会被生成(user !=null) &&
-     * (user.getAge() !=null) && (user.getAge().intValue()>15)
+     * 将表达式进行解析。比如user.age >15会被生成(user !=null) && (user.getAge() !=null) &&
+     * (user.getAge().intValue()>15)
      * 
      * @param conditionStatment 条件语句如[user.age >15]
      * @param paramNames 接口方法所有的入参名称
@@ -141,8 +141,7 @@ public class JelExplain
     
     /**
      * 给定字符串inject，搜索可能的参数字符串。比如字符串为user.name，有一个参数为类user。
-     * 则参数字符串应该是user.getName()
-     * 返回的结果是这个方法或者这个参数的类型。如果方法的返回类型是数组，则返回的结果是这个数组的元素类型
+     * 则参数字符串应该是user.getName() 返回的结果是这个方法或者这个参数的类型。如果方法的返回类型是数组，则返回的结果是这个数组的元素类型
      * 
      * @param inject
      * @param paramNames
@@ -177,9 +176,7 @@ public class JelExplain
     }
     
     /**
-     * 从start处开始，遇到一些特定字符时直接返回。
-     * 特定字符包含
-     * >,<,!,=,#,+,-,(,),[,],还有逗号和空格
+     * 从start处开始，遇到一些特定字符时直接返回。 特定字符包含 >,<,!,=,#,+,-,(,),[,],还有逗号和空格
      * 如果始终没有遇到结束字符，则最终返回字符串的长度
      * 
      * @param str
@@ -190,21 +187,19 @@ public class JelExplain
     {
         while (start < str.length())
         {
-            if (
-                str.charAt(start) == '>' //
-                        || str.charAt(start) == '<' //
-                        || str.charAt(start) == '!' //
-                        || str.charAt(start) == '=' //
-                        || str.charAt(start) == ' ' //
-                        || str.charAt(start) == ',' //
-                        || str.charAt(start) == '#' //
-                        || str.charAt(start) == '+' //
-                        || str.charAt(start) == '-' //
-                        || str.charAt(start) == '(' //
-                        || str.charAt(start) == ')' //
-                        || str.charAt(start) == ']' //
-                        || str.charAt(start) == '['
-            )
+            if (str.charAt(start) == '>' //
+                    || str.charAt(start) == '<' //
+                    || str.charAt(start) == '!' //
+                    || str.charAt(start) == '=' //
+                    || str.charAt(start) == ' ' //
+                    || str.charAt(start) == ',' //
+                    || str.charAt(start) == '#' //
+                    || str.charAt(start) == '+' //
+                    || str.charAt(start) == '-' //
+                    || str.charAt(start) == '(' //
+                    || str.charAt(start) == ')' //
+                    || str.charAt(start) == ']' //
+                    || str.charAt(start) == '[')
             {
                 break;
             }
@@ -373,9 +368,7 @@ public class JelExplain
     }
     
     /**
-     * 返回最终的取值表达式。
-     * 如果是基本类型和String就返回原本的内容。
-     * 如果类型是基本类型的包装类型，则在尾部追加获取基本类型值的方法。
+     * 返回最终的取值表达式。 如果是基本类型和String就返回原本的内容。 如果类型是基本类型的包装类型，则在尾部追加获取基本类型值的方法。
      * 比如prefix是user.getAge()，而age的类型是Integer，则最终返回结果是user.getAge().intValue()
      * 
      * @param prefix

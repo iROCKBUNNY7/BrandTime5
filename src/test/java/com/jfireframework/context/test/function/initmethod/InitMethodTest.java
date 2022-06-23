@@ -5,11 +5,11 @@ import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.codejson.JsonObject;
 import com.jfireframework.codejson.JsonTool;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.BeanInfo;
+import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.config.JfireInitializationCfg;
 
 public class InitMethodTest
 {
@@ -17,7 +17,9 @@ public class InitMethodTest
     @Test
     public void test()
     {
-        JfireConfig config = new JfireConfig().addPackageNames("com.jfireframework.context.test.function.initmethod");
+        JfireInitializationCfg cfg = new JfireInitializationCfg();
+        cfg.setScanPackageNames("com.jfireframework.context.test.function.initmethod");
+        JfireConfig config = new JfireConfig(cfg);
         Person person = new Jfire(config).getBean(Person.class);
         Assert.assertEquals(23, person.getAge());
         Assert.assertEquals("林斌", person.getName());
@@ -26,11 +28,13 @@ public class InitMethodTest
     @Test
     public void testcfg()
     {
-        JfireConfig config = new JfireConfig().addPackageNames("com.jfireframework.context.test.function.initmethod");
-        BeanInfo beanInfo = new BeanInfo();
+        JfireInitializationCfg cfg = new JfireInitializationCfg();
+        cfg.setScanPackageNames("com.jfireframework.context.test.function.initmethod");
+        JfireConfig config = new JfireConfig(cfg);
+        BeanDefinition beanInfo = new BeanDefinition();
         beanInfo.setBeanName("p2");
         beanInfo.setPostConstructMethod("initage");
-        config.addBeanInfo(beanInfo);
+        config.registerBeanDefinition(beanInfo);
         Jfire jfire = new Jfire(config);
         Person2 person2 = jfire.getBean(Person2.class);
         System.out.println("dsasdasd");
@@ -40,8 +44,9 @@ public class InitMethodTest
     @Test
     public void testfilecfg() throws URISyntaxException
     {
-        JfireConfig config = new JfireConfig().addPackageNames("com.jfireframework.context.test.function.initmethod");
-        config.readConfig((JsonObject) JsonTool.fromString(StringUtil.readFromClasspath("init.json", Charset.forName("utf8"))));
+        JfireInitializationCfg cfg = (JfireInitializationCfg) JsonTool.read(JfireInitializationCfg.class, StringUtil.readFromClasspath("init.json", Charset.forName("utf8")));
+        cfg.setScanPackageNames("com.jfireframework.context.test.function.initmethod");
+        JfireConfig config = new JfireConfig(cfg);
         Person2 person2 = new Jfire(config).getBean(Person2.class);
         Assert.assertEquals(12, person2.getAge());
     }

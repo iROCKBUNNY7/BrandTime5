@@ -4,21 +4,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.code.CodeLocation;
-import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
@@ -26,52 +29,87 @@ import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.simplelog.ConsoleLogFactory;
 import com.jfireframework.baseutil.simplelog.Logger;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.codejson.JsonObject;
-import com.jfireframework.codejson.JsonTool;
 import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.field.FieldFactory;
+import com.jfireframework.jfire.bean.field.dependency.DIField;
+import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
+import com.jfireframework.jfire.bean.field.dependency.impl.BeanNameMapField;
+import com.jfireframework.jfire.bean.field.dependency.impl.DefaultBeanField;
+import com.jfireframework.jfire.bean.field.dependency.impl.ListField;
+import com.jfireframework.jfire.bean.field.dependency.impl.MethodMapField;
+import com.jfireframework.jfire.bean.field.dependency.impl.ValueMapField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
+import com.jfireframework.jfire.bean.impl.AnnotationConfigBean;
+import com.jfireframework.jfire.bean.impl.BaseBean;
 import com.jfireframework.jfire.bean.impl.DefaultBean;
 import com.jfireframework.jfire.bean.impl.LoadByBean;
 import com.jfireframework.jfire.bean.impl.OuterEntityBean;
 import com.jfireframework.jfire.bean.load.LoadBy;
-import com.jfireframework.jfire.config.BeanInfo;
-import com.jfireframework.jfire.config.ContextConfig;
-import com.jfireframework.jfire.config.Profile;
-import com.jfireframework.jfire.config.annotation.ActiveProfile;
-import com.jfireframework.jfire.config.annotation.Beans;
+import com.jfireframework.jfire.config.Condition;
+import com.jfireframework.jfire.config.Environment;
+import com.jfireframework.jfire.config.ImportBeanDefinition;
+import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.config.annotation.BeanDefinitions;
+import com.jfireframework.jfire.config.annotation.ComponentScan;
+import com.jfireframework.jfire.config.annotation.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.annotation.OutterProperties;
-import com.jfireframework.jfire.config.annotation.PackageNames;
-import com.jfireframework.jfire.config.annotation.ProfileName;
 import com.jfireframework.jfire.config.annotation.PropertyPaths;
+import com.jfireframework.jfire.util.EnvironmentUtil;
+import sun.reflect.MethodAccessor;
 
 public class JfireConfig
 {
-    protected Map<String, BeanInfo> configMap        = new HashMap<String, BeanInfo>();
-    protected Map<String, Bean>     beanNameMap      = new HashMap<String, Bean>();
-    protected Map<Class<?>, Bean>   beanTypeMap      = new HashMap<Class<?>, Bean>();
-    protected boolean               init             = false;
-    protected List<String>          classNames       = new LinkedList<String>();
-    protected ClassLoader           classLoader      = JfireConfig.class.getClassLoader();
-    protected Map<String, String>   properties       = new HashMap<String, String>();
-    protected Map<String, String>   outterProperties = new HashMap<String, String>();
-    protected Profile[]             profiles         = new Profile[0];
-    protected String                activeProfile;
-    protected static final Logger   logger           = ConsoleLogFactory.getLogger();
+    protected Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
+    protected List<String>                classNames      = new LinkedList<String>();
+    protected ClassLoader                 classLoader     = JfireConfig.class.getClassLoader();
+    protected Map<String, String>         properties      = new HashMap<String, String>();
+    protected Environment                 environment     = new Environment(beanDefinitions, properties);
+    protected static final Logger         logger          = ConsoleLogFactory.getLogger();
     
-    public JfireConfig addPackageNames(String... packageNames)
+    public JfireConfig()
     {
-        if (packageNames.length == 0)
+    }
+    
+    public JfireConfig(JfireInitializationCfg cfg)
+    {
+        readConfig(cfg);
+    }
+    
+    public JfireConfig(Class<?> configClass)
+    {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        if (annotationUtil.isPresent(Configuration.class, configClass))
         {
-            return this;
+            environment.addConfigClass(configClass);
+            processComponentScan(configClass);
+            registerBeanDefinition(configClass);
         }
-        Verify.False(init, "不能在容器初始化后再加入需要扫描的包名");
-        Verify.notNull(packageNames, "添加扫描的包名有误,不能为null.请检查{}", CodeLocation.getCodeLocation(2));
+    }
+    
+    public JfireConfig(Class<?> configClass, JfireInitializationCfg cfg)
+    {
+        readConfig(cfg);
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        if (annotationUtil.isPresent(Configuration.class, configClass))
+        {
+            environment.addConfigClass(configClass);
+            processComponentScan(configClass);
+            registerBeanDefinition(configClass);
+        }
+    }
+    
+    private void addScanPackageNames(String... scanPackageNames)
+    {
+        if (scanPackageNames.length == 0)
+        {
+            return;
+        }
+        Verify.notNull(scanPackageNames, "添加扫描的包名有误,不能为null.请检查{}", CodeLocation.getCodeLocation(2));
         List<String> classNames = new LinkedList<String>();
-        for (String each : packageNames)
+        for (String each : scanPackageNames)
         {
             if (each == null)
             {
@@ -83,63 +121,22 @@ public class JfireConfig
             }
         }
         this.classNames.addAll(classNames);
-        StringCache cache = new StringCache("共扫描到类：\r\n");
-        for (int i = 0; i < classNames.size(); i++)
-        {
-            cache.append("{}\r\n");
-        }
-        logger.trace(cache.toString(), (Object[]) classNames.toArray(new String[classNames.size()]));
-        return this;
     }
     
-    public JfireConfig readConfig(JsonObject config)
+    private void readConfig(JfireInitializationCfg cfg)
     {
-        try
+        addScanPackageNames(cfg.getScanPackageNames());
+        for (BeanDefinition each : cfg.getBeanDefinitions())
         {
-            /** 将配置文件的内容，以json方式读取，并且得到json对象 */
-            ContextConfig contextConfig = JsonTool.read(ContextConfig.class, config);
-            addPackageNames(contextConfig.getPackageNames());
-            handleBeanInfos(contextConfig.getBeans());
-            readProperties(contextConfig.getPropertyPaths());
-            properties.putAll(contextConfig.getProperties());
-            profiles = contextConfig.getProfiles();
-            if (StringUtil.isNotBlank(contextConfig.getActiveProfile()))
-            {
-                activeProfile = contextConfig.getActiveProfile();
-            }
-            return this;
+            each.enablePrototype(each.getCfgPrototype());
+            each.switchDefault();
         }
-        catch (ClassNotFoundException e)
-        {
-            logger.error("配置的className错误", e);
-            throw new JustThrowException(e);
-        }
+        registerBeanDefinition(cfg.getBeanDefinitions());
+        resolvePropertyFile(cfg.getPropertyPaths());
+        properties.putAll(cfg.getProperties());
     }
     
-    private void handleBeanInfos(BeanInfo[] infos) throws ClassNotFoundException
-    {
-        for (BeanInfo info : infos)
-        {
-            String className = info.getClassName();
-            // 如果有className就是定义一个全新的bean，否则的话，就是单纯的给已经存在的bean做配置
-            if (StringUtil.isNotBlank(className))
-            {
-                String beanName = info.getBeanName();
-                boolean prototype = info.isPrototype();
-                addBean(beanName, prototype, classLoader.loadClass(className));
-            }
-            else
-            {
-                ;
-            }
-            if (configMap.put(info.getBeanName(), info) != null)
-            {
-                throw new UnSupportException(StringUtil.format("bean:{}配置存在两份", info.getBeanName()));
-            }
-        }
-    }
-    
-    private void readProperties(String[] paths)
+    private void resolvePropertyFile(String[] paths)
     {
         for (String path : paths)
         {
@@ -170,7 +167,6 @@ public class JfireConfig
                 }
                 Properties properties = new Properties();
                 properties.load(inputStream);
-                inputStream.close();
                 addProperties(properties);
             }
             catch (Exception e)
@@ -195,369 +191,86 @@ public class JfireConfig
         }
     }
     
-    public JfireConfig addBean(Class<?>... srcs)
+    public JfireConfig registerBeanDefinition(Class<?>... srcs)
     {
-        Verify.False(init, "不能在容器初始化后再加入Bean");
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Class<?> src : srcs)
         {
-            if (AnnotationUtil.isPresent(Resource.class, src))
+            if (annotationUtil.isPresent(Resource.class, src))
             {
-                Bean bean = new DefaultBean(src);
-                if (beanNameMap.put(bean.getBeanName(), bean) != null)
+                Resource resource = annotationUtil.getAnnotation(Resource.class, src);
+                String beanName = "".equals(resource.name()) ? src.getName() : resource.name();
+                boolean prototype = (resource.shareable() == false);
+                BeanDefinition definition = new BeanDefinition();
+                definition.setBeanName(beanName);
+                definition.setClassName(src.getName());
+                definition.setOriginType(src);
+                definition.setType(src);
+                definition.enablePrototype(prototype);
+                if (annotationUtil.isPresent(LoadBy.class, src))
                 {
-                    throw new UnSupportException("存在同名的bean:" + bean.getBeanName());
+                    definition.switchLoadBy();
+                    definition.setLoadByFactoryName(annotationUtil.getAnnotation(LoadBy.class, src).factoryBeanName());
                 }
+                else
+                {
+                    definition.switchDefault();
+                }
+                if (annotationUtil.isPresent(Configuration.class, src))
+                {
+                    definition.enableConfiguration();
+                    environment.addConfigClass(src);
+                }
+                putBeanDefinition(definition);
             }
         }
         return this;
     }
     
-    public JfireConfig addBean(String resourceName, boolean prototype, Class<?> src)
+    public JfireConfig registerBeanDefinition(String resourceName, boolean prototype, Class<?> src)
     {
-        Verify.False(init, "不能在容器初始化后再加入Bean");
-        Bean bean = new DefaultBean(resourceName, src, prototype);
-        if (beanNameMap.put(resourceName, bean) != null)
+        BeanDefinition beanDefinition = new BeanDefinition();
+        beanDefinition.setBeanName(resourceName);
+        beanDefinition.setType(src);
+        beanDefinition.enablePrototype(prototype);
+        beanDefinition.switchDefault();
+        putBeanDefinition(beanDefinition);
+        return this;
+    }
+    
+    public JfireConfig registerBeanDefinition(BeanDefinition... beanInfos)
+    {
+        for (BeanDefinition definition : beanInfos)
         {
-            throw new UnSupportException("存在同名的bean:" + resourceName);
+            putBeanDefinition(definition);
         }
         return this;
     }
     
-    public JfireConfig addBeanInfo(BeanInfo... beanInfos)
+    protected void initJfire(Jfire jfire)
     {
-        Verify.False(init, "不能在容器初始化后再加入Bean配置");
-        try
+        EnvironmentUtil.getAnnoUtil().clear();
+        Plugin[] plugins = new Plugin[] { //
+                new PreparationPlugin(jfire), //
+                new ResolveClassNamesPlugin(), //
+                new ComplementedBeanDefinition(), //
+                new ResolveBeanConfigurationAnnoPlugin(), //
+                new FindAnnoatateBeanDefinitionPlugin(), //
+                new ProcessPlaceHolderPlugin(), //
+                new FindAnnoedPostAndPreDestoryMethod(), //
+                new EnhancePlugin(), //
+                new InitDependencyAndParamFieldsPlugin(), //
+                new ConstructBeanPlugin(), //
+                new InitSingletonBeanPlugin(), //
+                new DetectJfireInitFinishInterfacePlugin(), //
+                new TriggerJfireInitFinishPlugin()
+        };
+        for (Plugin plugin : plugins)
         {
-            handleBeanInfos(beanInfos);
-            return this;
+            logger.debug("当前执行插件:{}", plugin.getClass().getSimpleName());
+            plugin.process();
         }
-        catch (ClassNotFoundException e)
-        {
-            throw new JustThrowException(e);
-        }
-    }
-    
-    protected void initContext(Jfire jfire)
-    {
-        resolveClassName(classNames);
-        AopUtil aopUtil = new AopUtil(classLoader);
-        addSingletonEntity(Jfire.class.getName(), jfire);
-        addSingletonEntity(ClassLoader.class.getName(), classLoader);
-        if (StringUtil.isNotBlank(activeProfile))
-        {
-            activeProfile(getActiveProfile(activeProfile));
-        }
-        aggregateProperties();
-        init = true;
-        replaceValueFromPropertiesToBeancfg();
-        resolveBean(classNames);
-        for (Bean each : beanNameMap.values())
-        {
-            // 这个时候来放入typeMap，才是bean最全的时候
-            beanTypeMap.put(each.getOriginType(), each);
-            BeanInfo beanInfo = configMap.get(each.getBeanName());
-            if (beanInfo != null)
-            {
-                each.setBeanInfo(beanInfo);
-                configMap.remove(each.getBeanName());
-                if (beanInfo.getPostConstructMethod() != null)
-                {
-                    each.setPostConstructMethod(ReflectUtil.fastMethod(ReflectUtil.getMethodWithoutParam(beanInfo.getPostConstructMethod(), each.getOriginType())));
-                }
-                if (beanInfo.getCloseMethod() != null)
-                {
-                    each.setPreDestoryMethod(ReflectUtil.fastMethod(ReflectUtil.getMethodWithoutParam(beanInfo.getCloseMethod(), each.getOriginType())));
-                }
-            }
-        }
-        for (BeanInfo each : configMap.values())
-        {
-            logger.warn("存在配置没有可识别的bean，请检查配置文件，其中需要配置的beanName为:{}", each.getBeanName());
-        }
-        /**
-         * 进行aop操作，将aop增强后的class放入对应的bean中。 这步必须在分析bean之前完成。
-         * 因为aop进行增强时会生成子类来替代Bean中的type.
-         * 并且由于aop需要增加若干个类属性(属性上均有Resouce注解用来注入增强类)，所以注入属性数组的生成必须在aop之后
-         */
-        aopUtil.enhance(beanNameMap, classLoader);
-        initDependencyAndParamFields();
-        for (Bean bean : beanNameMap.values())
-        {
-            bean.decorateSelf(beanNameMap, beanTypeMap);
-        }
-        // 提前实例化单例，避免第一次惩罚以及由于是在单线程中实例化，就不会出现多线程可能的单例被实例化不止一次的情况
-        for (Bean bean : beanNameMap.values())
-        {
-            if (bean.isPrototype() == false)
-            {
-                bean.getInstance();
-            }
-        }
-        /**
-         * 按照order顺序运行容器初始化结束方法
-         */
-        List<JfireInitFinish> tmp = new LinkedList<JfireInitFinish>();
-        for (Bean bean : beanNameMap.values())
-        {
-            if (bean.HasFinishAction())
-            {
-                tmp.add((JfireInitFinish) bean.getInstance());
-            }
-        }
-        JfireInitFinish[] initFinishs = tmp.toArray(new JfireInitFinish[tmp.size()]);
-        Arrays.sort(initFinishs, new AescComparator());
-        for (JfireInitFinish each : initFinishs)
-        {
-            logger.trace("准备执行方法{}.afterContextInit", each.getClass().getName());
-            try
-            {
-                each.afterContextInit();
-            }
-            catch (Exception e)
-            {
-                logger.error("执行方法{}.afterContextInit发生异常", each.getClass().getName(), e);
-                throw new JustThrowException(e);
-            }
-        }
-    }
-    
-    private void resolveClassName(List<String> classNames)
-    {
-        List<Class<?>> tmp = new ArrayList<Class<?>>();
-        for (String each : classNames)
-        {
-            try
-            {
-                Class<?> res = classLoader.loadClass(each);
-                if (AnnotationUtil.isPresent(Configuration.class, res))
-                {
-                    tmp.add(res);
-                }
-            }
-            catch (ClassNotFoundException e)
-            {
-                throw new RuntimeException("对应的类不存在", e);
-            }
-        }
-        for (Class<?> each : tmp)
-        {
-            readConfig(each);
-        }
-    }
-    
-    /**
-     * 分析所有的组件bean，将其中需要注入的属性的bean形成injectField数组以供注入使用
-     * 
-     * @param beanNameMap
-     */
-    private void initDependencyAndParamFields()
-    {
-        Map<String, String> emptyParams = new HashMap<String, String>();
-        Map<String, ParamField> fieldMap = new HashMap<String, ParamField>();
-        for (Bean bean : beanNameMap.values())
-        {
-            if (bean.canInject())
-            {
-                BeanInfo beanInfo = bean.getBeanInfo();
-                bean.setInjectFields(FieldFactory.buildDependencyField(bean, beanNameMap, beanTypeMap, beanInfo));
-                fieldMap.clear();
-                if (beanInfo != null)
-                {
-                    for (ParamField each : FieldFactory.buildParamField(bean, beanInfo.getParams(), properties, classLoader))
-                    {
-                        fieldMap.put(each.getName(), each);
-                    }
-                    for (ParamField each : FieldFactory.buildParamField(bean, emptyParams, properties, classLoader))
-                    {
-                        fieldMap.put(each.getName(), each);
-                    }
-                }
-                else
-                {
-                    for (ParamField each : FieldFactory.buildParamField(bean, emptyParams, properties, classLoader))
-                    {
-                        fieldMap.put(each.getName(), each);
-                    }
-                }
-                bean.setParamFields(fieldMap.values().toArray(new ParamField[fieldMap.size()]));
-            }
-        }
-    }
-    
-    private String getActiveProfile(String activeProfile)
-    {
-        if (activeProfile.startsWith("${"))
-        {
-            if (activeProfile.contains("||"))
-            {
-                String[] part = activeProfile.split("\\|\\|");
-                String key = activeProfile.substring(2, part[0].length() - 1);
-                activeProfile = outterProperties.get(key);
-                if (activeProfile == null)
-                {
-                    activeProfile = part[1];
-                }
-            }
-            else
-            {
-                String key = activeProfile.substring(2, activeProfile.length() - 1);
-                activeProfile = outterProperties.get(key);
-            }
-        }
-        return activeProfile;
-    }
-    
-    private void replaceValueFromPropertiesToBeancfg()
-    {
-        for (BeanInfo config : configMap.values())
-        {
-            for (Entry<String, String> entry : config.getParams().entrySet())
-            {
-                resetValueFromProperties(entry);
-            }
-            for (Entry<String, String> entry : config.getDependencies().entrySet())
-            {
-                resetValueFromProperties(entry);
-            }
-        }
-    }
-    
-    private void aggregateProperties()
-    {
-        Iterator<Entry<String, String>> it = properties.entrySet().iterator();
-        while (it.hasNext())
-        {
-            Entry<String, String> entry = it.next();
-            String value = entry.getValue();
-            if (value.startsWith("${"))
-            {
-                int end = value.indexOf("}||");
-                if (end != -1)
-                {
-                    String name = value.substring(2, end);
-                    if (outterProperties.get(name) != null)
-                    {
-                        entry.setValue(outterProperties.get(name));
-                    }
-                    else
-                    {
-                        String defaultValue = value.substring(end + 3);
-                        entry.setValue(defaultValue);
-                    }
-                }
-                else
-                {
-                    String name = value.substring(2, value.length() - 1);
-                    if (outterProperties.get(name) != null)
-                    {
-                        entry.setValue(outterProperties.get(name));
-                    }
-                    else
-                    {
-                        it.remove();
-                    }
-                }
-            }
-        }
-        for (Entry<String, String> entry : outterProperties.entrySet())
-        {
-            if (properties.containsKey(entry.getKey()) == false)
-            {
-                properties.put(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-    
-    /**
-     * 检查所有的Class名称，通过反射获取class，并且进行初始化。
-     * 形成基本的bean信息（bean名称，bean类型，单例与否，是否实现完成接口的信息） 将这些信息放入beanNameMap
-     * 
-     * @param classNames
-     * @param beanMap
-     */
-    private void resolveBean(List<String> classNames)
-    {
-        for (String each : classNames)
-        {
-            resolveBean(each);
-        }
-    }
-    
-    /**
-     * 对类进行分析，给出该类的信息Bean，并且填充包括bean名称，bean类型，单例与否，是否实现完成接口的信息
-     * 
-     * @param className
-     * @param context
-     * @return
-     */
-    private void resolveBean(String className)
-    {
-        Class<?> res = null;
-        try
-        {
-            res = classLoader.loadClass(className);
-        }
-        catch (ClassNotFoundException e)
-        {
-            throw new RuntimeException("对应的类不存在", e);
-        }
-        if (AnnotationUtil.isPresent(Resource.class, res) == false)
-        {
-            logger.trace("类{}未使用资源注解", className);
-            return;
-        }
-        Bean bean = null;
-        if (AnnotationUtil.isPresent(LoadBy.class, res))
-        {
-            LoadBy loadBy = AnnotationUtil.getAnnotation(LoadBy.class, res);
-            bean = new LoadByBean(res, loadBy.factoryBeanName());
-        }
-        else if (res.isInterface() == false)
-        {
-            bean = new DefaultBean(res);
-        }
-        else
-        {
-            throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", res.getName()));
-        }
-        if (beanNameMap.containsKey(bean.getBeanName()))
-        {
-            Bean sameNameBean = beanNameMap.get(bean.getBeanName());
-            Verify.True(sameNameBean.getOriginType().equals(bean.getOriginType()), "类{}和类{}使用了相同的bean名称，请检查", sameNameBean.getOriginType(), bean.getOriginType().getName());
-        }
-        else
-        {
-            logger.trace("为类{}注册bean", res.getName());
-            beanNameMap.put(bean.getBeanName(), bean);
-        }
-        
-    }
-    
-    private void resetValueFromProperties(Entry<String, String> entry)
-    {
-        String value = entry.getValue();
-        if (value.startsWith("${"))
-        {
-            int end = value.indexOf("}||");
-            if (end != -1)
-            {
-                String name = value.substring(2, end);
-                if (properties.get(name) != null)
-                {
-                    entry.setValue(properties.get(name));
-                }
-                else
-                {
-                    String defaultValue = value.substring(end + 3);
-                    entry.setValue(defaultValue);
-                }
-            }
-            else
-            {
-                String name = value.substring(2, value.length() - 1);
-                entry.setValue(properties.get(name));
-            }
-        }
+        EnvironmentUtil.getAnnoUtil().clear();
     }
     
     public JfireConfig setClassLoader(ClassLoader classLoader)
@@ -573,138 +286,416 @@ public class JfireConfig
         {
             for (Entry<Object, Object> entry : each.entrySet())
             {
-                outterProperties.put((String) entry.getKey(), (String) entry.getValue());
+                this.properties.put((String) entry.getKey(), (String) entry.getValue());
             }
         }
         return this;
     }
     
-    private void activeProfile(String name)
+    public JfireConfig registerSingletonEntity(String beanName, Object entity)
     {
-        Verify.False(init, "只能在初始化之前激活配置");
-        for (Profile each : profiles)
-        {
-            if (each.getName().equals(name))
-            {
-                addPackageNames(each.getPackageNames());
-                addBeanInfo(each.getBeans());
-                readProperties(each.getPropertyPaths());
-                properties.putAll(each.getProperties());
-                return;
-            }
-        }
-        throw new UnSupportException("未发现名称为:" + name + "的配置");
-    }
-    
-    public JfireConfig addSingletonEntity(String beanName, Object entity)
-    {
-        Verify.False(init, "不能在容器初始化后还加入bean,请检查{}", CodeLocation.getCodeLocation(2));
-        Bean bean = new OuterEntityBean(beanName, entity);
-        if (beanNameMap.put(beanName, bean) != null)
-        {
-            throw new UnSupportException("存在同名的bean:" + beanName);
-        }
+        BeanDefinition beanDefinition = new BeanDefinition();
+        beanDefinition.switchOutter();
+        beanDefinition.setBeanName(beanName);
+        beanDefinition.enablePrototype(false);
+        beanDefinition.setType(entity.getClass());
+        beanDefinition.setClassName(entity.getClass().getName());
+        beanDefinition.setOriginType(entity.getClass());
+        beanDefinition.switchOutter();
+        beanDefinition.setOutterEntity(entity);
+        putBeanDefinition(beanDefinition);
         return this;
     }
     
-    public JfireConfig readConfig(Class<?> ckass)
+    interface AnnoValueProcessor<T extends Annotation>
     {
-        Profile profile = null;
-        if (AnnotationUtil.isPresent(ProfileName.class, ckass))
+        void process(T annotation) throws Exception;
+    }
+    
+    private <T extends Annotation> void processAnnoValue(Class<?> ckass, Class<T> annoType, AnnoValueProcessor<T> processor)
+    {
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        if (annotationUtil.isPresent(annoType, ckass))
         {
-            profile = new Profile();
-            profile.setName(AnnotationUtil.getAnnotation(ProfileName.class, ckass).value());
-        }
-        String[] packageNames = null;
-        Map<String, String> outterProperties = null;
-        String[] propertyPaths = null;
-        BeanInfo[] infos = null;
-        if (AnnotationUtil.isPresent(PackageNames.class, ckass))
-        {
-            packageNames = AnnotationUtil.getAnnotation(PackageNames.class, ckass).value();
-        }
-        if (AnnotationUtil.isPresent(com.jfireframework.jfire.config.annotation.OutterProperties.class, ckass))
-        {
-            outterProperties = new HashMap<String, String>();
-            for (String each : AnnotationUtil.getAnnotation(OutterProperties.class, ckass).value())
+            try
             {
-                int index = each.indexOf("=");
-                outterProperties.put(each.substring(0, index), each.substring(index + 1));
+                for (T each : annotationUtil.getAnnotations(annoType, ckass))
+                {
+                    processor.process(each);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new JustThrowException(e);
             }
         }
-        if (AnnotationUtil.isPresent(PropertyPaths.class, ckass))
-        {
-            propertyPaths = AnnotationUtil.getAnnotation(PropertyPaths.class, ckass).value();
-        }
-        if (AnnotationUtil.isPresent(ActiveProfile.class, ckass))
-        {
-            ActiveProfile activeProfile = AnnotationUtil.getAnnotation(ActiveProfile.class, ckass);
-            this.activeProfile = activeProfile.value();
-        }
-        if (AnnotationUtil.isPresent(Beans.class, ckass))
-        {
-            Beans beans = AnnotationUtil.getAnnotation(Beans.class, ckass);
-            List<BeanInfo> list = new LinkedList<BeanInfo>();
-            for (com.jfireframework.jfire.config.annotation.BeanInfo each : beans.value())
-            {
-                BeanInfo beanInfo = new BeanInfo();
-                beanInfo.setBeanName(each.beanName());
-                beanInfo.setPrototype(each.prototype());
-                if (StringUtil.isNotBlank(each.className()))
-                {
-                    beanInfo.setClassName(each.className());
-                }
-                if (StringUtil.isNotBlank(each.postConstructMethod()))
-                {
-                    beanInfo.setPostConstructMethod(each.postConstructMethod());
-                }
-                if (StringUtil.isNotBlank(each.closeMethod()))
-                {
-                    beanInfo.setCloseMethod(each.closeMethod());
-                }
-                if (each.dependencies().length != 0)
-                {
-                    Map<String, String> map = new HashMap<String, String>();
-                    for (String depend : each.dependencies())
+    }
+    
+    private void processComponentScan(Class<?> ckass)
+    {
+        processAnnoValue(ckass, ComponentScan.class, //
+                new AnnoValueProcessor<ComponentScan>() {
+                    
+                    @Override
+                    public void process(ComponentScan componentScan)
                     {
-                        int index = depend.indexOf("=");
-                        map.put(depend.substring(0, index), depend.substring(index + 1));
+                        addScanPackageNames(componentScan.value());
                     }
-                    beanInfo.setDependencies(map);
-                }
-                if (each.params().length != 0)
-                {
-                    Map<String, String> map = new HashMap<String, String>();
-                    for (String param : each.params())
-                    {
-                        int index = param.indexOf("=");
-                        map.put(param.substring(0, index), param.substring(index + 1));
-                    }
-                    beanInfo.setParams(map);
-                }
-                list.add(beanInfo);
-            }
-            infos = list.toArray(new BeanInfo[list.size()]);
-        }
-        if (profile == null)
+                });
+    }
+    
+    private void putBeanDefinition(BeanDefinition definition)
+    {
+        BeanDefinition exist = beanDefinitions.get(definition.getBeanName());
+        if (exist == null)
         {
-            if (packageNames != null)
+            beanDefinitions.put(definition.getBeanName(), definition);
+        }
+        else
+        {
+            Verify.equal(definition.mode(), exist.mode(), "bean:{}的模式在不同的配置中存在不同，该不同无法兼容", definition.getBeanName());
+            if (exist.getClassName() != null && definition.getClassName() != null && exist.getClassName().equals(definition.getClassName()) == false)
             {
-                addPackageNames(packageNames);
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的className在不同的配置中分别存在:{}和{}。无法兼容", exist.getBeanName(), exist.getClassName(), definition.getClassName()));
             }
-            if (outterProperties != null)
+            // 可能出现两个ClassName都是null，该情况无妨，可以继续融合
+            String className = exist.getClassName() != null ? exist.getClassName() : definition.getClassName();
+            if (exist.getOriginType() != null && definition.getOriginType() != null && exist.getOriginType() != definition.getOriginType())
             {
-                properties.putAll(outterProperties);
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的originType在不同的配置中分别存在:{}和{},无法兼容", exist.getOriginType(), definition.getOriginType()));
             }
-            if (propertyPaths != null)
+            Class<?> originType = exist.getOriginType() != null ? exist.getOriginType() : definition.getOriginType();
+            if (exist.getType() != null && definition.getType() != null && exist.getType() != definition.getType())
             {
-                readProperties(propertyPaths);
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的type在不同的配置中分别存在:{}和{},无法兼容", exist.getType(), definition.getType()));
             }
-            if (infos != null)
+            Class<?> type = exist.getType() != null ? exist.getType() : definition.getType();
+            exist.getDependencies().putAll(definition.getDependencies());
+            Map<String, String> dependencies = exist.getDependencies();
+            exist.getParams().putAll(definition.getParams());
+            Map<String, String> params = exist.getParams();
+            if (exist.getPostConstructMethod() != null && definition.getPostConstructMethod() != null && exist.getPostConstructMethod().equals(definition.getPostConstructMethod()) == false)
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的postConstructMethod在不同的配置中分别存在:{}和{},无法兼容", exist.getPostConstructMethod(), definition.getPostConstructMethod()));
+            }
+            String postConstructMethod = exist.getPostConstructMethod() != null ? exist.getPostConstructMethod() : definition.getPostConstructMethod();
+            if (exist.getCloseMethod() != null && definition.getCloseMethod() != null && exist.getCloseMethod().equals(definition.getCloseMethod()) == false)
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的postConstructMethod在不同的配置中分别存在:{}和{},无法兼容", exist.getCloseMethod(), definition.getCloseMethod()));
+            }
+            String closeMethod = exist.getCloseMethod() != null ? exist.getCloseMethod() : definition.getCloseMethod();
+            if (exist.getLoadByFactoryName() != null && definition.getLoadByFactoryName() != null && exist.getLoadByFactoryName().equals(definition.getLoadByFactoryName()) == false)
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的loadByFactoryName在不同的配置中分别存在:{}和{},无法兼容", exist.getLoadByFactoryName(), definition.getLoadByFactoryName()));
+            }
+            String loadByFactoryName = exist.getCloseMethod() != null ? exist.getLoadByFactoryName() : definition.getLoadByFactoryName();
+            if (exist.getOutterEntity() != null && definition.getOutterEntity() != null && exist.getOutterEntity() != definition.getOutterEntity())
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的outterEntity在不同的配置中分别存在,无法兼容"));
+            }
+            Object outterEntity = exist.getOutterEntity() != null ? exist.getOutterEntity() : definition.getOutterEntity();
+            if (exist.getConstructedBean() != null && definition.getConstructedBean() != null && exist.getConstructedBean() != definition.getConstructedBean())
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的constructedBean在不同的配置中分别存在,无法兼容"));
+            }
+            Bean constructedBean = exist.getConstructedBean() != null ? exist.getConstructedBean() : definition.getConstructedBean();
+            if (exist.getAnnotationEnvironment() != null && definition.getAnnotationEnvironment() != null && exist.getAnnotationEnvironment() != definition.getAnnotationEnvironment())
+            {
+                throw new UnsupportedOperationException(StringUtil.format("bean:{}的annotationEnvironment在不同的配置中分别存在,无法兼容"));
+            }
+            Environment annotationEnvironment = exist.getAnnotationEnvironment() != null ? exist.getAnnotationEnvironment() : definition.getAnnotationEnvironment();
+            int schema = exist.schema() | definition.schema();
+            if (schema == 0)
+            {
+                System.out.println("sadas");
+            }
+            Map<String, DIFieldInfo> set1 = new HashMap<String, DIFieldInfo>();
+            for (DIFieldInfo each : exist.getDiFieldInfos())
+            {
+                set1.put(each.getFieldName(), each);
+            }
+            for (DIFieldInfo each : definition.getDiFieldInfos())
+            {
+                set1.put(each.getFieldName(), each);
+            }
+            Map<String, ParamField> set2 = new HashMap<String, ParamField>();
+            for (ParamField each : exist.getParamFields())
+            {
+                set2.put(each.getName(), each);
+            }
+            for (ParamField each : definition.getParamFields())
+            {
+                set2.put(each.getName(), each);
+            }
+            exist.setClassName(className);
+            exist.setOriginType(originType);
+            exist.setType(type);
+            exist.setParams(params);
+            exist.setDependencies(dependencies);
+            exist.setPostConstructMethod(postConstructMethod);
+            exist.setCloseMethod(closeMethod);
+            exist.setLoadByFactoryName(loadByFactoryName);
+            exist.setOutterEntity(outterEntity);
+            exist.setConstructedBean(constructedBean);
+            exist.setAnnotationEnvironment(annotationEnvironment);
+            exist.setSchema(schema);
+            exist.getDiFieldInfos().clear();
+            exist.getDiFieldInfos().addAll(set1.values());
+            exist.getParamFields().clear();
+            exist.getParamFields().addAll(set2.values());
+        }
+    }
+    
+    interface Plugin
+    {
+        void process();
+    }
+    
+    class ResolveClassNamesPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            for (String each : classNames)
+            {
+                Class<?> res = null;
+                try
+                {
+                    res = classLoader.loadClass(each);
+                }
+                catch (ClassNotFoundException e)
+                {
+                    throw new RuntimeException("对应的类不存在", e);
+                }
+                // 如果本身是一个注解或者没有使用resource注解，则忽略
+                if (res.isAnnotation() || EnvironmentUtil.getAnnoUtil().isPresent(Resource.class, res) == false)
+                {
+                    continue;
+                }
+                AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+                Resource resource = annotationUtil.getAnnotation(Resource.class, res);
+                String beanName = resource.name().equals("") ? res.getName() : resource.name();
+                BeanDefinition beanDefinition = beanDefinitions.get(beanName);
+                beanDefinition = new BeanDefinition();
+                beanDefinition.setBeanName(beanName);
+                beanDefinition.enablePrototype(resource.shareable() == false);
+                beanDefinition.setOriginType(res);
+                beanDefinition.setType(res);
+                beanDefinition.setClassName(res.getName());
+                beanDefinition.switchDefault();
+                if (annotationUtil.isPresent(LoadBy.class, res))
+                {
+                    LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, res);
+                    beanDefinition.switchLoadBy();
+                    beanDefinition.setLoadByFactoryName(loadBy.factoryBeanName());
+                }
+                else if (res.isInterface() == false)
+                {
+                    ;
+                }
+                else
+                {
+                    throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", res.getName()));
+                }
+                if (annotationUtil.isPresent(Configuration.class, res))
+                {
+                    beanDefinition.enableConfiguration();
+                    environment.addConfigClass(res);
+                }
+                putBeanDefinition(beanDefinition);
+            }
+        }
+        
+    }
+    
+    class ResolveBeanConfigurationAnnoPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            List<Class<?>> configurations = new ArrayList<Class<?>>();
+            for (BeanDefinition each : beanDefinitions.values())
+            {
+                if (each.isConfiguration())
+                {
+                    configurations.add(each.getType());
+                }
+            }
+            for (Class<?> each : configurations)
+            {
+                processBeanDefinition(each);
+                processProperties(each);
+                processPropertyPaths(each);
+                processBeanDefinitions(each);
+                processImport(each);
+            }
+        }
+        
+        private void processPropertyPaths(Class<?> ckass)
+        {
+            processAnnoValue(ckass, PropertyPaths.class, //
+                    new AnnoValueProcessor<PropertyPaths>() {
+                        
+                        @Override
+                        public void process(PropertyPaths annotation)
+                        {
+                            resolvePropertyFile(annotation.value());
+                        }
+                    });
+        }
+        
+        private void processBeanDefinition(Class<?> ckass)
+        {
+            processAnnoValue(ckass, com.jfireframework.jfire.config.annotation.BeanDefinition.class, //
+                    new AnnoValueProcessor<com.jfireframework.jfire.config.annotation.BeanDefinition>() {
+                        
+                        @Override
+                        public void process(com.jfireframework.jfire.config.annotation.BeanDefinition annotation) throws Exception
+                        {
+                            generateBeanDefinitionFromAnno(annotation);
+                        }
+                    });
+        }
+        
+        private void processBeanDefinitions(Class<?> ckass)
+        {
+            processAnnoValue(ckass, BeanDefinitions.class, //
+                    new AnnoValueProcessor<BeanDefinitions>() {
+                        
+                        @Override
+                        public void process(BeanDefinitions beanDefinitions) throws ClassNotFoundException
+                        {
+                            for (com.jfireframework.jfire.config.annotation.BeanDefinition each : beanDefinitions.value())
+                            {
+                                generateBeanDefinitionFromAnno(each);
+                            }
+                        }
+                    });
+            
+        }
+        
+        private void generateBeanDefinitionFromAnno(com.jfireframework.jfire.config.annotation.BeanDefinition anno) throws ClassNotFoundException
+        {
+            BeanDefinition beanDefinition = JfireConfig.this.beanDefinitions.containsKey(anno.beanName()) ? JfireConfig.this.beanDefinitions.get(anno.beanName()) : new BeanDefinition();
+            beanDefinition.setBeanName(anno.beanName());
+            beanDefinition.enablePrototype(anno.prototype());
+            if (StringUtil.isNotBlank(anno.className()))
+            {
+                beanDefinition.setType(classLoader.loadClass(anno.className()));
+                beanDefinition.setClassName(anno.className());
+            }
+            if (StringUtil.isNotBlank(anno.postConstructMethod()))
+            {
+                beanDefinition.setPostConstructMethod(anno.postConstructMethod());
+            }
+            if (StringUtil.isNotBlank(anno.closeMethod()))
+            {
+                beanDefinition.setCloseMethod(anno.closeMethod());
+            }
+            if (anno.dependencies().length != 0)
+            {
+                Map<String, String> map = new HashMap<String, String>();
+                for (String depend : anno.dependencies())
+                {
+                    int index = depend.indexOf("=");
+                    map.put(depend.substring(0, index), depend.substring(index + 1));
+                }
+                beanDefinition.setDependencies(map);
+            }
+            if (anno.params().length != 0)
+            {
+                Map<String, String> map = new HashMap<String, String>();
+                for (String param : anno.params())
+                {
+                    int index = param.indexOf("=");
+                    map.put(param.substring(0, index), param.substring(index + 1));
+                }
+                beanDefinition.setParams(map);
+            }
+            putBeanDefinition(beanDefinition);
+        }
+        
+        private void processImport(final Class<?> ckass)
+        {
+            processAnnoValue(ckass, Import.class, new AnnoValueProcessor<Import>() {
+                
+                @Override
+                public void process(Import anno)
+                {
+                    for (Class<?> each : anno.value())
+                    {
+                        if (beanDefinitions.containsKey(each.getName()) == false)
+                        {
+                            registerBeanDefinition(each);
+                        }
+                        else
+                        {
+                            BeanDefinition definition = beanDefinitions.get(each.getName());
+                            definition.enableConfiguration();
+                            environment.addConfigClass(each);
+                            if (ImportBeanDefinition.class.isAssignableFrom(definition.getOriginType()))
+                            {
+                                definition.setAnnotationEnvironment(environment);
+                                definition.enableImportBean();
+                            }
+                        }
+                        processBeanDefinition(each);
+                        processProperties(each);
+                        processPropertyPaths(each);
+                        processBeanDefinitions(each);
+                        processImport(each);
+                    }
+                }
+            });
+        }
+        
+        private void processProperties(Class<?> ckass)
+        {
+            processAnnoValue(ckass, com.jfireframework.jfire.config.annotation.Properties.class, //
+                    new AnnoValueProcessor<com.jfireframework.jfire.config.annotation.Properties>() {
+                        
+                        @Override
+                        public void process(com.jfireframework.jfire.config.annotation.Properties annotation)
+                        {
+                            for (String kvPair : annotation.value())
+                            {
+                                int index = kvPair.indexOf("=");
+                                properties.put(kvPair.substring(0, index), kvPair.substring(index + 1));
+                            }
+                        }
+                    });
+        }
+    }
+    
+    class ComplementedBeanDefinition implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+            for (BeanDefinition each : beanDefinitions.values())
             {
                 try
                 {
-                    handleBeanInfos(infos);
+                    if (each.getType() == null && each.getClassName() != null)
+                    {
+                        each.setType(classLoader.loadClass(each.getClassName()));
+                    }
+                    if (each.getOriginType() == null)
+                    {
+                        each.setOriginType(each.getType());
+                    }
+                    if (each.getOriginType() != null && JfireInitFinish.class.isAssignableFrom(each.getOriginType()))
+                    {
+                        each.enableJfireInitFinish();
+                    }
+                    if (each.getOriginType() != null && annotationUtil.isPresent(Configuration.class, each.getOriginType()))
+                    {
+                        each.enableConfiguration();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -712,81 +703,479 @@ public class JfireConfig
                 }
             }
         }
-        else
-        {
-            if (packageNames != null)
-            {
-                profile.setPackageNames(packageNames);
-            }
-            if (outterProperties != null)
-            {
-                profile.setProperties(outterProperties);
-            }
-            if (propertyPaths != null)
-            {
-                profile.setPropertyPaths(propertyPaths);
-            }
-            if (infos != null)
-            {
-                profile.setBeans(infos);
-            }
-            Profile[] tmp = new Profile[this.profiles.length + 1];
-            System.arraycopy(profiles, 0, tmp, 0, profiles.length);
-            tmp[tmp.length - 1] = profile;
-            profiles = tmp;
-        }
-        if (AnnotationUtil.isPresent(Import.class, ckass))
-        {
-            Import import1 = AnnotationUtil.getAnnotation(Import.class, ckass);
-            for (Class<?> each : import1.value())
-            {
-                readConfig(each);
-            }
-        }
-        return this;
+        
     }
     
-    public JfireConfig addPackageName(Class<?> ckass)
+    class FindAnnoedPostAndPreDestoryMethod implements Plugin
     {
-        addPackageNames(ckass.getPackage().getName());
-        return this;
-    }
-    
-    public JfireConfig scanForConfiguration()
-    {
-        String callerClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        int index = callerClassName.lastIndexOf('.');
-        if (index > 0)
+        @Override
+        public void process()
         {
-            String packageName = callerClassName.substring(0, index);
-            scanForConfiguration(packageName);
-        }
-        return this;
-    }
-    
-    public JfireConfig scanForConfiguration(String packageName)
-    {
-        for (String className : PackageScan.scan(packageName))
-        {
-            try
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+            for (BeanDefinition each : beanDefinitions.values())
             {
-                Class<?> ckass = classLoader.loadClass(className);
-                if (AnnotationUtil.isPresent(ActiveProfile.class, ckass)//
-                        || AnnotationUtil.isPresent(Beans.class, ckass)//
-                        || AnnotationUtil.isPresent(Import.class, ckass)//
-                        || AnnotationUtil.isPresent(OutterProperties.class, ckass)//
-                        || AnnotationUtil.isPresent(PackageNames.class, ckass)//
-                        || AnnotationUtil.isPresent(ProfileName.class, ckass)//
-                        || AnnotationUtil.isPresent(PropertyPaths.class, ckass))
+                Verify.notNull(each.getOriginType(), "bean:{}没有原始类型", each.getBeanName());
+                for (Method method : each.getOriginType().getDeclaredMethods())
                 {
-                    readConfig(ckass);
+                    if (annotationUtil.isPresent(PostConstruct.class, method))
+                    {
+                        each.setPostConstructMethod(method.getName());
+                    }
+                    if (annotationUtil.isPresent(PreDestroy.class, method))
+                    {
+                        each.setCloseMethod(method.getName());
+                    }
                 }
             }
-            catch (ClassNotFoundException e)
+        }
+    }
+    
+    class EnhancePlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            AopUtil aopUtil = new AopUtil(classLoader);
+            aopUtil.enhance(beanDefinitions);
+        }
+    }
+    
+    class ProcessPlaceHolderPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            resolvePlaceholderOfProperties();
+            resolvePlaceholderOfBeanInfo();
+        }
+        
+        /**
+         * 替换Bean配置信息中存在的占位符表达。
+         */
+        private void resolvePlaceholderOfBeanInfo()
+        {
+            for (BeanDefinition config : beanDefinitions.values())
             {
-                throw new JustThrowException(e);
+                for (Entry<String, String> entry : config.getParams().entrySet())
+                {
+                    String value = entry.getValue();
+                    if (value.startsWith("${"))
+                    {
+                        entry.setValue(resolveplaceholder(value, properties));
+                    }
+                }
+                for (Entry<String, String> entry : config.getDependencies().entrySet())
+                {
+                    String value = entry.getValue();
+                    if (value.startsWith("${"))
+                    {
+                        entry.setValue(resolveplaceholder(value, properties));
+                    }
+                }
             }
         }
-        return this;
+        
+        /**
+         * 解析配置文件properties中的占位符表达式
+         */
+        private void resolvePlaceholderOfProperties()
+        {
+            Iterator<Entry<String, String>> it = properties.entrySet().iterator();
+            while (it.hasNext())
+            {
+                Entry<String, String> entry = it.next();
+                String value = entry.getValue();
+                if (value.startsWith("${"))
+                {
+                    entry.setValue(resolveplaceholder(value, properties));
+                }
+            }
+        }
+        
+        /**
+         * 解析${a}格式或者${a}||b格式的占位符表达式,并返回表达式的值。 规则<br/>
+         * 格式${x}意味着需要返回holderProvider中x的值<br/>
+         * 格式${a}||b意味着需要返回holderProvider中的a的值，如果a不存在于holderProvider，则返回默认值b
+         * 
+         * @return
+         */
+        private String resolveplaceholder(String placeholder, Map<String, String> holderProvider)
+        {
+            int end = placeholder.indexOf("}||");
+            if (end != -1)
+            {
+                String name = placeholder.substring(2, end);
+                String value = holderProvider.get(name);
+                if (value != null)
+                {
+                    return value;
+                }
+                else
+                {
+                    String defaultValue = placeholder.substring(end + 3);
+                    return defaultValue;
+                }
+            }
+            else
+            {
+                String name = placeholder.substring(2, placeholder.length() - 1);
+                String value = holderProvider.get(name);
+                if (value != null)
+                {
+                    return value;
+                }
+                else
+                {
+                    throw new NullPointerException("属性值中不存在" + name);
+                }
+            }
+        }
     }
+    
+    class InitDependencyAndParamFieldsPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            for (BeanDefinition candidate : beanDefinitions.values())
+            {
+                if (candidate.isDefault())
+                {
+                    candidate.addDIFieldInfos(FieldFactory.buildDependencyField(candidate, beanDefinitions), true);
+                    candidate.addParamFields(FieldFactory.buildParamField(candidate, candidate.getParams(), properties, classLoader), true);
+                }
+            }
+        }
+        
+    }
+    
+    class ConstructBeanPlugin implements Plugin
+    {
+        @Override
+        public void process()
+        {
+            for (BeanDefinition candidate : beanDefinitions.values())
+            {
+                constructBean(candidate);
+            }
+            logger.debug("装配bean完毕");
+        }
+        
+        private Bean constructBean(BeanDefinition beanDefinition)
+        {
+            Bean bean = beanDefinition.getConstructedBean();
+            if (bean != null)
+            {
+                return bean;
+            }
+            if (beanDefinition.isDefault())
+            {
+                bean = new DefaultBean(beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), generateDiFields(beanDefinition), beanDefinition.getParamFields().toArray(new ParamField[beanDefinition.getParamFields().size()]));
+            }
+            else if (beanDefinition.isLoadBy())
+            {
+                bean = new LoadByBean(beanDefinition.getType(), beanDefinition.getBeanName(), constructBean(beanDefinitions.get(beanDefinition.getLoadByFactoryName())));
+            }
+            else if (beanDefinition.isOutter())
+            {
+                bean = new OuterEntityBean(beanDefinition.getBeanName(), beanDefinition.getOutterEntity());
+            }
+            else if (beanDefinition.isAnnotationConfig())
+            {
+                try
+                {
+                    MethodAccessor methodAccessor = ReflectUtil.fastMethod(beanDefinitions.get(beanDefinition.getHostBeanName()).getType().getDeclaredMethod(beanDefinition.getBeanAnnotatedMethod()));
+                    bean = new AnnotationConfigBean(constructBean(beanDefinitions.get(beanDefinition.getHostBeanName())), methodAccessor, beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype());
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
+            }
+            else
+            {
+                throw new NullPointerException();
+            }
+            beanDefinition.setConstructedBean(bean);
+            if (beanDefinition.getPostConstructMethod() != null)
+            {
+                try
+                {
+                    Method method = beanDefinition.getType().getDeclaredMethod(beanDefinition.getPostConstructMethod());
+                    ((BaseBean) bean).setPostConstructMethod(ReflectUtil.fastMethod(method));
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
+            }
+            if (beanDefinition.getCloseMethod() != null)
+            {
+                try
+                {
+                    Method method = beanDefinition.getType().getDeclaredMethod(beanDefinition.getCloseMethod());
+                    ((BaseBean) bean).setPreDestoryMethod(ReflectUtil.fastMethod(method));
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
+            }
+            logger.debug("构建bean:{}完毕", beanDefinition.getBeanName());
+            return bean;
+        }
+        
+        private DIField[] generateDiFields(BeanDefinition beanDefinition)
+        {
+            List<DIField> diFields = new ArrayList<DIField>();
+            for (DIFieldInfo diFieldInfo : beanDefinition.getDiFieldInfos())
+            {
+                switch (diFieldInfo.mode())
+                {
+                    case DIFieldInfo.DEFAULT:
+                    {
+                        DIField diField = new DefaultBeanField(diFieldInfo.getField(), diFieldInfo.getBeanDefinition());
+                        diFields.add(diField);
+                        break;
+                    }
+                    case DIFieldInfo.LIST:
+                    {
+                        DIField diField = new ListField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions());
+                        diFields.add(diField);
+                        break;
+                    }
+                    case DIFieldInfo.BEAN_NAME_MAP:
+                    {
+                        List<String> beanNames = new ArrayList<String>();
+                        for (BeanDefinition each : diFieldInfo.getBeanDefinitions())
+                        {
+                            beanNames.add(each.getBeanName());
+                        }
+                        DIField diField = new BeanNameMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), beanNames.toArray(new String[beanNames.size()]));
+                        diFields.add(diField);
+                        break;
+                    }
+                    case DIFieldInfo.METHOD_MAP:
+                    {
+                        DIField diField = new MethodMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), diFieldInfo.getMethod_map_method());
+                        diFields.add(diField);
+                        break;
+                    }
+                    case DIFieldInfo.NONE:
+                        break;
+                    case DIFieldInfo.VALUE_MAP:
+                    {
+                        DIField diField = new ValueMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), diFieldInfo.getValue_map_values());
+                        diFields.add(diField);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            return diFields.toArray(new DIField[diFields.size()]);
+        }
+    }
+    
+    class InitSingletonBeanPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            for (BeanDefinition beanDefinition : beanDefinitions.values())
+            {
+                if (beanDefinition.isPrototype() == false)
+                {
+                    beanDefinition.getInstance();
+                }
+            }
+        }
+        
+    }
+    
+    class TriggerJfireInitFinishPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            List<JfireInitFinish> tmp = new LinkedList<JfireInitFinish>();
+            for (BeanDefinition beanDefinition : beanDefinitions.values())
+            {
+                if (beanDefinition.isJfireInitFinish())
+                {
+                    tmp.add((JfireInitFinish) beanDefinition.getConstructedBean().getInstance());
+                }
+            }
+            Collections.sort(tmp, new AescComparator());
+            for (JfireInitFinish each : tmp)
+            {
+                logger.trace("准备执行方法{}.afterContextInit", each.getClass().getName());
+                try
+                {
+                    each.afterContextInit();
+                }
+                catch (Exception e)
+                {
+                    logger.error("执行方法{}.afterContextInit发生异常", each.getClass().getName(), e);
+                    throw new JustThrowException(e);
+                }
+            }
+        }
+        
+    }
+    
+    class PreparationPlugin implements Plugin
+    {
+        private final Jfire jfire;
+        
+        public PreparationPlugin(Jfire jfire)
+        {
+            this.jfire = jfire;
+        }
+        
+        @Override
+        public void process()
+        {
+            registerSingletonEntity(Jfire.class.getName(), jfire);
+            registerSingletonEntity(ClassLoader.class.getName(), classLoader);
+            registerSingletonEntity(Environment.class.getName(), environment);
+        }
+        
+    }
+    
+    class DetectJfireInitFinishInterfacePlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            for (BeanDefinition each : beanDefinitions.values())
+            {
+                if (JfireInitFinish.class.isAssignableFrom(each.getType()))
+                {
+                    each.enableJfireInitFinish();
+                }
+            }
+        }
+        
+    }
+    
+    class FindAnnoatateBeanDefinitionPlugin implements Plugin
+    {
+        private BeanDefinition generated(Method method, BeanDefinition host, AnnotationUtil annotationUtil)
+        {
+            com.jfireframework.jfire.config.annotation.Bean annotatedBean = annotationUtil.getAnnotation(com.jfireframework.jfire.config.annotation.Bean.class, method);
+            String beanName = "".equals(annotatedBean.name()) ? method.getName() : annotatedBean.name();
+            BeanDefinition beanDefinition = new BeanDefinition();
+            beanDefinition.setBeanName(beanName);
+            beanDefinition.setType(method.getReturnType());
+            beanDefinition.setOriginType(method.getReturnType());
+            beanDefinition.enablePrototype(annotatedBean.prototype());
+            beanDefinition.setClassName(beanDefinition.getType().getName());
+            beanDefinition.setHostBeanName(host.getBeanName());
+            beanDefinition.setBeanAnnotatedMethod(method.getName());
+            beanDefinition.switchAnnotationConfig();
+            if ("".equals(annotatedBean.destroyMethod()) == false)
+            {
+                beanDefinition.setCloseMethod(annotatedBean.destroyMethod());
+            }
+            if (JfireInitFinish.class.isAssignableFrom(method.getReturnType()))
+            {
+                beanDefinition.enableJfireInitFinish();
+            }
+            return beanDefinition;
+        }
+        
+        @Override
+        public void process()
+        {
+            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+            List<BeanDefinition> newDefinitions = new ArrayList<BeanDefinition>();
+            for (BeanDefinition each : beanDefinitions.values())
+            {
+                if (each.isConfiguration())
+                {
+                    for (Method method : each.getOriginType().getDeclaredMethods())
+                    {
+                        if (annotationUtil.isPresent(com.jfireframework.jfire.config.annotation.Bean.class, method) //
+                                && annotationUtil.isPresent(Conditional.class, method) == false)
+                        {
+                            newDefinitions.add(generated(method, each, annotationUtil));
+                        }
+                    }
+                }
+            }
+            for (BeanDefinition each : newDefinitions)
+            {
+                putBeanDefinition(each);
+            }
+            newDefinitions.clear();
+            Map<Class<? extends Condition>, Condition> conditions = new HashMap<Class<? extends Condition>, Condition>();
+            for (BeanDefinition each : beanDefinitions.values())
+            {
+                if (each.isConfiguration())
+                {
+                    for (Method method : each.getOriginType().getDeclaredMethods())
+                    {
+                        if (annotationUtil.isPresent(com.jfireframework.jfire.config.annotation.Bean.class, method) //
+                                && annotationUtil.isPresent(Conditional.class, method))
+                        {
+                            
+                            if (match(method, annotationUtil, conditions))
+                            {
+                                newDefinitions.add(generated(method, each, annotationUtil));
+                            }
+                        }
+                    }
+                }
+            }
+            for (BeanDefinition each : newDefinitions)
+            {
+                putBeanDefinition(each);
+            }
+        }
+        
+        boolean match(Method method, AnnotationUtil annotationUtil, Map<Class<? extends Condition>, Condition> conditions)
+        {
+            boolean match = true;
+            if (annotationUtil.isPresent(Conditional.class, method))
+            {
+                for (Conditional conditional : annotationUtil.getAnnotations(Conditional.class, method))
+                {
+                    Condition condition = conditions.get(conditional.value());
+                    if (condition == null)
+                    {
+                        try
+                        {
+                            condition = conditional.value().newInstance();
+                        }
+                        catch (Exception e)
+                        {
+                            throw new JustThrowException(e);
+                        }
+                        conditions.put(conditional.value(), condition);
+                    }
+                    if (condition.match(environment, method, annotationUtil))
+                    {
+                        match = true;
+                    }
+                    else
+                    {
+                        match = false;
+                    }
+                }
+            }
+            else
+            {
+                match = true;
+            }
+            return match;
+        }
+    }
+    
 }

@@ -9,15 +9,15 @@ import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
 import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
 import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.util.EnvironmentUtil;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
 public class EnhanceAnnoInfo implements Order
 {
-    
-    private Bean            enhanceBean;
+    private String          enhanceBeanName;
+    private Class<?>        enhanceBeanType;
     /** 在进行增强时候,增强类在目标类的属性名称 */
     private String          enhanceFieldName;
     /**
@@ -47,7 +47,7 @@ public class EnhanceAnnoInfo implements Order
     public static final int AROUND         = 3;
     public static final int THROW          = 4;
     
-    public EnhanceAnnoInfo(Bean enhanceBean, String enhanceFieldName, String path, int order, Method enhanceMethod)
+    public EnhanceAnnoInfo(String enhanceBeanName, Class<?> enhanceBeanType, String enhanceFieldName, String path, int order, Method enhanceMethod)
     {
         Verify.True(enhanceMethod.getParameterTypes().length == 1, "增强方法{}.{}入参个数错误,请检查", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
         Verify.True(ProceedPoint.class.isAssignableFrom(enhanceMethod.getParameterTypes()[0]), "增强方法{}.{}的入参只能是ProceedPoint", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
@@ -56,25 +56,27 @@ public class EnhanceAnnoInfo implements Order
         Verify.True(left > 0, "方法{}.{}上增强注解的path值错误,缺少'('", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
         Verify.True(right > 0, "方法{}.{}上增强注解的path值错误,缺少')'", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
         enhanceMethodName = enhanceMethod.getName();
-        this.enhanceBean = enhanceBean;
+        this.enhanceBeanName = enhanceBeanName;
+        this.enhanceBeanType = enhanceBeanType;
         this.enhanceFieldName = enhanceFieldName;
         this.path = path;
         this.order = order;
         methodName = path.substring(0, left);
         paramTypeNames = (left + 1 == right) ? new String[0] : path.substring(left + 1, right).split(" ");
-        if (AnnotationUtil.isPresent(BeforeEnhance.class, enhanceMethod))
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        if (annotationUtil.isPresent(BeforeEnhance.class, enhanceMethod))
         {
             type = BEFORE;
         }
-        else if (AnnotationUtil.isPresent(AfterEnhance.class, enhanceMethod))
+        else if (annotationUtil.isPresent(AfterEnhance.class, enhanceMethod))
         {
             type = AFTER;
         }
-        else if (AnnotationUtil.isPresent(AroundEnhance.class, enhanceMethod))
+        else if (annotationUtil.isPresent(AroundEnhance.class, enhanceMethod))
         {
             type = AROUND;
         }
-        else if (AnnotationUtil.isPresent(ThrowEnhance.class, enhanceMethod))
+        else if (annotationUtil.isPresent(ThrowEnhance.class, enhanceMethod))
         {
             type = THROW;
         }
@@ -126,14 +128,14 @@ public class EnhanceAnnoInfo implements Order
         return false;
     }
     
-    public Bean getEnhanceBean()
+    public String getEnhanceBeanName()
     {
-        return enhanceBean;
+        return enhanceBeanName;
     }
     
-    public void setEnhanceBean(Bean enhanceBean)
+    public Class<?> getEnhanceBeanType()
     {
-        this.enhanceBean = enhanceBean;
+        return enhanceBeanType;
     }
     
     public String getEnhanceFieldName()

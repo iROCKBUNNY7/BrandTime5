@@ -9,6 +9,8 @@ import org.junit.Test;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.util.EnvironmentUtil;
 
 @Testalis3(t = "sada", s = false)
 public class AliasTest
@@ -25,22 +27,24 @@ public class AliasTest
     @Test
     public void test() throws NoSuchMethodException, SecurityException, NoSuchFieldException
     {
-        Resource resource = AnnotationUtil.getAnnotation(Resource.class, AliasTest.class);
+        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        Resource resource = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
         assertEquals("sada", resource.name());
         assertFalse(resource.shareable());
         Method method = AliasTest.class.getMethod("take");
-        InitMethod initMethod = AnnotationUtil.getAnnotation(InitMethod.class, method);
+        InitMethod initMethod = annotationUtil.getAnnotation(InitMethod.class, method);
         assertEquals("ss", initMethod.name());
         Field field = AliasTest.class.getDeclaredField("bi");
-        resource = AnnotationUtil.getAnnotation(Resource.class, field);
+        resource = annotationUtil.getAnnotation(Resource.class, field);
         assertEquals("demo", resource.name());
     }
     
     @Test
     public void test2()
     {
-        JfireConfig jfireConfig = new JfireConfig();
-        jfireConfig.addPackageNames("com.jfireframework.context.test.function.aliastest");
+        JfireInitializationCfg cfg = new JfireInitializationCfg();
+        cfg.setScanPackageNames("com.jfireframework.context.test.function.aliastest");
+        JfireConfig jfireConfig = new JfireConfig(cfg);
         Jfire jfire = new Jfire(jfireConfig);
         SingleDemo demo = (SingleDemo) jfire.getBean("demo");
         assertFalse(demo == null);

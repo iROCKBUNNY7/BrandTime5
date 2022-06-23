@@ -12,9 +12,9 @@ public class CacheTest
     public void test()
     {
         JfireConfig config = new JfireConfig();
-        config.addBean(CacheTarget.class);
-        config.addBean(DemoCache.class);
-        config.addBean(CacheManagerTest.class);
+        config.registerBeanDefinition(CacheTarget.class);
+        config.registerBeanDefinition(DemoCache.class);
+        config.registerBeanDefinition(CacheManagerTest.class);
         Jfire jfire = new Jfire(config);
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
         House house = cacheTarget.get(1);

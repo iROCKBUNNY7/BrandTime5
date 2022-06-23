@@ -5,15 +5,10 @@ import java.util.Map;
 public class OuterEntityBean extends BaseBean
 {
     
-    public OuterEntityBean(String beanName, Object entity)
+    public OuterEntityBean(String beanName, Object outterEntity)
     {
-        singletonInstance = entity;
-        this.beanName = beanName;
-        canEnhance = false;
-        canInject = true;
-        prototype = false;
-        type = entity.getClass();
-        originType = type;
+        super(outterEntity.getClass(), beanName, false, null, null);
+        singletonInstance = outterEntity;
     }
     
     @Override

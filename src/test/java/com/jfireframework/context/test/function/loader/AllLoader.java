@@ -13,26 +13,22 @@ public class AllLoader implements BeanLoadFactory
     
     public AllLoader()
     {
-        holder.put(
-                Person.class, new Person() {
-                    
-                    @Override
-                    public String getName()
-                    {
-                        return "name";
-                    }
-                }
-        );
-        holder.put(
-                Home.class, new Home() {
-                    
-                    @Override
-                    public int getLength()
-                    {
-                        return 100;
-                    }
-                }
-        );
+        holder.put(Person.class, new Person() {
+            
+            @Override
+            public String getName()
+            {
+                return "name";
+            }
+        });
+        holder.put(Home.class, new Home() {
+            
+            @Override
+            public int getLength()
+            {
+                return 100;
+            }
+        });
     }
     
     @SuppressWarnings("unchecked")

@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.Bean;
+import com.jfireframework.jfire.bean.BeanDefinition;
 
 /**
  * Map注入。该map注入由配置文件定义。是key和bean都在配置文件中定义完毕的
@@ -14,12 +14,12 @@ import com.jfireframework.jfire.bean.Bean;
  */
 public class ValueMapField extends AbstractDependencyField
 {
-    private Bean[]   dependencyBeans;
-    private Object[] keys;
-    private String   msg;
-    private int      length;
+    private BeanDefinition[] dependencyBeans;
+    private Object[]         keys;
+    private String           msg;
+    private int              length;
     
-    public ValueMapField(Field field, Bean[] beans, Object[] keys)
+    public ValueMapField(Field field, BeanDefinition[] beans, Object[] keys)
     {
         super(field);
         this.dependencyBeans = beans;
@@ -38,7 +38,7 @@ public class ValueMapField extends AbstractDependencyField
         {
             try
             {
-                map.put(keys[i], dependencyBeans[i].getInstance());
+                map.put(keys[i], dependencyBeans[i].getConstructedBean().getInstance());
             }
             catch (IllegalArgumentException e)
             {
