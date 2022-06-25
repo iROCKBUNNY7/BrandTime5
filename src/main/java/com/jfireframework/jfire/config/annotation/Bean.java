@@ -20,5 +20,12 @@ public @interface Bean
     
     boolean prototype() default false;
     
+    /**
+     * bean的初始化方法
+     * 
+     * @return
+     */
+    String initMethod() default "";
+    
     String destroyMethod() default "";
 }

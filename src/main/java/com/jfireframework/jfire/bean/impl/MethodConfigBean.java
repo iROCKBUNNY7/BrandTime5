@@ -9,7 +9,7 @@ import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 import sun.reflect.MethodAccessor;
 
-public class AnnotationConfigBean extends BaseBean
+public class MethodConfigBean extends BaseBean
 {
     /**
      * 宿主所在的bean
@@ -17,7 +17,7 @@ public class AnnotationConfigBean extends BaseBean
     private final Bean           hostBean;
     private final MethodAccessor methodAccessor;
     
-    public AnnotationConfigBean(Bean hostBean, MethodAccessor methodAccessor, Class<?> type, String beanName, boolean prototype)
+    public MethodConfigBean(Bean hostBean, MethodAccessor methodAccessor, Class<?> type, String beanName, boolean prototype)
     {
         super(type, beanName, prototype, new DIField[0], new ParamField[0]);
         this.hostBean = hostBean;

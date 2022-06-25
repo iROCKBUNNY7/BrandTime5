@@ -1,23 +1,23 @@
 package com.jfireframework.jfire;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.util.EnvironmentUtil;
 
 public class Jfire
 {
-    protected Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
+    protected Map<String, BeanDefinition> beanDefinitions;
+    protected AnnotationUtil              annotationUtil;
     
     public Jfire(JfireConfig jfireConfig)
     {
-        jfireConfig.initJfire(this);
         beanDefinitions = jfireConfig.beanDefinitions;
+        annotationUtil = jfireConfig.annotationUtil;
+        jfireConfig.initJfire(this);
     }
     
     @SuppressWarnings("unchecked")
@@ -44,12 +44,12 @@ public class Jfire
     {
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (each.getOriginType() == beanClass)
+            if (beanClass.isAssignableFrom(each.getOriginType()))
             {
                 return each;
             }
         }
-        throw new UnSupportException("bean" + beanClass.getName() + "不存在");
+        throw new UnSupportException("bean:" + beanClass.getName() + "不存在");
     }
     
     public BeanDefinition getBeanDefinition(String resName)
@@ -59,7 +59,6 @@ public class Jfire
     
     public BeanDefinition[] getBeanDefinitionByAnnotation(Class<? extends Annotation> annotationType)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         List<BeanDefinition> result = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {

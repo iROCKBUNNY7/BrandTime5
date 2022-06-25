@@ -1,21 +1,34 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
+import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.config.ImportTrigger;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.ComponentScan;
 import com.jfireframework.jfire.config.annotation.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.annotation.Properties;
+import com.jfireframework.jfire.config.environment.Environment;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
-@Properties("name=linbin")
 @MyImport(name = "myimport")
-@Import(HouseProvider.class)
+@Import({ HouseProvider.class, NameProperty.class })
 public class Data
 {
+    
+    public static class NameProperty implements ImportTrigger
+    {
+        
+        @Override
+        public void trigger(Environment environment)
+        {
+            environment.putProperty("name", "linbin");
+        }
+        
+    }
+    
     @Resource
     private House house;
     @Resource(name = "house2")
@@ -59,5 +72,11 @@ public class Data
         Person person = new Person();
         person.setName(house2.name());
         return person;
+    }
+    
+    @Bean
+    public Class<Person> person9()
+    {
+        return Person.class;
     }
 }

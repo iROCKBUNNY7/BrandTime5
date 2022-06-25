@@ -9,5 +9,5 @@ import com.jfireframework.jfire.config.Condition;
 @Documented
 public @interface Conditional
 {
-    Class<? extends Condition> value();
+    Class<? extends Condition>[] value();
 }

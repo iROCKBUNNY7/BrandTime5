@@ -11,7 +11,6 @@ import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.config.JfireInitializationCfg;
-import com.jfireframework.jfire.util.EnvironmentUtil;
 
 @Testalis3(t = "sada")
 public class AliasTest
@@ -28,7 +27,7 @@ public class AliasTest
     @Test
     public void test() throws NoSuchMethodException, SecurityException, NoSuchFieldException
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        AnnotationUtil annotationUtil = new AnnotationUtil();
         Resource resource = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
         Assert.assertTrue(resource.shareable());
         Method method = AliasTest.class.getMethod("take");

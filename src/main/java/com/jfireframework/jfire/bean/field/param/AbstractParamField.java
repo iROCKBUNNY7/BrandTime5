@@ -45,6 +45,10 @@ public abstract class AbstractParamField implements ParamField
         {
             return new StringField(field, value);
         }
+        else if (fieldType == int[].class)
+        {
+            return new IntArrayField(field, value);
+        }
         else if (fieldType == Integer.class)
         {
             return new IntegerField(field, value);
@@ -103,6 +107,25 @@ public abstract class AbstractParamField implements ParamField
         }
     }
     
+    static class IntArrayField extends AbstractParamField
+    {
+        
+        private final int[] array;
+        
+        public IntArrayField(Field field, String value)
+        {
+            super(field, value);
+            String[] tmp = value.split(",");
+            array = new int[tmp.length];
+            for (int i = 0; i < array.length; i++)
+            {
+                array[i] = Integer.valueOf(tmp[i]);
+            }
+            this.value = array;
+        }
+        
+    }
+    
     static class BooleanField extends AbstractParamField
     {
         private final boolean value;
@@ -134,23 +157,6 @@ public abstract class AbstractParamField implements ParamField
         public void setParam(Object entity)
         {
             unsafe.putFloat(entity, offset, value);
-        }
-        
-    }
-    
-    static class IntArrayField extends AbstractParamField
-    {
-        
-        public IntArrayField(Field field, String value)
-        {
-            super(field, value);
-            String[] tmp = value.split(",");
-            int[] array = new int[tmp.length];
-            for (int i = 0; i < tmp.length; i++)
-            {
-                array[i] = Integer.parseInt(tmp[i]);
-            }
-            this.value = array;
         }
         
     }

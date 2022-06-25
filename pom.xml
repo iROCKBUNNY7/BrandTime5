@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.jfireframework</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0</version>
+		<version>1.0.1</version>
 	</parent>
 	<version>1.0-SNAPSHOT</version>
 	<artifactId>jfire</artifactId>
@@ -49,5 +49,38 @@
 	</dependencies>
 	<build>
 		<finalName>jfire</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.9</version>
+				<configuration>
+					<excludes>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report_2</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 </project>

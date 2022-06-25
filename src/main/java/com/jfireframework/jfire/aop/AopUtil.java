@@ -38,7 +38,6 @@ import com.jfireframework.jfire.cache.el.JelExplain;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionIsolate;
 import com.jfireframework.jfire.tx.TransactionManager;
-import com.jfireframework.jfire.util.EnvironmentUtil;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -64,10 +63,12 @@ public class AopUtil
     private Logger                               logger             = ConsoleLogFactory.getLogger();
     private final ClassLoader                    classLoader;
     private final Map<String, BeanAopDefinition> beanAopDefinitions = new HashMap<String, AopUtil.BeanAopDefinition>();
+    private final AnnotationUtil                 annotationUtil;
     
-    public AopUtil(ClassLoader classLoader)
+    public AopUtil(ClassLoader classLoader, AnnotationUtil annotationUtil)
     {
         this.classLoader = classLoader;
+        this.annotationUtil = annotationUtil;
         classPool = new ClassPool();
         ClassPool.doPruning = true;
         classPool.importPackage("com.jfireframework.jfire.aop");
@@ -122,7 +123,6 @@ public class AopUtil
      */
     private void scanForEmbedEnhanceMethods(Map<String, BeanDefinition> beanDefinitions)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (BeanDefinition candidate : beanDefinitions.values())
         {
             if (candidate.isDefault() == false || candidate.getOriginType() != candidate.getType())
@@ -172,7 +172,6 @@ public class AopUtil
      */
     private void scanForAspect(Map<String, BeanDefinition> beanDefinitions)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (BeanDefinition enhanceBeanDefinition : beanDefinitions.values())
         {
             if (annotationUtil.isPresent(EnhanceClass.class, enhanceBeanDefinition.getType()))
@@ -446,7 +445,6 @@ public class AopUtil
      */
     private void addTxToMethod(CtClass targetCc, String txFieldName, List<Method> txMethods) throws NotFoundException, CannotCompileException
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method method : txMethods)
         {
             Transaction transaction = annotationUtil.getAnnotation(Transaction.class, method);
@@ -493,7 +491,6 @@ public class AopUtil
      */
     private void addResToMethod(CtClass targetCc, String resFieldName, List<Method> resMethods) throws NotFoundException, CannotCompileException
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method method : resMethods)
         {
             AutoResource autoClose = annotationUtil.getAnnotation(AutoResource.class, method);
@@ -515,7 +512,6 @@ public class AopUtil
     
     private void addCacheToMethod(CtClass targetCc, String cacheFieldName, List<Method> cacheMethods) throws CannotCompileException, NotFoundException
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Method each : cacheMethods)
         {
             try
@@ -934,7 +930,6 @@ public class AopUtil
             String enhanceBeanfieldName = "jfireinvoker$" + enhanceCount.incrementAndGet();
             String path;
             int order;
-            AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
             for (Method each : enhanceBeanDefinition.getType().getDeclaredMethods())
             {
                 if (annotationUtil.isPresent(AfterEnhance.class, each))
@@ -960,7 +955,7 @@ public class AopUtil
                     ThrowEnhance throwEnhance = annotationUtil.getAnnotation(ThrowEnhance.class, each);
                     path = throwEnhance.value().equals("") ? each.getName() + "(*)" : throwEnhance.value();
                     order = throwEnhance.order();
-                    EnhanceAnnoInfo enhanceAnnoInfo = new EnhanceAnnoInfo(enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each);
+                    EnhanceAnnoInfo enhanceAnnoInfo = new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each);
                     enhanceAnnoInfo.setThrowtype(throwEnhance.type());
                     enhanceAnnoInfos.add(enhanceAnnoInfo);
                     continue;
@@ -969,7 +964,7 @@ public class AopUtil
                 {
                     continue;
                 }
-                enhanceAnnoInfos.add(new EnhanceAnnoInfo(enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each));
+                enhanceAnnoInfos.add(new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each));
             }
         }
         

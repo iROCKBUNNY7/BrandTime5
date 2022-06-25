@@ -22,7 +22,6 @@ import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
 import com.jfireframework.jfire.bean.field.param.AbstractParamField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
-import com.jfireframework.jfire.util.EnvironmentUtil;
 
 public class FieldFactory
 {
@@ -35,12 +34,11 @@ public class FieldFactory
      * @param beanConfig
      * @return
      */
-    public static List<DIFieldInfo> buildDependencyField(BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
+    public static List<DIFieldInfo> buildDependencyField(AnnotationUtil annotationUtil, BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
     {
         Field[] fields = ReflectUtil.getAllFields(beanInfo.getType());
         List<DIFieldInfo> list = new LinkedList<DIFieldInfo>();
         Map<String, String> dependencyMap = beanInfo.getDependencies();
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         // 优先以配置中的为准
         try
         {
@@ -53,7 +51,7 @@ public class FieldFactory
                 }
                 else if (annotationUtil.isPresent(Resource.class, field))
                 {
-                    list.add(buildDependencyFieldByAnno(field, beanDefinitions));
+                    list.add(buildDependencyFieldByAnno(annotationUtil, field, beanDefinitions));
                 }
             }
         }
@@ -91,7 +89,7 @@ public class FieldFactory
         }
     }
     
-    private static DIFieldInfo buildDependencyFieldByAnno(Field field, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
+    private static DIFieldInfo buildDependencyFieldByAnno(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
     {
         Class<?> type = field.getType();
         if (type == List.class)
@@ -100,15 +98,15 @@ public class FieldFactory
         }
         else if (type == Map.class)
         {
-            return buildMapFieldByAnno(field, beanDefinitions);
+            return buildMapFieldByAnno(annotationUtil, field, beanDefinitions);
         }
         else if (type.isInterface() || Modifier.isAbstract(type.getModifiers()))
         {
-            return buildInterfaceField(field, beanDefinitions);
+            return buildInterfaceField(annotationUtil, field, beanDefinitions);
         }
         else
         {
-            return buildDefaultField(field, beanDefinitions);
+            return buildDefaultField(annotationUtil, field, beanDefinitions);
         }
     }
     
@@ -252,7 +250,7 @@ public class FieldFactory
         return diFieldInfo;
     }
     
-    private static DIFieldInfo buildMapFieldByAnno(Field field, Map<String, BeanDefinition> beanNameMap) throws NoSuchMethodException, SecurityException
+    private static DIFieldInfo buildMapFieldByAnno(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanNameMap) throws NoSuchMethodException, SecurityException
     {
         Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         Verify.matchType(types[0], Class.class, "map依赖字段，要求key必须指明类型，而当前类型是{}", types[0]);
@@ -267,7 +265,6 @@ public class FieldFactory
             }
         }
         BeanDefinition[] beans = tmp.toArray(new BeanDefinition[tmp.size()]);
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         if (annotationUtil.isPresent(MapKey.class, field))
         {
             String methodName = annotationUtil.getAnnotation(MapKey.class, field).value();
@@ -294,9 +291,8 @@ public class FieldFactory
      * @param beanNameMap
      * @return
      */
-    private static DIFieldInfo buildInterfaceField(Field field, Map<String, BeanDefinition> beanNameMap)
+    private static DIFieldInfo buildInterfaceField(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanNameMap)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         Resource resource = annotationUtil.getAnnotation(Resource.class, field);
         Class<?> type = field.getType();
         if (resource.name().equals("") == false)
@@ -335,12 +331,17 @@ public class FieldFactory
                 if (type.isAssignableFrom(each.getType()))
                 {
                     find++;
+                    if (find > 1)
+                    {
+                        throw new UnSupportException(StringUtil.format(//
+                                "接口或抽象类{}的实现多于一个,无法自动注入{}.{},请在resource注解上注明需要注入的bean的名称.当前发现:{}和{}.debug信息:{}", //
+                                type.getName(), field.getDeclaringClass().getName(), field.getName(), each.getOriginType(), implBean.getOriginType(), implBean.trace()));
+                    }
                     implBean = each;
                 }
             }
             if (find != 0)
             {
-                Verify.True(find == 1, "接口或抽象类{}的实现多于一个,无法自动注入{}.{},请在resource注解上注明需要注入的bean的名称", type.getName(), field.getDeclaringClass().getName(), field.getName());
                 DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.DEFAULT);
                 diFieldInfo.setBeanDefinition(implBean);
                 return diFieldInfo;
@@ -363,9 +364,8 @@ public class FieldFactory
      * @param beanNameMap
      * @return
      */
-    private static DIFieldInfo buildDefaultField(Field field, Map<String, BeanDefinition> beanNameMap)
+    private static DIFieldInfo buildDefaultField(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanNameMap)
     {
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         Resource resource = annotationUtil.getAnnotation(Resource.class, field);
         if (resource.name().equals("") == false)
         {
@@ -431,11 +431,10 @@ public class FieldFactory
      * @param beanConfig
      * @return
      */
-    public static List<ParamField> buildParamField(BeanDefinition beanDefinition, Map<String, String> params, Map<String, String> properties, ClassLoader classLoader)
+    public static List<ParamField> buildParamField(AnnotationUtil annotationUtil, BeanDefinition beanDefinition, Map<String, String> params, Map<String, String> properties, ClassLoader classLoader)
     {
         Field[] fields = ReflectUtil.getAllFields(beanDefinition.getType());
         List<ParamField> list = new LinkedList<ParamField>();
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
         for (Field field : fields)
         {
             if (params.containsKey(field.getName()))

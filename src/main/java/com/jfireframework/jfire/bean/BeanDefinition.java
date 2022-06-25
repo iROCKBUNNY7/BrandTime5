@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.jfireframework.baseutil.code.CodeLocation;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -51,11 +52,18 @@ public class BeanDefinition
     private Environment         annotationEnvironment;
     private String              hostBeanName;
     private String              beanAnnotatedMethod;
+    private String              trace;
     
     public BeanDefinition()
     {
         switchDefault();
         enablePrototype(false);
+        trace = CodeLocation.getCodeLocation(3);
+    }
+    
+    public String trace()
+    {
+        return trace;
     }
     
     public int mode()

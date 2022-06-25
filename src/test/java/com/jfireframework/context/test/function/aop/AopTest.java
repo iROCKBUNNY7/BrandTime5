@@ -9,7 +9,6 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.config.JfireInitializationCfg;
-import com.jfireframework.jfire.util.EnvironmentUtil;
 
 public class AopTest
 {
@@ -22,7 +21,7 @@ public class AopTest
         Jfire jfire = new Jfire(jfireConfig);
         BeanDefinition bean = jfire.getBeanDefinition(Person.class);
         Method method = bean.getType().getDeclaredMethod("sayHello");
-        AnnotationUtil annotationUtil = EnvironmentUtil.getAnnoUtil();
+        AnnotationUtil annotationUtil = new AnnotationUtil();
         assertEquals("注解保留", annotationUtil.getAnnotation(Resource.class, method).name());
     }
     
