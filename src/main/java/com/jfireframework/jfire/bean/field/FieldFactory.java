@@ -34,24 +34,17 @@ public class FieldFactory
      * @param beanConfig
      * @return
      */
-    public static List<DIFieldInfo> buildDependencyField(AnnotationUtil annotationUtil, BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
+    public static List<DIFieldInfo> buildDependencyFields(AnnotationUtil annotationUtil, BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
     {
         Field[] fields = ReflectUtil.getAllFields(beanInfo.getType());
         List<DIFieldInfo> list = new LinkedList<DIFieldInfo>();
-        Map<String, String> dependencyMap = beanInfo.getDependencies();
-        // 优先以配置中的为准
         try
         {
             for (Field field : fields)
             {
-                if (dependencyMap.containsKey(field.getName()))
+                if (annotationUtil.isPresent(Resource.class, field))
                 {
-                    String dependencyStr = dependencyMap.get(field.getName());
-                    list.add(buildDependFieldsByConfig(field, dependencyStr, beanDefinitions));
-                }
-                else if (annotationUtil.isPresent(Resource.class, field))
-                {
-                    list.add(buildDependencyFieldByAnno(annotationUtil, field, beanDefinitions));
+                    list.add(buildDependencyField(annotationUtil, field, beanDefinitions));
                 }
             }
         }
@@ -62,43 +55,16 @@ public class FieldFactory
         return list;
     }
     
-    /**
-     * 使用配置信息为bean生成依赖注入信息
-     * 
-     * @param bean
-     * @param beans
-     * @param dependencyMap
-     * @return
-     * @throws SecurityException
-     * @throws NoSuchMethodException
-     */
-    private static DIFieldInfo buildDependFieldsByConfig(Field field, String dependencyStr, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
-    {
-        Class<?> type = field.getType();
-        if (List.class == type)
-        {
-            return buildListByConfig(field, dependencyStr, beanDefinitions);
-        }
-        else if (Map.class == type)
-        {
-            return buildMapFieldByConfig(field, dependencyStr, beanDefinitions);
-        }
-        else
-        {
-            return buildDefaultFieldByConfig(field, dependencyStr, beanDefinitions);
-        }
-    }
-    
-    private static DIFieldInfo buildDependencyFieldByAnno(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
+    private static DIFieldInfo buildDependencyField(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
     {
         Class<?> type = field.getType();
         if (type == List.class)
         {
-            return buildListFieldByAnno(field, beanDefinitions);
+            return buildListField(field, beanDefinitions);
         }
         else if (type == Map.class)
         {
-            return buildMapFieldByAnno(annotationUtil, field, beanDefinitions);
+            return buildMapField(annotationUtil, field, beanDefinitions);
         }
         else if (type.isInterface() || Modifier.isAbstract(type.getModifiers()))
         {
@@ -110,118 +76,7 @@ public class FieldFactory
         }
     }
     
-    private static DIFieldInfo buildListByConfig(Field field, String dependencyStr, Map<String, BeanDefinition> beanDefinitions)
-    {
-        String[] dependencyBeanNames = dependencyStr.split(";");
-        BeanDefinition[] injects = new BeanDefinition[dependencyBeanNames.length];
-        Class<?> beanInterface = (Class<?>) ((java.lang.reflect.ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-        for (int i = 0; i < injects.length; i++)
-        {
-            BeanDefinition dependencyBean = beanDefinitions.get(dependencyBeanNames[i]);
-            Verify.exist(dependencyBean, "配置文件中注入配置{}中的beanName:{}不存在", dependencyStr, dependencyBeanNames[i]);
-            Verify.True(beanInterface.isAssignableFrom(dependencyBean.getType()), "配置文件中注入配置{}中的beanName:{}没有实现接口:{}", dependencyStr, dependencyBeanNames[i], beanInterface);
-            injects[i] = dependencyBean;
-        }
-        DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.LIST);
-        diFieldInfo.setBeanDefinitions(injects);
-        return diFieldInfo;
-    }
-    
-    private static DIFieldInfo buildMapFieldByConfig(Field field, String dependencyStr, Map<String, BeanDefinition> beanDefinitions) throws NoSuchMethodException, SecurityException
-    {
-        Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-        Verify.matchType(types[0], Class.class, "map依赖字段，要求key必须指明类型，而当前类型是{}", types[0]);
-        Verify.matchType(types[1], Class.class, "map依赖字段，要求value必须指明类型，而当前类型是{}", types[1]);
-        Class<?> keyClass = (Class<?>) (types[0]);
-        Class<?> valueClass = (Class<?>) (types[1]);
-        if (dependencyStr.startsWith("version1!"))
-        {
-            dependencyStr = dependencyStr.substring(9);
-            String methodName = dependencyStr.split(":")[0];
-            String[] dependencyBeanNames = dependencyStr.split(":")[1].split(";");
-            BeanDefinition[] beans = new BeanDefinition[dependencyBeanNames.length];
-            for (int i = 0; i < beans.length; i++)
-            {
-                BeanDefinition dependencyBean = beanDefinitions.get(dependencyBeanNames[i]);
-                Verify.exist(dependencyBean, "配置文件中注入配置{}中的beanName:{}不存在", dependencyStr, dependencyBeanNames[i]);
-                Verify.True(valueClass.isAssignableFrom(dependencyBean.getType()), "配置文件中注入配置{}中的beanName:{}和类:{}类型不符", dependencyStr, dependencyBeanNames[i], valueClass);
-                beans[i] = dependencyBean;
-            }
-            DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.METHOD_MAP);
-            Method method = valueClass.getDeclaredMethod(methodName);
-            Verify.notNull(method, "执行Map注入分析发现类:{}不存在方法:{},因此无法完成Map注入", valueClass.getName(), methodName);
-            Verify.True(keyClass.isAssignableFrom(method.getReturnType()), "执行Map注入分析发现类:{}的方法:{}返回值不是:{}类型,不能完成Map注入", valueClass.getName(), methodName, keyClass.getName());
-            diFieldInfo.setBeanDefinitions(beans);
-            diFieldInfo.setMethod_map_method(ReflectUtil.fastMethod(method));
-            return diFieldInfo;
-        }
-        else if (dependencyStr.startsWith("version2!"))
-        {
-            dependencyStr = dependencyStr.substring(9);
-            String[] keyAndValues = dependencyStr.split("\\|");
-            BeanDefinition[] beans = new BeanDefinition[keyAndValues.length];
-            Object[] keys = new Object[keyAndValues.length];
-            for (int i = 0; i < beans.length; i++)
-            {
-                String key = keyAndValues[i].split(":")[0];
-                String value = keyAndValues[i].split(":")[1];
-                BeanDefinition dependencyBean = beanDefinitions.get(value);
-                Verify.exist(dependencyBean, "属性{}.{}进行map注入，配置信息{}中指定的bean{}不存在", field.getDeclaringClass(), field.getName(), dependencyStr, value);
-                beans[i] = dependencyBean;
-                if (keyClass == Integer.class)
-                {
-                    keys[i] = Integer.valueOf(key);
-                }
-                else if (keyClass == String.class)
-                {
-                    keys[i] = key;
-                }
-                else if (keyClass == Long.class)
-                {
-                    keys[i] = Long.valueOf(key);
-                }
-                else
-                {
-                    throw new UnsupportedOperationException("不识别的类型");
-                }
-            }
-            DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.VALUE_MAP);
-            diFieldInfo.setBeanDefinitions(beans);
-            diFieldInfo.setValue_map_values(keys);
-            return diFieldInfo;
-        }
-        else if (dependencyStr.startsWith("version3!"))
-        {
-            dependencyStr = dependencyStr.substring(9);
-            String[] beanNames = dependencyStr.split(",");
-            BeanDefinition[] beans = new BeanDefinition[beanNames.length];
-            Verify.True(keyClass.equals(String.class), "只用Resource注解进行map注入时，key就是注入的bean的名称，所以要求key是String类型。请检查{}.{}", field.getDeclaringClass(), field.getName());
-            for (int i = 0; i < beanNames.length; i++)
-            {
-                beans[i] = beanDefinitions.get(beanNames[i]);
-            }
-            DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.BEAN_NAME_MAP);
-            diFieldInfo.setBeanDefinitions(beans);
-            return diFieldInfo;
-        }
-        else
-        {
-            throw new UnSupportException(StringUtil.format("属性{}.{}进行map注入，本质信息不正确。请检查{}", field.getDeclaringClass(), field.getName(), dependencyStr));
-        }
-    }
-    
-    private static DIFieldInfo buildDefaultFieldByConfig(Field field, String dependencyStr, Map<String, BeanDefinition> beanDefinitions)
-    {
-        BeanDefinition dependencyBean = beanDefinitions.get(dependencyStr);
-        Verify.notNull(dependencyBean, "配置文件中注入配置{}的bean不存在", dependencyStr);
-        Class<?> type = field.getType();
-        Verify.True(type.isAssignableFrom(dependencyBean.getType()), "配置文件中注入的bean:{}不是接口:{}的实现", dependencyStr, type);
-        DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.DEFAULT);
-        diFieldInfo.setBeanDefinition(dependencyBean);
-        return diFieldInfo;
-    }
-    
-    private static DIFieldInfo buildListFieldByAnno(Field field, Map<String, BeanDefinition> beanDefinitions)
+    private static DIFieldInfo buildListField(Field field, Map<String, BeanDefinition> beanDefinitions)
     {
         Type type = ((java.lang.reflect.ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
         Class<?> beanInterface = null;
@@ -250,7 +105,7 @@ public class FieldFactory
         return diFieldInfo;
     }
     
-    private static DIFieldInfo buildMapFieldByAnno(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanNameMap) throws NoSuchMethodException, SecurityException
+    private static DIFieldInfo buildMapField(AnnotationUtil annotationUtil, Field field, Map<String, BeanDefinition> beanNameMap) throws NoSuchMethodException, SecurityException
     {
         Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         Verify.matchType(types[0], Class.class, "map依赖字段，要求key必须指明类型，而当前类型是{}", types[0]);

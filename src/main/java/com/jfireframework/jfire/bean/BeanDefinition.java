@@ -7,7 +7,6 @@ import java.util.Map;
 import com.jfireframework.baseutil.code.CodeLocation;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
 import com.jfireframework.jfire.bean.field.param.ParamField;
-import com.jfireframework.jfire.config.environment.Environment;
 
 public class BeanDefinition
 {
@@ -49,7 +48,6 @@ public class BeanDefinition
     private Bean                constructedBean;
     // 该属性只用于在JfireInitializationCfg中使用
     private boolean             prototype;
-    private Environment         annotationEnvironment;
     private String              hostBeanName;
     private String              beanAnnotatedMethod;
     private String              trace;
@@ -68,7 +66,7 @@ public class BeanDefinition
     
     public int mode()
     {
-        return schema & SHIFT;
+        return schema & (~SHIFT);
     }
     
     public int schema()
@@ -79,16 +77,6 @@ public class BeanDefinition
     public void setSchema(int schema)
     {
         this.schema = schema;
-    }
-    
-    public Environment getAnnotationEnvironment()
-    {
-        return annotationEnvironment;
-    }
-    
-    public void setAnnotationEnvironment(Environment annotationEnvironment)
-    {
-        this.annotationEnvironment = annotationEnvironment;
     }
     
     public String getHostBeanName()

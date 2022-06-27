@@ -17,14 +17,15 @@ import com.jfireframework.jfire.config.Condition;
 
 public class Environment
 {
-    protected Map<Class<? extends Condition>, Condition> conditionImplStore  = new HashMap<Class<? extends Condition>, Condition>();
-    protected Map<String, String>                        properties;
-    protected Set<Class<?>>                              configClasses       = new HashSet<Class<?>>();
-    protected Set<Method>                                configMethods       = new HashSet<Method>();
-    protected final Map<String, BeanDefinition>          beanDefinitions;
-    protected final JfireConfig                          jfireConfig;
-    private final ReadOnlyEnvironment                    readOnlyEnvironment = new ReadOnlyEnvironment(this);
-    private final AnnotationUtil                         annotationUtil      = new AnnotationUtil();
+    protected final Map<String, BeanDefinition>                beanDefinitions;
+    protected final Map<String, String>                        properties;
+    protected final JfireConfig                                jfireConfig;
+    protected final Set<Method>                                configMethods       = new HashSet<Method>();
+    protected final Set<Class<?>>                              configClasses       = new HashSet<Class<?>>();
+    protected final Map<Class<? extends Condition>, Condition> conditionImplStore  = new HashMap<Class<? extends Condition>, Condition>();
+    private final ReadOnlyEnvironment                          readOnlyEnvironment = new ReadOnlyEnvironment(this);
+    private final AnnotationUtil                               annotationUtil      = new AnnotationUtil();
+    private ClassLoader                                        classLoader;
     
     public Environment(Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, JfireConfig jfireConfig)
     {
@@ -36,6 +37,21 @@ public class Environment
     public void registerBeanDefinition(BeanDefinition beanDefinition)
     {
         jfireConfig.registerBeanDefinition(beanDefinition);
+    }
+    
+    public void registerBeanDefinition(Class<?> ckass)
+    {
+        jfireConfig.registerBeanDefinition(ckass);
+    }
+    
+    public void setClassLoader(ClassLoader classLoader)
+    {
+        this.classLoader = classLoader;
+    }
+    
+    public ClassLoader getClassLoader()
+    {
+        return classLoader;
     }
     
     public static class ReadOnlyEnvironment

@@ -8,16 +8,20 @@ import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 public class AopTest
 {
+    @ComponentScan("com.jfireframework.context.test.function.aop")
+    public static class AopTtestScan
+    {
+        
+    }
+    
     @Test
     public void testAnnoExist() throws NoSuchMethodException, SecurityException
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         BeanDefinition bean = jfire.getBeanDefinition(Person.class);
         Method method = bean.getType().getDeclaredMethod("sayHello");
@@ -28,9 +32,7 @@ public class AopTest
     @Test
     public void beforetest()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         assertEquals("前置拦截", person.sayHello("你好"));
@@ -39,9 +41,7 @@ public class AopTest
     @Test
     public void beforeTest2()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         assertEquals(0, person.testInts(new int[] { 1, 2, 3 }).length);
@@ -50,9 +50,7 @@ public class AopTest
     @Test
     public void testOrder()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         System.out.println(person.getClass());
@@ -62,9 +60,7 @@ public class AopTest
     @Test
     public void testOrder2()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         assertEquals("你好", person.order2("林斌", 25));
@@ -73,9 +69,7 @@ public class AopTest
     @Test
     public void testMyname()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         assertEquals("林斌你好", person.myName("你好"));
@@ -84,9 +78,7 @@ public class AopTest
     @Test
     public void testThrow()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         try
@@ -102,9 +94,7 @@ public class AopTest
     @Test
     public void testTx()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         person.tx();
@@ -114,9 +104,7 @@ public class AopTest
     @Test
     public void testChildTx()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aop");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         ChildPerson person = jfire.getBean(ChildPerson.class);
         person.my();

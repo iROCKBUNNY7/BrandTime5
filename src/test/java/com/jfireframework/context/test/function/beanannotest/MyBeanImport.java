@@ -1,13 +1,13 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.config.ImportTrigger;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.inittrigger.JfireInitTrigger;
 
 @Configuration
-public class MyBeanImport implements ImportTrigger
+public class MyBeanImport implements JfireInitTrigger
 {
     @Resource
     private Environment environment;

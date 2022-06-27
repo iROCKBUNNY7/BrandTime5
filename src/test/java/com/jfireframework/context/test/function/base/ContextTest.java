@@ -2,14 +2,10 @@ package com.jfireframework.context.test.function.base;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import javax.annotation.Resource;
 import org.junit.Test;
-import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.simplelog.ConsoleLogFactory;
-import com.jfireframework.baseutil.simplelog.Logger;
-import com.jfireframework.codejson.JsonTool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.context.test.function.base.data.ImmutablePerson;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
@@ -17,15 +13,16 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.JfireInitFinish;
 import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 public class ContextTest
 {
-    private Logger logger = ConsoleLogFactory.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(ContextTest.class);
     
-    static
+    @ComponentScan("com.jfireframework.context.test.function.base")
+    public static class ContextTestScan
     {
-        ConsoleLogFactory.addLoggerCfg("com.jfireframework.context", ConsoleLogFactory.TRACE);
+        
     }
     
     /**
@@ -34,10 +31,8 @@ public class ContextTest
     @Test
     public void testConstruction()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.base");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
-        baseTest(new Jfire(jfireConfig), 3);
+        JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
+        baseTest(new Jfire(jfireConfig), 4);
     }
     
     private void baseTest(Jfire jfire, int expected)
@@ -61,9 +56,7 @@ public class ContextTest
     @Test
     public void testParam()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.base");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
         BeanDefinition beanInfo = new BeanDefinition();
         beanInfo.setBeanName(ImmutablePerson.class.getName());
         beanInfo.putParam("name", "林斌");
@@ -112,41 +105,19 @@ public class ContextTest
     @Test
     public void testInit()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.base");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
         assertEquals(1, new Jfire(jfireConfig).getBeanDefinitionByInterface(JfireInitFinish.class).length);
     }
     
     @Test
     public void testInit2()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.base");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         BeanDefinition bean = jfire.getBeanDefinition(House.class);
         assertEquals("林斌的房子", ((House) bean.getInstance()).getName());
         bean = jfire.getBeanDefinition(House.class.getName());
         assertEquals("林斌的房子", ((House) bean.getInstance()).getName());
-    }
-    
-    @Test
-    public void testConfig() throws URISyntaxException
-    {
-        JfireConfig config = new JfireConfig((JfireInitializationCfg) JsonTool.read(JfireInitializationCfg.class, StringUtil.readFromClasspath("config.json", Charset.forName("utf8"))));
-        Jfire jfire = new Jfire(config);
-        baseTest(jfire, 3);
-        testParam(jfire);
-    }
-    
-    @Test
-    public void testConfig2() throws URISyntaxException
-    {
-        JfireConfig config = new JfireConfig((JfireInitializationCfg) JsonTool.read(JfireInitializationCfg.class, StringUtil.readFromClasspath("config2.json", Charset.forName("utf8"))));
-        Jfire jfire = new Jfire(config);
-        baseTest(jfire, 3);
-        testParam(jfire);
     }
     
 }

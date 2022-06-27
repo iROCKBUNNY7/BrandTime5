@@ -1,8 +1,8 @@
-package com.jfireframework.jfire.config;
+package com.jfireframework.jfire.inittrigger;
 
 import com.jfireframework.jfire.config.environment.Environment;
 
-public interface ImportTrigger
+public interface JfireInitTrigger
 {
     /**
      * 上下文分析的最后一步被触发

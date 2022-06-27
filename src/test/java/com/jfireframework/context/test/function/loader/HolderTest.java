@@ -4,16 +4,20 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 public class HolderTest
 {
+    @ComponentScan("com.jfireframework.context.test.function.loader")
+    public static class HolderTestScan
+    {
+        
+    }
+    
     @Test
     public void test()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.loader");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(HolderTestScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         Person person = jfire.getBean(Person.class);
         Assert.assertEquals("name", person.getName());

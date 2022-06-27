@@ -4,16 +4,20 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 public class MapTest
 {
+    @ComponentScan("com.jfireframework.context.test.function.map")
+    public static class MapTestScan
+    {
+        
+    }
+    
     @Test
     public void test()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.map");
-        JfireConfig config = new JfireConfig(cfg);
+        JfireConfig config = new JfireConfig(MapTestScan.class);
         Jfire jfire = new Jfire(config);
         assertEquals(jfire.getBean(Host.class).getMap().get(1).getClass(), Order1.class);
         assertEquals(2, jfire.getBean(Host.class).getMap().size());

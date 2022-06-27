@@ -10,7 +10,7 @@ import org.junit.Test;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.JfireInitializationCfg;
+import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 @Testalis3(t = "sada")
 public class AliasTest
@@ -38,12 +38,16 @@ public class AliasTest
         assertEquals("demo", resource.name());
     }
     
+    @ComponentScan("com.jfireframework.context.test.function.aliastest")
+    public static class aliasCompopntScan
+    {
+        
+    }
+    
     @Test
     public void test2()
     {
-        JfireInitializationCfg cfg = new JfireInitializationCfg();
-        cfg.setScanPackageNames("com.jfireframework.context.test.function.aliastest");
-        JfireConfig jfireConfig = new JfireConfig(cfg);
+        JfireConfig jfireConfig = new JfireConfig(aliasCompopntScan.class);
         Jfire jfire = new Jfire(jfireConfig);
         SingleDemo demo = (SingleDemo) jfire.getBean("demo");
         assertFalse(demo == null);

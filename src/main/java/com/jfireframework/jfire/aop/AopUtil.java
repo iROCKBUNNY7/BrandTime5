@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
@@ -18,8 +20,6 @@ import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.baseutil.simplelog.ConsoleLogFactory;
-import com.jfireframework.baseutil.simplelog.Logger;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
@@ -60,7 +60,7 @@ public class AopUtil
     private CtClass                              txManagerCtClass;
     private CtClass                              resManagerCtClass;
     private CtClass                              cacheManagerCtClass;
-    private Logger                               logger             = ConsoleLogFactory.getLogger();
+    private static final Logger                  logger             = LoggerFactory.getLogger(AopUtil.class);
     private final ClassLoader                    classLoader;
     private final Map<String, BeanAopDefinition> beanAopDefinitions = new HashMap<String, AopUtil.BeanAopDefinition>();
     private final AnnotationUtil                 annotationUtil;
@@ -638,7 +638,6 @@ public class AopUtil
                     }
                     ctMethod.insertAfter(methodBody);
                 }
-                System.out.println(methodBody);
                 
             }
             catch (Exception e)
