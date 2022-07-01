@@ -31,13 +31,6 @@ public interface ProceedPoint
     public Throwable getE();
     
     /**
-     * 设置是否允许原方法继续执行，在前置增强中有效
-     * 
-     * @param permission
-     */
-    public void setPermission(boolean permission);
-    
-    /**
      * 在后置增强中，返回原方法的执行结果。其余方法无效。
      * 
      * @return
@@ -45,17 +38,10 @@ public interface ProceedPoint
     public Object getResult();
     
     /**
-     * 设置增强方法调用后最终的返回值
-     * 
-     * @param invokedResult
-     */
-    public void setResult(Object invokedResult);
-    
-    /**
      * 获得目标方法的入参数组
      * 
      * @return
      */
-    public Object[] getParam();
+    public Object[] getParams();
     
 }

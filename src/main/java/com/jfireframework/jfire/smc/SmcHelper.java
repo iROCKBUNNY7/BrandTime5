@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.aop.EnhanceAnnoInfo;
 import com.jfireframework.jfire.aop.annotation.Transaction;
@@ -65,7 +66,23 @@ public class SmcHelper
         pred.setMethodName(rename);
         model.putShadowMethodModel(pred);
         MethodModel insert = new MethodModel(method);
-        String body = enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "();\r\n";
+        String body = "com.jfireframework.jfire.aop.ProceedPointImpl point = new com.jfireframework.jfire.aop.ProceedPointImpl();\r\n";
+        if (insert.getSumOfarg() == 0)
+        {
+            body += "point.setParams();\r\n";
+        }
+        else
+        {
+            body += "point.setParams(";
+            StringCache cache = new StringCache();
+            for (int i = 0; i < insert.getSumOfarg(); i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            cache.deleteLast();
+            body += cache.toString() + ");\r\n";
+        }
+        body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(point);\r\n";
         if (method.getReturnType() == void.class)
         {
             body += pred.getInvokeInfo() + ";\r\n";
@@ -85,22 +102,38 @@ public class SmcHelper
         pred.setMethodName(rename);
         model.putShadowMethodModel(pred);
         MethodModel insert = new MethodModel(method);
-        String body;
-        if (method.getReturnType() == void.class)
+        String body = "com.jfireframework.jfire.aop.ProceedPointImpl point = new com.jfireframework.jfire.aop.ProceedPointImpl();\r\n";
+        if (insert.getSumOfarg() == 0)
         {
-            body = pred.getInvokeInfo() + ";\r\n";
+            body += "point.setParams();\r\n";
         }
         else
         {
-            body = insert.getReturnInfo() + " result =" + pred.getInvokeInfo() + ";\r\n";
+            body += "point.setParams(";
+            StringCache cache = new StringCache();
+            for (int i = 0; i < insert.getSumOfarg(); i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            cache.deleteLast();
+            body += cache.toString() + ");\r\n";
         }
         if (method.getReturnType() == void.class)
         {
-            body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "();\r\n";
+            body += pred.getInvokeInfo() + ";\r\n";
         }
         else
         {
-            body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(result);\r\n"//
+            body += insert.getReturnInfo() + " result =" + pred.getInvokeInfo() + ";\r\n";
+            body += "point.setResult(result);\r\n";
+        }
+        if (method.getReturnType() == void.class)
+        {
+            body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(point);\r\n";
+        }
+        else
+        {
+            body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(point);\r\n"//
                     + "return result;\r\n";
         }
         insert.setBody(body);
@@ -114,7 +147,23 @@ public class SmcHelper
         pred.setMethodName(rename);
         model.putShadowMethodModel(pred);
         MethodModel insert = new MethodModel(method);
-        String body = "try{\r\n";
+        String body = "com.jfireframework.jfire.aop.ProceedPointImpl point = new com.jfireframework.jfire.aop.ProceedPointImpl();\r\n";
+        if (insert.getSumOfarg() == 0)
+        {
+            body += "point.setParams();\r\n";
+        }
+        else
+        {
+            body += "point.setParams(";
+            StringCache cache = new StringCache();
+            for (int i = 0; i < insert.getSumOfarg(); i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            cache.deleteLast();
+            body += cache.toString() + ");\r\n";
+        }
+        body += "try{\r\n";
         if (method.getReturnType() == void.class)
         {
             body += pred.getInvokeInfo() + ";\r\n";
@@ -128,7 +177,8 @@ public class SmcHelper
         for (Class<?> each : enhanceAnnoInfo.getThrowtype())
         {
             body += "catch(" + each.getName() + " e" + index + "){"//
-                    + enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(e" + index + ");\r\n"//
+                    + "point.setE(e" + index + ");\r\n"//
+                    + enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(point);\r\n"//
                     + "throw e" + index + ";}\r\n";
             index += 1;
         }
@@ -145,7 +195,6 @@ public class SmcHelper
         MethodModel insert = new MethodModel(method);
         String body = "com.jfireframework.jfire.aop.ProceedPointImpl point = new com.jfireframework.jfire.aop.ProceedPointImpl(){\r\n"//
                 + " public Object invoke()  {\r\n";
-        
         if (method.getReturnType() == void.class)
         {
             body += pred.getInvokeInfo() + ";\r\n"//
@@ -156,6 +205,21 @@ public class SmcHelper
             body += "return " + pred.getInvokeInfo() + ";\r\n";
         }
         body += "}};\r\n";
+        if (insert.getSumOfarg() == 0)
+        {
+            body += "point.setParams();\r\n";
+        }
+        else
+        {
+            body += "point.setParams(";
+            StringCache cache = new StringCache();
+            for (int i = 0; i < insert.getSumOfarg(); i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            cache.deleteLast();
+            body += cache.toString() + ");\r\n";
+        }
         if (method.getReturnType() == void.class)
         {
             body += enhanceAnnoInfo.getEnhanceFieldName() + "." + enhanceAnnoInfo.getEnhanceMethodName() + "(point);\r\n";

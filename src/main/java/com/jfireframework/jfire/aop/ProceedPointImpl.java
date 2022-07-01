@@ -9,15 +9,13 @@ package com.jfireframework.jfire.aop;
 public class ProceedPointImpl implements ProceedPoint
 {
     // 目标类对象实例
-    protected Object    host       = null;
+    protected Object    host;
     // 目标类执行后的返回结果实例
-    protected Object    result     = null;
+    protected Object    result;
     // 目标方法抛出的异常
-    protected Throwable e          = null;
-    // 目标方法执行许可，用于前置增强中，如果为false，则原方法不被执行
-    protected boolean   permission = true;
+    protected Throwable e;
     // 目标方法的参数数组
-    protected Object[]  param      = new Object[0];
+    protected Object[]  params;
     
     /**
      * 表示对目标方法的调用。在静态代码中作为继承方法被修改以实现对目标方法的调用
@@ -52,38 +50,26 @@ public class ProceedPointImpl implements ProceedPoint
         this.e = e;
     }
     
-    public boolean isPermission()
-    {
-        return permission;
-    }
-    
-    @Override
-    public void setPermission(boolean permission)
-    {
-        this.permission = permission;
-    }
-    
     @Override
     public Object getResult()
     {
         return result;
     }
     
-    @Override
-    public void setResult(Object invokedResult)
+    public void setResult(Object result)
     {
-        this.result = invokedResult;
+        this.result = result;
     }
     
     @Override
-    public Object[] getParam()
+    public Object[] getParams()
     {
-        return param;
+        return params;
     }
     
-    public void setParam(Object[] param)
+    public void setParams(Object... params)
     {
-        this.param = param;
+        this.params = params;
     }
     
 }
