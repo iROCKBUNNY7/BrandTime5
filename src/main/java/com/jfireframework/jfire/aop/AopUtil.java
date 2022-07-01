@@ -33,8 +33,7 @@ import com.jfireframework.jfire.cache.CacheManager;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
-import com.jfireframework.jfire.cache.el.JelException;
-import com.jfireframework.jfire.cache.el.JelExplain;
+import com.jfireframework.jfire.cache.el.Jel;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionIsolate;
 import com.jfireframework.jfire.tx.TransactionManager;
@@ -524,13 +523,13 @@ public class AopUtil
                 {
                     if (each.getReturnType() == Void.class)
                     {
-                        throw new JelException(StringUtil.format("使用CacheGet注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
+                        throw new UnSupportException(StringUtil.format("使用CacheGet注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
                     }
                     String returnTypeName = each.getReturnType().getName();
                     String resultName = "result_" + System.nanoTime();
                     CacheGet cacheGet = annotationUtil.getAnnotation(CacheGet.class, each);
                     String key = cacheGet.value();
-                    String finalKey = JelExplain.createValue(key, names, types);
+                    String finalKey = Jel.createValue(key, names, types);
                     String cacheName = cacheGet.cacheName();
                     String condition = cacheGet.condition();
                     if (condition.equals(""))
@@ -553,7 +552,7 @@ public class AopUtil
                     }
                     else
                     {
-                        condition = JelExplain.createVarIf(condition, names, types);
+                        condition = Jel.createVarIf(condition, names, types);
                         methodBody = "{\nif(" + condition + ")\n{\n";
                         methodBody += "\tcom.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
                         methodBody += "\tObject " + resultName + " = _cache.get(($w)" + finalKey + ");\n";
@@ -577,11 +576,11 @@ public class AopUtil
                 {
                     if (each.getReturnType() == Void.class)
                     {
-                        throw new JelException(StringUtil.format("使用CachePut注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
+                        throw new UnSupportException(StringUtil.format("使用CachePut注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
                     }
                     CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, each);
                     String key = cachePut.value();
-                    String finalKey = JelExplain.createValue(key, names, types);
+                    String finalKey = Jel.createValue(key, names, types);
                     String cacheName = cachePut.cacheName();
                     String condition = cachePut.condition();
                     if (condition.equals(""))
@@ -600,7 +599,7 @@ public class AopUtil
                     }
                     else
                     {
-                        condition = JelExplain.createVarIf(condition, names, types);
+                        condition = Jel.createVarIf(condition, names, types);
                         methodBody = "com.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
                         methodBody += "if($_!=null){\n";
                         methodBody += "if(" + condition + ")\n{\n";
@@ -614,13 +613,14 @@ public class AopUtil
                         }
                         methodBody += "}";
                     }
+                    logger.debug("生成的缓存增强方法是:{}", methodBody);
                     ctMethod.insertAfter(methodBody);
                 }
                 if (annotationUtil.isPresent(CacheDelete.class, each))
                 {
                     CacheDelete cacheDelete = annotationUtil.getAnnotation(CacheDelete.class, each);
                     String key = cacheDelete.value();
-                    String finalKey = JelExplain.createValue(key, names, types);
+                    String finalKey = Jel.createValue(key, names, types);
                     String cacheName = cacheDelete.cacheName();
                     String condition = cacheDelete.condition();
                     if (condition.equals(""))
@@ -630,12 +630,13 @@ public class AopUtil
                     }
                     else
                     {
-                        condition = JelExplain.createVarIf(condition, names, types);
+                        condition = Jel.createVarIf(condition, names, types);
                         methodBody = "com.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
                         methodBody += "if(" + condition + ")\n{\n";
                         methodBody += "\t_cache.remove(($w)" + finalKey + ");\n";
                         methodBody += "}";
                     }
+                    logger.debug("生成的缓存增强方法是:{}", methodBody);
                     ctMethod.insertAfter(methodBody);
                 }
                 

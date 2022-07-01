@@ -1,13 +1,9 @@
 package com.jfireframework.context.test.function.aop;
 
 import static org.junit.Assert.assertEquals;
-import java.lang.reflect.Method;
-import javax.annotation.Resource;
 import org.junit.Test;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 
 public class AopTest
@@ -16,17 +12,6 @@ public class AopTest
     public static class AopTtestScan
     {
         
-    }
-    
-    @Test
-    public void testAnnoExist() throws NoSuchMethodException, SecurityException
-    {
-        JfireConfig jfireConfig = new JfireConfig(AopTtestScan.class);
-        Jfire jfire = new Jfire(jfireConfig);
-        BeanDefinition bean = jfire.getBeanDefinition(Person.class);
-        Method method = bean.getType().getDeclaredMethod("sayHello");
-        AnnotationUtil annotationUtil = new AnnotationUtil();
-        assertEquals("注解保留", annotationUtil.getAnnotation(Resource.class, method).name());
     }
     
     @Test

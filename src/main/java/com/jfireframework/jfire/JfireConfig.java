@@ -24,7 +24,7 @@ import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.aop.AopUtil;
+import com.jfireframework.jfire.aop.AopUtil2;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.field.FieldFactory;
@@ -409,8 +409,10 @@ public class JfireConfig
         @Override
         public void process()
         {
-            AopUtil aopUtil = new AopUtil(classLoader, annotationUtil);
-            aopUtil.enhance(beanDefinitions);
+            // AopUtil aopUtil = new AopUtil(classLoader, annotationUtil);
+            // aopUtil.enhance(beanDefinitions);
+            AopUtil2 aopUtil2 = new AopUtil2(classLoader, annotationUtil);
+            aopUtil2.enhance(beanDefinitions);
         }
     }
     

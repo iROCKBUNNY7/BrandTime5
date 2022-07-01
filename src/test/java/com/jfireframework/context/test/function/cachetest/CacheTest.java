@@ -3,6 +3,7 @@ package com.jfireframework.context.test.function.cachetest;
 import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.context.test.function.base.data.House;
+import com.jfireframework.context.test.function.base.data.MutablePerson;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 
@@ -40,6 +41,58 @@ public class CacheTest
         Assert.assertFalse(first == seconde);
         first = cacheTarget.get();
         Assert.assertTrue(first == seconde);
-        
+    }
+    
+    /**
+     * 测试覆盖补全
+     */
+    @Test
+    public void test_2()
+    {
+        JfireConfig config = new JfireConfig();
+        config.registerBeanDefinition(CacheTarget.class);
+        config.registerBeanDefinition(DemoCache.class);
+        config.registerBeanDefinition(CacheManagerTest.class);
+        Jfire jfire = new Jfire(config);
+        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        House house = cacheTarget.get2(6);
+        House second = cacheTarget.get2(6);
+        Assert.assertTrue(house == second);
+    }
+    
+    /**
+     * 测试覆盖补全
+     */
+    @Test
+    public void test_3()
+    {
+        JfireConfig config = new JfireConfig();
+        config.registerBeanDefinition(CacheTarget.class);
+        config.registerBeanDefinition(DemoCache.class);
+        config.registerBeanDefinition(CacheManagerTest.class);
+        Jfire jfire = new Jfire(config);
+        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        House house = cacheTarget.get3(6);
+        House second = cacheTarget.get3(6);
+        Assert.assertTrue(house == second);
+    }
+    
+    /**
+     * 测试覆盖补全
+     */
+    @Test
+    public void test_4()
+    {
+        JfireConfig config = new JfireConfig();
+        config.registerBeanDefinition(CacheTarget.class);
+        config.registerBeanDefinition(DemoCache.class);
+        config.registerBeanDefinition(CacheManagerTest.class);
+        Jfire jfire = new Jfire(config);
+        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        MutablePerson person = new MutablePerson();
+        person.setAge(18);
+        House house = cacheTarget.get4(person);
+        House second = cacheTarget.get4(person);
+        Assert.assertTrue(house == second);
     }
 }

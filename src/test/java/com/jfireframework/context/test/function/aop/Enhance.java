@@ -1,9 +1,7 @@
 package com.jfireframework.context.test.function.aop;
 
-import javax.annotation.Resource;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.ProceedPoint;
-import com.jfireframework.jfire.aop.ProceedPointImpl;
 import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
 import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
@@ -14,57 +12,54 @@ import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
 public class Enhance
 {
     @BeforeEnhance("sayHello(String)")
-    public void sayHello(ProceedPointImpl point)
+    public void sayHello()
     {
-        point.setPermission(false);
-        point.setResult("前置拦截");
+        System.out.println("前置拦截");
     }
     
     @BeforeEnhance("testInts(int[])")
-    public void test(ProceedPointImpl point)
+    public void test()
     {
-        point.setPermission(false);
-        point.setResult(new String[0]);
+        System.out.println("前置拦截2");
     }
     
     @BeforeEnhance(value = "order()", order = 2)
-    public void order3(ProceedPointImpl point)
+    public void order3()
     {
-        point.setPermission(false);
-        point.setResult("3");
+        System.out.println("前置拦截3");
     }
     
     @BeforeEnhance(value = "order()")
-    public void order2(ProceedPointImpl point)
+    public void order2()
     {
-        point.setPermission(false);
-        point.setResult("2");
+        System.out.println("前置拦截4");
     }
     
     @AfterEnhance("order2(String int)")
-    public void order22(ProceedPointImpl point)
+    public void order22(String result)
     {
-        point.setResult("你好");
+        System.out.println("后置拦截");
     }
     
     @AroundEnhance("myName(String)")
-    public void testMyname(ProceedPoint point) throws Throwable
+    public String testMyname(ProceedPoint point)
     {
         System.out.println("环绕增强钱");
-        point.invoke();
+        String result = (String) point.invoke();
         System.out.println("环绕增强后");
+        return result;
     }
     
     @BeforeEnhance(value = "*(*)", order = 10)
-    public void all(ProceedPoint point)
+    public void all()
     {
         System.out.println("所有方法均会输出");
     }
     
     @ThrowEnhance()
-    public void throwe(ProceedPoint point)
+    public void throwe(Throwable e)
     {
         System.out.println("dada");
-        Verify.equal("aaaa", point.getE().getMessage(), "捕获到正确的异常");
+        Verify.equal("aaaa", e.getMessage(), "捕获到正确的异常");
     }
 }

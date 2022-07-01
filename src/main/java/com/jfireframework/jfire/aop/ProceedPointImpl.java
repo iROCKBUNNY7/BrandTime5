@@ -25,7 +25,7 @@ public class ProceedPointImpl implements ProceedPoint
      * @return
      */
     @Override
-    public Object invoke() throws Throwable
+    public Object invoke()
     {
         throw new RuntimeException("该方法只在环绕增强方法中可被调用，其余情况均异常");
     }
@@ -69,6 +69,7 @@ public class ProceedPointImpl implements ProceedPoint
         return result;
     }
     
+    @Override
     public void setResult(Object invokedResult)
     {
         this.result = invokedResult;

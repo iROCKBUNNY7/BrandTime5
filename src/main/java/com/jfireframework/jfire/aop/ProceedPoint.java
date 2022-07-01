@@ -14,7 +14,7 @@ public interface ProceedPoint
      * 
      * @return
      */
-    public Object invoke() throws Throwable;
+    public Object invoke();
     
     /**
      * 返回目标方法的调用对象实例

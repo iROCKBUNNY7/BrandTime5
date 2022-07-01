@@ -47,8 +47,6 @@ public class EnhanceAnnoInfo implements Order
     
     public EnhanceAnnoInfo(AnnotationUtil annotationUtil, String enhanceBeanName, Class<?> enhanceBeanType, String enhanceFieldName, String path, int order, Method enhanceMethod)
     {
-        Verify.True(enhanceMethod.getParameterTypes().length == 1, "增强方法{}.{}入参个数错误,请检查", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
-        Verify.True(ProceedPoint.class.isAssignableFrom(enhanceMethod.getParameterTypes()[0]), "增强方法{}.{}的入参只能是ProceedPoint", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
         int left = path.indexOf('(');
         int right = path.indexOf(')', left);
         Verify.True(left > 0, "方法{}.{}上增强注解的path值错误,缺少'('", enhanceMethod.getDeclaringClass(), enhanceMethod.getName());
@@ -110,6 +108,42 @@ public class EnhanceAnnoInfo implements Order
                 for (int i = 0; i < methodParamTypes.length; i++)
                 {
                     if (AopUtil.getNameForType(methodParamTypes[i]).contains(paramTypeNames[i]))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 将ctmethod的方法签名与path进行比对,返回匹配结果
+     * 
+     * @param ctMethod
+     * @return
+     * @throws NotFoundException
+     */
+    public boolean match(Method ctMethod) throws NotFoundException
+    {
+        if (StringUtil.match(ctMethod.getName(), methodName))
+        {
+            Class<?>[] methodParamTypes = ctMethod.getParameterTypes();
+            // 如果规则是xxxx(*)的形式，表明忽略目标方法的入参，此时可以返回true
+            if (paramTypeNames.length == 1 && paramTypeNames[0].equals("*"))
+            {
+                return true;
+            }
+            else if (methodParamTypes.length == paramTypeNames.length)
+            {
+                for (int i = 0; i < methodParamTypes.length; i++)
+                {
+                    if (methodParamTypes[i].getName().contains(paramTypeNames[i]))
                     {
                         continue;
                     }
