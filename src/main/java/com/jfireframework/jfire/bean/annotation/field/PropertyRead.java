@@ -18,5 +18,5 @@ public @interface PropertyRead
      * 
      * @return
      */
-    public String value();
+    public String value() default "";
 }

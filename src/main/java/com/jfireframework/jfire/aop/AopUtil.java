@@ -6,16 +6,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
-import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
@@ -33,32 +30,15 @@ import com.jfireframework.jfire.cache.CacheManager;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
-import com.jfireframework.jfire.cache.el.Jel;
+import com.jfireframework.jfire.smc.SmcHelper;
+import com.jfireframework.jfire.smc.compiler.JavaStringCompiler;
+import com.jfireframework.jfire.smc.model.CompilerModel;
+import com.jfireframework.jfire.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.jfire.tx.RessourceManager;
-import com.jfireframework.jfire.tx.TransactionIsolate;
 import com.jfireframework.jfire.tx.TransactionManager;
-import javassist.CannotCompileException;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.LoaderClassPath;
-import javassist.NotFoundException;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodInfo;
-import javassist.bytecode.annotation.Annotation;
 
 public class AopUtil
 {
-    private ClassPool                            classPool;
-    private CtClass                              txManagerCtClass;
-    private CtClass                              resManagerCtClass;
-    private CtClass                              cacheManagerCtClass;
     private static final Logger                  logger             = LoggerFactory.getLogger(AopUtil.class);
     private final ClassLoader                    classLoader;
     private final Map<String, BeanAopDefinition> beanAopDefinitions = new HashMap<String, AopUtil.BeanAopDefinition>();
@@ -68,26 +48,6 @@ public class AopUtil
     {
         this.classLoader = classLoader;
         this.annotationUtil = annotationUtil;
-        classPool = new ClassPool();
-        ClassPool.doPruning = true;
-        classPool.importPackage("com.jfireframework.jfire.aop");
-        classPool.importPackage("com.jfireframework.jfire.tx");
-        try
-        {
-            if (classLoader != null)
-            {
-                classPool.insertClassPath(new LoaderClassPath(classLoader));
-            }
-            classPool.appendClassPath(new ClassClassPath(AopUtil.class));
-            classPool.appendClassPath("com.jfireframework.jfire.aop");
-            txManagerCtClass = classPool.get(TransactionManager.class.getName());
-            resManagerCtClass = classPool.get(RessourceManager.class.getName());
-            cacheManagerCtClass = classPool.get(CacheManager.class.getName());
-        }
-        catch (NotFoundException e)
-        {
-            throw new RuntimeException(e);
-        }
     }
     
     /**
@@ -206,38 +166,26 @@ public class AopUtil
      * @throws CannotCompileException
      * @throws ClassNotFoundException
      */
-    private void enhance(BeanAopDefinition beanAopDefinition) throws NotFoundException, CannotCompileException, ClassNotFoundException
+    private void enhance(BeanAopDefinition beanAopDefinition) throws ClassNotFoundException
     {
-        classPool.appendClassPath(new ClassClassPath(beanAopDefinition.originType));
-        CtClass parentCc = classPool.get(beanAopDefinition.originType.getName());
-        /**
-         * 名字最后跟上时间戳，这样可以保证名字唯一，也就是可以生成不同子类而不冲突
-         * 其实在正常的使用中是不必的,但是在测试中,因为在同一个classloader中反复加载就会出问题
-         */
-        CtClass childCc = classPool.makeClass(beanAopDefinition.originType.getName() + "_jfire_Enhance_$" + enhanceCount.incrementAndGet());
-        /**
-         * 由于需要增强的class之前已经被加载到了classloader中,所以要增强只能通过实现一个子类的方式进行
-         * 由于是对子类操作,所以能够增强的只有目标类的自己的public或者protected方法
-         */
-        childCc.setSuperclass(parentCc);
-        createchildClassMethod(childCc, parentCc);
+        CompilerModel compilerModel = SmcHelper.createClientClass(beanAopDefinition.originType);
         if (beanAopDefinition.getTxMethods().size() > 0)
         {
-            String txFieldName = "tx_" + System.nanoTime();
-            addField(childCc, txManagerCtClass, txFieldName);
-            addTxToMethod(childCc, txFieldName, beanAopDefinition.getTxMethods());
+            String txFieldName = "tx$smc";
+            compilerModel.addField(new ResourceAnnoFieldModel(txFieldName, TransactionManager.class));
+            addTxToMethod(compilerModel, txFieldName, beanAopDefinition.getTxMethods());
         }
         if (beanAopDefinition.getAutoResourceMethods().size() > 0)
         {
-            String resFieldName = "ac_" + System.nanoTime();
-            addField(childCc, resManagerCtClass, resFieldName);
-            addResToMethod(childCc, resFieldName, beanAopDefinition.getAutoResourceMethods());
+            String resFieldName = "ac$smc";
+            compilerModel.addField(new ResourceAnnoFieldModel(resFieldName, RessourceManager.class));
+            addResToMethod(compilerModel, resFieldName, beanAopDefinition.getAutoResourceMethods());
         }
         if (beanAopDefinition.getCacheMethods().size() > 0)
         {
-            String cacheFieldName = "cache_" + System.nanoTime();
-            addField(childCc, cacheManagerCtClass, cacheFieldName);
-            addCacheToMethod(childCc, cacheFieldName, beanAopDefinition.getCacheMethods());
+            String cacheFieldName = "cache$smc";
+            compilerModel.addField(new ResourceAnnoFieldModel(cacheFieldName, CacheManager.class));
+            addCacheToMethod(compilerModel, cacheFieldName, beanAopDefinition.getCacheMethods());
         }
         if (beanAopDefinition.getEnhanceAnnoInfos().size() > 0)
         {
@@ -250,186 +198,56 @@ public class AopUtil
             {
                 if (enHanceNameSet.contains(info.getEnhanceFieldName()) == false)
                 {
-                    addField(childCc, classPool.get(info.getEnhanceBeanType().getName()), info.getEnhanceFieldName());
+                    compilerModel.addField(new ResourceAnnoFieldModel(info.getEnhanceFieldName(), info.getEnhanceBeanType()));
                     enHanceNameSet.add(info.getEnhanceFieldName());
                 }
             }
         }
         Collections.sort(beanAopDefinition.getEnhanceAnnoInfos(), new AescComparator());
-        for (CtMethod each : childCc.getDeclaredMethods())
+        for (Method each : compilerModel.methods())
         {
-            // 针对每一个方法,取出该方法对应的所有增强,并且进行排序
-            String originName = each.getName();
+            logger.debug("准备检查方法:{}", each.getName());
             for (EnhanceAnnoInfo enhanceAnnoInfo : beanAopDefinition.getEnhanceAnnoInfos())
             {
-                /**
-                 * 因为后置增强和环绕增强都是在修改了原方法的名称,生成了新的同名方法来完成的.所以一开始要保存方法的原始名称
-                 * 然后每一次循环,都需要使用原始的方法名称和入参类型来获得最新的方法
-                 */
-                CtMethod ctMethod = childCc.getDeclaredMethod(originName, each.getParameterTypes());
                 switch (enhanceAnnoInfo.getType())
                 {
                     case EnhanceAnnoInfo.BEFORE:
-                        logger.debug("准备检查方法:{}", each.getName());
-                        if (enhanceAnnoInfo.match(ctMethod))
+                        if (enhanceAnnoInfo.match(each))
                         {
                             logger.debug("方法:{}匹配规则:{},准备进行前置增强", each.getName(), enhanceAnnoInfo.getPath());
-                            enhanceBefore(ctMethod, enhanceAnnoInfo);
+                            SmcHelper.enhanceBefore(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.AFTER:
-                        if (enhanceAnnoInfo.match(ctMethod))
+                        if (enhanceAnnoInfo.match(each))
                         {
-                            enhanceAfter(ctMethod, enhanceAnnoInfo, childCc);
+                            SmcHelper.enhanceAfter(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.AROUND:
-                        if (enhanceAnnoInfo.match(ctMethod))
+                        if (enhanceAnnoInfo.match(each))
                         {
-                            enhanceAround(ctMethod, enhanceAnnoInfo, childCc);
+                            SmcHelper.enhanceAround(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.THROW:
-                        if (enhanceAnnoInfo.match(ctMethod))
+                        if (enhanceAnnoInfo.match(each))
                         {
-                            enhanceThrow(ctMethod, enhanceAnnoInfo);
+                            SmcHelper.enhanceException(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                 }
             }
         }
-        beanAopDefinition.type = (childCc.toClass(classLoader, null));
-        // 进行脱离操作，减少内存占用
-        parentCc.detach();
-        childCc.detach();
-    }
-    
-    private void enhanceBefore(CtMethod targetMethod, EnhanceAnnoInfo info) throws NotFoundException, CannotCompileException
-    {
-        // 构建随机名称，这样可以进行多次增强
-        String pointName = "point" + System.nanoTime();
-        String body = "{ProceedPointImpl " + pointName + " = new ProceedPointImpl();";
-        // 放入目标方法的参数
-        body += pointName + ".setParam($args);";
-        // 调用增强方法
-        body += info.getEnhanceFieldName() + "." + info.getEnhanceMethodName() + "(" + pointName + ");";
-        if (targetMethod.getReturnType().equals(CtClass.voidType))
+        JavaStringCompiler compiler = new JavaStringCompiler();
+        try
         {
-            body += "if(" + pointName + ".isPermission()==false){return;}}";
+            beanAopDefinition.type = compiler.compile(compilerModel, classLoader);
         }
-        else
+        catch (Exception e)
         {
-            body += "if(" + pointName + ".isPermission()==false){return (" + getNameForType(targetMethod.getReturnType()) + ')' + pointName + ".getResult();}}";
-        }
-        targetMethod.insertBefore(body);
-    }
-    
-    private void enhanceAfter(CtMethod targetMethod, EnhanceAnnoInfo info, CtClass targetCtClass) throws CannotCompileException, NotFoundException
-    {
-        String pointName = "point_" + System.nanoTime();
-        String body = "{ProceedPointImpl " + pointName + " = new ProceedPointImpl();";
-        body += pointName + ".setParam($args);";
-        // 调用增强方法
-        if (targetMethod.getReturnType().equals(CtClass.voidType))
-        {
-            body += info.getEnhanceFieldName() + "." + info.getEnhanceMethodName() + "(" + pointName + ");}";
-            targetMethod.insertAfter(body);
-        }
-        // 如果原方法具有返回值,原方法又有可能会被多次增强.所以后置增强的思路是将目标方法改名,新增一个与原来签名一致的方法.新增方法去调用原方法.
-        // 这样即使有多次的增强,也可以按顺序进行.并且还能得到
-        else
-        {
-            CtMethod newTargetMethod = copyMethod(targetMethod, targetCtClass);
-            targetMethod.setName(targetMethod.getName() + "_" + System.nanoTime());
-            body += pointName + ".setResult(" + targetMethod.getName() + "($$));";
-            body += info.getEnhanceFieldName() + "." + info.getEnhanceMethodName() + "(" + pointName + ");";
-            body += "return ($r)" + pointName + "." + "getResult();}";
-            newTargetMethod.setBody(body);
-            targetCtClass.addMethod(newTargetMethod);
-        }
-    }
-    
-    private void enhanceAround(CtMethod targetMethod, EnhanceAnnoInfo info, CtClass targetCtClass) throws CannotCompileException, NotFoundException
-    {
-        CtClass objectCtClass = classPool.get(Object.class.getName());
-        CtClass ProceedPointImplCtClass = classPool.get(ProceedPointImpl.class.getName());
-        /**
-         * 新建一个子类集成ProceedPointImpl，并且改写其中的invoke方法，使其调用目标类的目标方法（修改名字后的）
-         */
-        CtClass pointImpl = classPool.makeClass(ProceedPointImpl.class.getName() + "_" + enhanceCount.incrementAndGet());
-        pointImpl.setSuperclass(ProceedPointImplCtClass);
-        CtMethod invoke = new CtMethod(objectCtClass, "invoke", null, pointImpl);
-        invoke.setModifiers(Modifier.PUBLIC);
-        pointImpl.addMethod(invoke);
-        /****** end **********/
-        /**
-         * 将目标方法改名，并且修改ProceedPointImpl类的invoke方法，让其调用改名后的目标方法。
-         * 同时增加一个目标方法的原同名同签名方法给予外界调用。
-         */
-        CtMethod newTargetMethod = copyMethod(targetMethod, targetCtClass);
-        targetMethod.setName(targetMethod.getName() + "_" + System.nanoTime());
-        newTargetMethod.setModifiers(Modifier.PUBLIC);
-        targetCtClass.addMethod(newTargetMethod);
-        /****** end **********/
-        /*
-         * 编译invoke方法的方法体
-         */
-        CtClass[] paramType = targetMethod.getParameterTypes();
-        StringCache cache = new StringCache();
-        cache.append("((").append(targetCtClass.getName()).append(")host)." + targetMethod.getName()).append('(');
-        for (int i = 0; i < paramType.length; i++)
-        {
-            cache.append('(').append(getNameForType(paramType[i])).append(")param[").append(i).append(']').appendComma();
-        }
-        if (cache.isCommaLast())
-        {
-            cache.deleteLast();
-        }
-        cache.append(')').append(";");
-        /****** end *******/
-        if (targetMethod.getReturnType().equals(CtClass.voidType))
-        {
-            invoke.setBody("{" + cache.toString() + ";return null;}");
-            pointImpl.toClass();
-        }
-        else
-        {
-            invoke.setBody("{result = " + cache.toString() + ";return result;}");
-            pointImpl.toClass();
-        }
-        cache.clear();
-        cache.append("{ProceedPointImpl point = new " + pointImpl.getName() + "();");
-        cache.append("point.setParam($args);");
-        cache.append("point.setHost(this);");
-        cache.append(info.getEnhanceFieldName() + "." + info.getEnhanceMethodName() + "(point);");
-        if (targetMethod.getReturnType().equals(CtClass.voidType))
-        {
-            cache.append('}');
-        }
-        else
-        {
-            cache.append("return ($r)point.getResult();}");
-        }
-        newTargetMethod.setBody(cache.toString());
-        pointImpl.detach();
-        ProceedPointImplCtClass.detach();
-    }
-    
-    private void enhanceThrow(CtMethod targetMethod, EnhanceAnnoInfo info) throws NotFoundException, CannotCompileException
-    {
-        Class<?>[] types = info.getThrowtype();
-        CtClass[] throwCcs = new CtClass[types.length];
-        for (int i = 0; i < types.length; i++)
-        {
-            throwCcs[i] = classPool.get(types[i].getName());
-        }
-        String body = "{ProceedPointImpl point = new ProceedPointImpl();";
-        body += "point.setE($e);";
-        body += info.getEnhanceFieldName() + "." + info.getEnhanceMethodName() + "(point);";
-        body += "throw $e;}";
-        for (int i = 0; i < throwCcs.length; i++)
-        {
-            targetMethod.addCatch(body, throwCcs[i]);
+            logger.error("生成代理过程异常", e);
+            throw new JustThrowException(e);
         }
     }
     
@@ -442,40 +260,11 @@ public class AopUtil
      * @throws NotFoundException
      * @throws CannotCompileException
      */
-    private void addTxToMethod(CtClass targetCc, String txFieldName, List<Method> txMethods) throws NotFoundException, CannotCompileException
+    private void addTxToMethod(CompilerModel compilerModel, String txFieldName, List<Method> txMethods)
     {
         for (Method method : txMethods)
         {
-            Transaction transaction = annotationUtil.getAnnotation(Transaction.class, method);
-            Class<?>[] types = transaction.exceptions();
-            CtClass[] exCcs = new CtClass[types.length];
-            for (int i = 0; i < types.length; i++)
-            {
-                exCcs[i] = classPool.get(types[i].getName());
-            }
-            CtMethod ctMethod = targetCc.getDeclaredMethod(method.getName(), getParamTypes(method));
-            String field = "((com.jfireframework.jfire.tx.TransactionManager)" + txFieldName + ")";
-            TransactionIsolate isolate = transaction.isolate();
-            switch (isolate)
-            {
-                case USE_DB_SETING:
-                    ctMethod.insertBefore(field + ".buildCurrentSession();" + field + ".beginTransAction(-1);");
-                    break;
-                case READ_COMMITTED:
-                    ctMethod.insertBefore(field + ".buildCurrentSession();" + field + ".beginTransAction(2);");
-                    break;
-                case REPEATABLE_READ:
-                    ctMethod.insertBefore(field + ".buildCurrentSession();" + field + ".beginTransAction(4);");
-                    break;
-                case SERIALIZABLE:
-                    ctMethod.insertBefore(field + ".buildCurrentSession();" + field + ".beginTransAction(8);");
-                    break;
-            }
-            ctMethod.insertAfter(field + ".commit();" + field + ".closeCurrentSession();");
-            for (CtClass exCc : exCcs)
-            {
-                ctMethod.addCatch("{" + field + ".rollback($e);" + field + ".closeCurrentSession();" + "throw $e;}", exCc);
-            }
+            SmcHelper.addTxToMethod(compilerModel, txFieldName, method);
         }
     }
     
@@ -488,156 +277,31 @@ public class AopUtil
      * @throws NotFoundException
      * @throws CannotCompileException
      */
-    private void addResToMethod(CtClass targetCc, String resFieldName, List<Method> resMethods) throws NotFoundException, CannotCompileException
+    private void addResToMethod(CompilerModel compilerModel, String resFieldName, List<Method> resMethods)
     {
         for (Method method : resMethods)
         {
-            AutoResource autoClose = annotationUtil.getAnnotation(AutoResource.class, method);
-            Class<?>[] types = autoClose.exceptions();
-            CtClass[] exCcs = new CtClass[types.length];
-            for (int i = 0; i < types.length; i++)
-            {
-                exCcs[i] = classPool.get(types[i].getName());
-            }
-            CtMethod ctMethod = targetCc.getDeclaredMethod(method.getName(), getParamTypes(method));
-            ctMethod.insertBefore(resFieldName + ".open();");
-            ctMethod.insertAfter(resFieldName + ".close();");
-            for (CtClass exCc : exCcs)
-            {
-                ctMethod.addCatch("{" + resFieldName + ".close();throw $e;}", exCc);
-            }
+            SmcHelper.addAutoResourceToMethod(compilerModel, resFieldName, method);
         }
     }
     
-    private void addCacheToMethod(CtClass targetCc, String cacheFieldName, List<Method> cacheMethods) throws CannotCompileException, NotFoundException
+    private void addCacheToMethod(CompilerModel compilerModel, String cacheFieldName, List<Method> cacheMethods)
     {
         for (Method each : cacheMethods)
         {
             try
             {
-                String[] names = getParamNames(each);
-                Class<?>[] types = each.getParameterTypes();
-                CtMethod ctMethod = targetCc.getDeclaredMethod(each.getName(), getParamTypes(each));
-                String methodBody = null;
                 if (annotationUtil.isPresent(CacheGet.class, each))
                 {
-                    if (each.getReturnType() == Void.class)
-                    {
-                        throw new UnSupportException(StringUtil.format("使用CacheGet注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
-                    }
-                    String returnTypeName = each.getReturnType().getName();
-                    String resultName = "result_" + System.nanoTime();
-                    CacheGet cacheGet = annotationUtil.getAnnotation(CacheGet.class, each);
-                    String key = cacheGet.value();
-                    String finalKey = Jel.createValue(key, names, types);
-                    String cacheName = cacheGet.cacheName();
-                    String condition = cacheGet.condition();
-                    if (condition.equals(""))
-                    {
-                        methodBody = "{\ncom.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "Object " + resultName + " = _cache.get(($w)" + finalKey + ");\n";
-                        methodBody += "if(" + resultName + "!=null)\n{return (" + returnTypeName + ")" + resultName + ";}\n";
-                        methodBody += "else{" + resultName + " = super." + ctMethod.getName() + "($$);";
-                        methodBody += "if(" + resultName + "==null){return null;}\n";
-                        if (cacheGet.timeToLive() == -1)
-                        {
-                            methodBody += "_cache.put(($w)" + finalKey + "," + resultName + ");\n";
-                        }
-                        else
-                        {
-                            methodBody += "_cache.put(($w)" + finalKey + "," + resultName + "," + cacheGet.timeToLive() + ");\n";
-                        }
-                        methodBody += "return (" + returnTypeName + ")" + resultName + ";}\n}";
-                        ctMethod.setBody(methodBody);
-                    }
-                    else
-                    {
-                        condition = Jel.createVarIf(condition, names, types);
-                        methodBody = "{\nif(" + condition + ")\n{\n";
-                        methodBody += "\tcom.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "\tObject " + resultName + " = _cache.get(($w)" + finalKey + ");\n";
-                        methodBody += "\tif(" + resultName + "!=null){return (" + each.getReturnType().getName() + ")" + resultName + ";}\n";
-                        methodBody += "\telse{" + resultName + " = super." + ctMethod.getName() + "($$);";
-                        methodBody += "\t\tif(" + resultName + "==null){return null;}\n";
-                        if (cacheGet.timeToLive() == -1)
-                        {
-                            methodBody += "\t\t_cache.put(($w)" + finalKey + "," + resultName + ");\n";
-                        }
-                        else
-                        {
-                            methodBody += "\t\t_cache.put(($w)" + finalKey + "," + resultName + "," + cacheGet.timeToLive() + ");\n";
-                        }
-                        methodBody += "return (" + returnTypeName + ")" + resultName + ";}}\n";
-                        methodBody += "\telse{return super." + ctMethod.getName() + "($$);}}";
-                        ctMethod.setBody(methodBody);
-                    }
+                    SmcHelper.addCacheGetToMethod(compilerModel, cacheFieldName, each);
                 }
                 if (annotationUtil.isPresent(CachePut.class, each))
                 {
-                    if (each.getReturnType() == Void.class)
-                    {
-                        throw new UnSupportException(StringUtil.format("使用CachePut注解的方法必须有返回值，请检查{}.{}", each.getDeclaringClass().getName(), each.getName()));
-                    }
-                    CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, each);
-                    String key = cachePut.value();
-                    String finalKey = Jel.createValue(key, names, types);
-                    String cacheName = cachePut.cacheName();
-                    String condition = cachePut.condition();
-                    if (condition.equals(""))
-                    {
-                        methodBody = "com.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "if($_!=null){\n";
-                        if (cachePut.timeToLive() == -1)
-                        {
-                            methodBody += "_cache.put(($w)" + finalKey + ",$_);\n";
-                        }
-                        else
-                        {
-                            methodBody += "_cache.put(($w)" + finalKey + ",$_," + cachePut.timeToLive() + ");\n";
-                        }
-                        methodBody += "}";
-                    }
-                    else
-                    {
-                        condition = Jel.createVarIf(condition, names, types);
-                        methodBody = "com.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "if($_!=null){\n";
-                        methodBody += "if(" + condition + ")\n{\n";
-                        if (cachePut.timeToLive() == -1)
-                        {
-                            methodBody += "\t_cache.put(($w)" + finalKey + ",$_);}\n";
-                        }
-                        else
-                        {
-                            methodBody += "\t_cache.put(($w)" + finalKey + ",$_," + cachePut.timeToLive() + ");}\n";
-                        }
-                        methodBody += "}";
-                    }
-                    logger.debug("生成的缓存增强方法是:{}", methodBody);
-                    ctMethod.insertAfter(methodBody);
+                    SmcHelper.addCachePutToMethod(compilerModel, cacheFieldName, each);
                 }
                 if (annotationUtil.isPresent(CacheDelete.class, each))
                 {
-                    CacheDelete cacheDelete = annotationUtil.getAnnotation(CacheDelete.class, each);
-                    String key = cacheDelete.value();
-                    String finalKey = Jel.createValue(key, names, types);
-                    String cacheName = cacheDelete.cacheName();
-                    String condition = cacheDelete.condition();
-                    if (condition.equals(""))
-                    {
-                        methodBody = "\ncom.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "_cache.remove(($w)" + finalKey + ");\n";
-                    }
-                    else
-                    {
-                        condition = Jel.createVarIf(condition, names, types);
-                        methodBody = "com.jfireframework.jfire.cache.Cache _cache = " + cacheFieldName + ".get(\"" + cacheName + "\");\n";
-                        methodBody += "if(" + condition + ")\n{\n";
-                        methodBody += "\t_cache.remove(($w)" + finalKey + ");\n";
-                        methodBody += "}";
-                    }
-                    logger.debug("生成的缓存增强方法是:{}", methodBody);
-                    ctMethod.insertAfter(methodBody);
+                    SmcHelper.addCacheDeleteToMethod(compilerModel, cacheFieldName, each);
                 }
                 
             }
@@ -658,240 +322,6 @@ public class AopUtil
             }
         }
         throw new RuntimeException("给定的参数" + inject + "不在参数列表中");
-    }
-    
-    private CtClass[] getParamTypes(Method method) throws NotFoundException
-    {
-        CtClass[] paramClasses = new CtClass[method.getParameterTypes().length];
-        int index = 0;
-        for (Class<?> each : method.getParameterTypes())
-        {
-            paramClasses[index++] = classPool.get(each.getName());
-        }
-        return paramClasses;
-    }
-    
-    /**
-     * 将父类中的public和protected方法都在子类中进行简单的重载(也就是直接执行父类的对应方法),为稍后的增强进行准备.
-     * 这样稍后的增强就可以在子类上对方法进行修改了.
-     * 
-     * @param childCc
-     * @param parentCc
-     * @throws NotFoundException
-     * @throws CannotCompileException
-     * @throws ClassNotFoundException
-     */
-    private void createchildClassMethod(CtClass childCc, CtClass parentClass) throws NotFoundException, CannotCompileException, ClassNotFoundException
-    {
-        CtMethod[] methods = getAllMethods(parentClass);
-        for (CtMethod each : methods)
-        {
-            if (canHaveChildMethod(each.getModifiers()))
-            {
-                // 为所有的public或者protected方法设置原始的方法体，也就是默认直接调用父方法
-                CtMethod targetMethod = copyMethod(each, childCc);
-                if (targetMethod.getReturnType().equals(CtClass.voidType))
-                {
-                    targetMethod.setBody("{super." + targetMethod.getName() + "($$);}");
-                }
-                else
-                {
-                    targetMethod.setBody("{return ($r)super." + targetMethod.getName() + "($$)" + ";}");
-                }
-                logger.trace("初始化子类方法{}.{}", targetMethod.getDeclaringClass().getName(), targetMethod.getName());
-                childCc.addMethod(targetMethod);
-            }
-        }
-    }
-    
-    private boolean canHaveChildMethod(int moditifer)
-    {
-        if ((Modifier.isPublic(moditifer) || Modifier.isProtected(moditifer)) //
-                && Modifier.isFinal(moditifer) == false //
-                && Modifier.isNative(moditifer) == false //
-                && Modifier.isStatic(moditifer) == false)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    
-    /**
-     * 向目标类中增加一个属性,并且设定该属性的属性名,以及在他的上面增加Resource注解
-     * 
-     * @param targetCc
-     * @param fieldType
-     * @param fieldName
-     * @throws CannotCompileException
-     */
-    private void addField(CtClass targetCc, CtClass fieldType, String fieldName) throws CannotCompileException
-    {
-        CtField ctField = new CtField(fieldType, fieldName, targetCc);
-        ctField.setModifiers(Modifier.PUBLIC);
-        ConstPool constPool = targetCc.getClassFile().getConstPool();
-        AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-        Annotation stateless = new Annotation("javax.annotation.Resource", constPool);
-        attr.addAnnotation(stateless);
-        ctField.getFieldInfo().addAttribute(attr);
-        targetCc.addField(ctField);
-    }
-    
-    public static String getNameForType(CtClass ctClass) throws NotFoundException
-    {
-        if (ctClass.isArray() == false)
-        {
-            return ctClass.getName();
-        }
-        else
-        {
-            int dim = 0;
-            while (ctClass.isArray())
-            {
-                dim++;
-                ctClass = ctClass.getComponentType();
-            }
-            String name = ctClass.getName();
-            for (int i = 0; i < dim; i++)
-            {
-                name += "[]";
-            }
-            return name;
-        }
-    }
-    
-    /**
-     * 将一个方法进行拷贝操作，该方法依附于cc。 该拷贝操作会拷贝原方法上的注解信息
-     * 
-     * @param targetMethod
-     * @param cc
-     * @return
-     * @throws CannotCompileException
-     */
-    public CtMethod copyMethod(CtMethod targetMethod, CtClass cc) throws CannotCompileException
-    {
-        CtMethod newMethod = new CtMethod(targetMethod, cc, null);
-        for (Object each : targetMethod.getMethodInfo().getAttributes())
-        {
-            newMethod.getMethodInfo().addAttribute((AttributeInfo) each);
-        }
-        newMethod.getMethodInfo().setCodeAttribute(targetMethod.getMethodInfo().getCodeAttribute());
-        return newMethod;
-    }
-    
-    /**
-     * 获取该类所有方法,包含父类的方法.如果子类重载了父类的方法,则该集合中只有子类的方法
-     * 
-     * @param entityClass
-     * @return
-     */
-    public CtMethod[] getAllMethods(CtClass cc) throws NotFoundException
-    {
-        List<CtMethod> list = new LinkedList<CtMethod>();
-        while (cc.getSimpleName().equals("Object") == false)
-        {
-            CtMethod[] methods = cc.getDeclaredMethods();
-            checkNextMethod: for (CtMethod each : methods)
-            {
-                checkAlreadIn: for (CtMethod alreadIn : list)
-                {
-                    if (alreadIn.getName().equals(each.getName()) == false)
-                    {
-                        continue;
-                    }
-                    CtClass[] a1 = alreadIn.getParameterTypes();
-                    CtClass[] a2 = each.getParameterTypes();
-                    if (a1.length != a2.length)
-                    {
-                        continue;
-                    }
-                    for (int i = 0; i < a1.length; i++)
-                    {
-                        if (a1[i] != a2[i])
-                        {
-                            continue checkAlreadIn;
-                        }
-                    }
-                    // 代码走到这里，意味着父类的方法已经被子类重载了
-                    continue checkNextMethod;
-                }
-                list.add(each);
-            }
-            cc = cc.getSuperclass();
-        }
-        return list.toArray(new CtMethod[list.size()]);
-    }
-    
-    private String[] getParamNames(CtMethod cm)
-    {
-        try
-        {
-            MethodInfo methodInfo = cm.getMethodInfo();
-            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-            Verify.notNull(codeAttribute, "获取方法参数名称异常，方法为{}.{}", cm.getDeclaringClass().getName(), cm.getName());
-            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
-            Verify.notNull(attr, "获取方法参数名称异常，方法为{}.{}", cm.getDeclaringClass().getName(), cm.getName());
-            String[] paramNames = new String[cm.getParameterTypes().length];
-            TreeMap<Integer, String> map = new TreeMap<Integer, String>();
-            for (int i = 0; i < attr.tableLength(); i++)
-            {
-                String name = attr.variableName(i);
-                if ("this".equals(name) == false)
-                {
-                    int index = attr.index(i);
-                    map.put(index, name);
-                }
-            }
-            int index = 0;
-            for (String each : map.values())
-            {
-                paramNames[index] = each;
-                index += 1;
-                if (index == paramNames.length)
-                {
-                    break;
-                }
-            }
-            return paramNames;
-        }
-        catch (NotFoundException e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public String[] getParamNames(Method method)
-    {
-        Verify.False(method.getDeclaringClass().isInterface(), "使用反射获取方法形参名称的时候，方法必须是在类的方法不能是接口方法，请检查{}.{}", method.getDeclaringClass(), method.getName());
-        try
-        {
-            return getParamNames(getCtMethod(method, null));
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    private CtMethod getCtMethod(Method method, CtClass cc) throws NotFoundException
-    {
-        CtClass ctClass;
-        if (cc == null)
-        {
-            ctClass = ClassPool.getDefault().get(method.getDeclaringClass().getName());
-        }
-        else
-        {
-            ctClass = cc;
-        }
-        List<CtClass> list = new LinkedList<CtClass>();
-        for (Class<?> each : method.getParameterTypes())
-        {
-            list.add(ClassPool.getDefault().get(each.getName()));
-        }
-        return ctClass.getDeclaredMethod(method.getName(), list.toArray(new CtClass[list.size()]));
     }
     
     class BeanAopDefinition

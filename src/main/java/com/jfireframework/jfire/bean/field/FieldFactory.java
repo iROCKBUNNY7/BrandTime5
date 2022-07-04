@@ -84,10 +84,6 @@ public class FieldFactory
         {
             beanInterface = (Class<?>) type;
         }
-        else if (type instanceof ParameterizedType)
-        {
-            beanInterface = (Class<?>) ((ParameterizedType) type).getRawType();
-        }
         else
         {
             throw new IllegalArgumentException();
@@ -153,19 +149,9 @@ public class FieldFactory
         if (resource.name().equals("") == false)
         {
             BeanDefinition nameBean = beanNameMap.get(resource.name());
-            if (annotationUtil.isPresent(CanBeNull.class, field))
+            if (annotationUtil.isPresent(CanBeNull.class, field) && nameBean == null)
             {
-                if (nameBean == null)
-                {
-                    return new DIFieldInfo(field, DIFieldInfo.NONE);
-                }
-                else
-                {
-                    Verify.True(type.isAssignableFrom(nameBean.getType()), "bean:{}不是接口:{}的实现", nameBean.getType().getName(), type.getName());
-                    DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.DEFAULT);
-                    diFieldInfo.setBeanDefinition(nameBean);
-                    return diFieldInfo;
-                }
+                return new DIFieldInfo(field, DIFieldInfo.NONE);
             }
             else
             {
@@ -299,7 +285,7 @@ public class FieldFactory
             else if (annotationUtil.isPresent(PropertyRead.class, field))
             {
                 PropertyRead propertyRead = annotationUtil.getAnnotation(PropertyRead.class, field);
-                String propertyName = propertyRead.value();
+                String propertyName = propertyRead.value().equals("") ? field.getName() : propertyRead.value();
                 if (properties.containsKey(propertyName))
                 {
                     list.add(buildParamField(field, properties.get(propertyName), classLoader));

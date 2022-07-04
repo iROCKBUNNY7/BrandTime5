@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.inittrigger.provide.scan;
+package com.jfireframework.jfire.importer.provide.scan;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,13 +6,13 @@ import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.inittrigger.JfireInitTrigger;
+import com.jfireframework.jfire.importer.JfireImporter;
 
-public class ComponentScanTrigger implements JfireInitTrigger
+public class ComponentScanImporter implements JfireImporter
 {
     
     @Override
-    public void trigger(Environment environment)
+    public void importer(Environment environment)
     {
         if (environment.isAnnotationPresent(ComponentScan.class))
         {

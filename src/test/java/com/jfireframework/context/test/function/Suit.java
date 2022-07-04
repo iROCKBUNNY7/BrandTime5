@@ -12,10 +12,15 @@ import com.jfireframework.context.test.function.loader.HolderTest;
 import com.jfireframework.context.test.function.map.MapTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ AliasTest.class, AopTest.class, ContextTest.class, CacheTest.class, InitMethodTest.class, //
+@Suite.SuiteClasses({ //
+        AliasTest.class, AopTest.class, ParamFieldTest.class, //
+        PropertyPathImporterTest.class, //
+        DiTest.class, //
+        ContextTest.class, CacheTest.class, InitMethodTest.class, //
         HolderTest.class, MapTest.class, //
         BeanAnnoTest.class//
 })
+
 public class Suit
 {
     

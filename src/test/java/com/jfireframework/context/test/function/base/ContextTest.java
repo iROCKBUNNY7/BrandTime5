@@ -13,7 +13,7 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.JfireInitFinish;
 import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
+import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 public class ContextTest
 {

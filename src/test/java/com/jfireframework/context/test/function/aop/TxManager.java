@@ -6,18 +6,31 @@ import com.jfireframework.jfire.tx.TransactionManager;
 @Resource
 public class TxManager implements TransactionManager
 {
+    private boolean beginTransAction;
+    private boolean commit;
+    
+    public boolean isBeginTransAction()
+    {
+        return beginTransAction;
+    }
+    
+    public boolean isCommit()
+    {
+        return commit;
+    }
     
     @Override
     public void beginTransAction(int isolate)
     {
         System.out.println("事务开启");
+        beginTransAction = true;
     }
     
     @Override
     public void commit()
     {
         System.out.println("事务结束");
-        
+        commit = true;
     }
     
     @Override

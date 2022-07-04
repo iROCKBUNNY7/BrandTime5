@@ -11,7 +11,6 @@ public class DIFieldInfo
     public static final int  LIST          = 2;
     public static final int  BEAN_NAME_MAP = 3;
     public static final int  METHOD_MAP    = 4;
-    public static final int  VALUE_MAP     = 5;
     private final Field      field;
     private final int        mode;
     private BeanDefinition   beanDefinition;

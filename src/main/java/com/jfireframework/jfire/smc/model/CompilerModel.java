@@ -82,7 +82,7 @@ public class CompilerModel
         }
         builder.append("}");
         String source = builder.toString();
-        logger.debug("为类:{}生成的代理类源代码:\r\n{}\r\n", parentClass.getName(), source);
+        logger.trace("为类:{}生成的代理类源代码:\r\n{}\r\n", parentClass.getName(), source);
         return source;
     }
     

@@ -9,9 +9,7 @@ import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
 import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
 import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
+import com.jfireframework.jfire.util.JfireTool;
 
 public class EnhanceAnnoInfo implements Order
 {
@@ -93,43 +91,7 @@ public class EnhanceAnnoInfo implements Order
      * @return
      * @throws NotFoundException
      */
-    public boolean match(CtMethod ctMethod) throws NotFoundException
-    {
-        if (StringUtil.match(ctMethod.getName(), methodName))
-        {
-            CtClass[] methodParamTypes = ctMethod.getParameterTypes();
-            // 如果规则是xxxx(*)的形式，表明忽略目标方法的入参，此时可以返回true
-            if (paramTypeNames.length == 1 && paramTypeNames[0].equals("*"))
-            {
-                return true;
-            }
-            else if (methodParamTypes.length == paramTypeNames.length)
-            {
-                for (int i = 0; i < methodParamTypes.length; i++)
-                {
-                    if (AopUtil.getNameForType(methodParamTypes[i]).contains(paramTypeNames[i]))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * 将ctmethod的方法签名与path进行比对,返回匹配结果
-     * 
-     * @param ctMethod
-     * @return
-     * @throws NotFoundException
-     */
-    public boolean match(Method ctMethod) throws NotFoundException
+    public boolean match(Method ctMethod)
     {
         if (StringUtil.match(ctMethod.getName(), methodName))
         {
@@ -143,7 +105,7 @@ public class EnhanceAnnoInfo implements Order
             {
                 for (int i = 0; i < methodParamTypes.length; i++)
                 {
-                    if (methodParamTypes[i].getName().contains(paramTypeNames[i]))
+                    if (JfireTool.getTypeName(methodParamTypes[i]).contains(paramTypeNames[i]))
                     {
                         continue;
                     }

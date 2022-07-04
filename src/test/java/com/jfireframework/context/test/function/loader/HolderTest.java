@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
+import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 public class HolderTest
 {

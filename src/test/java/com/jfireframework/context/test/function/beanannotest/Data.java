@@ -8,8 +8,8 @@ import com.jfireframework.jfire.config.annotation.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.inittrigger.JfireInitTrigger;
-import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
+import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
@@ -18,11 +18,11 @@ import com.jfireframework.jfire.inittrigger.provide.scan.ComponentScan;
 public class Data
 {
     
-    public static class NameProperty implements JfireInitTrigger
+    public static class NameProperty implements JfireImporter
     {
         
         @Override
-        public void trigger(Environment environment)
+        public void importer(Environment environment)
         {
             environment.putProperty("name", "linbin");
         }

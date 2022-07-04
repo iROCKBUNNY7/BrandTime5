@@ -1,5 +1,6 @@
 package com.jfireframework.context.test.function.aop;
 
+import org.junit.Assert;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.ProceedPoint;
 import com.jfireframework.jfire.aop.annotation.AfterEnhance;
@@ -11,34 +12,59 @@ import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
 @EnhanceClass("com.jfireframework.context.*.aop.Person")
 public class Enhance
 {
+    private int    order;
+    private String param;
+    
+    public int getOrder()
+    {
+        return order;
+    }
+    
+    public String getParam()
+    {
+        return param;
+    }
+    
     @BeforeEnhance("sayHello(String)")
     public void sayHello(ProceedPoint point)
     {
+        param = (String) point.getParams()[0];
         System.out.println("前置拦截");
     }
     
-    @BeforeEnhance("testInts(int[])")
-    public void test(ProceedPoint point)
+    @AroundEnhance("testInts(int[])")
+    public String[] test(ProceedPoint point)
     {
-        System.out.println("前置拦截2");
+        System.out.println("asdasd");
+        String[] origin = (String[]) point.invoke();
+        Assert.assertEquals(3, origin.length);
+        return new String[0];
     }
     
     @BeforeEnhance(value = "order()", order = 2)
     public void order3(ProceedPoint point)
     {
-        System.out.println("前置拦截3");
+        order = 3;
     }
     
     @BeforeEnhance(value = "order()")
     public void order2(ProceedPoint point)
     {
-        System.out.println("前置拦截4");
+        order = 4;
+    }
+    
+    private Object result;
+    
+    public Object getResult()
+    {
+        return result;
     }
     
     @AfterEnhance("order2(String int)")
     public void order22(ProceedPoint point)
     {
         System.out.println("后置拦截");
+        result = point.getResult();
     }
     
     @AroundEnhance("myName(String)")

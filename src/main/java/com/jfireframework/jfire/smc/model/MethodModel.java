@@ -3,6 +3,7 @@ package com.jfireframework.jfire.smc.model;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import com.jfireframework.baseutil.collection.StringCache;
+import com.jfireframework.jfire.util.JfireTool;
 
 public class MethodModel
 {
@@ -44,14 +45,14 @@ public class MethodModel
         }
         else
         {
-            returnInfo = getTypeName(method.getReturnType());
+            returnInfo = JfireTool.getTypeName(method.getReturnType());
         }
         methodName = method.getName();
         StringCache cache = new StringCache();
         int index = 0;
         for (Class<?> each : method.getParameterTypes())
         {
-            cache.append(getTypeName(each)).append(" $").append(index).append(",");
+            cache.append(JfireTool.getTypeName(each)).append(" $").append(index).append(",");
             index += 1;
         }
         if (cache.isCommaLast())
@@ -59,24 +60,6 @@ public class MethodModel
             cache.deleteLast();
         }
         argsInfo = cache.toString();
-    }
-    
-    private String getTypeName(Class<?> type)
-    {
-        if (type.isArray() == false)
-        {
-            return type.getName();
-        }
-        else
-        {
-            StringCache cache = new StringCache();
-            while (type.isArray())
-            {
-                cache.append("[]");
-                type = type.getComponentType();
-            }
-            return type.getName() + cache.toString();
-        }
     }
     
     public String getInvokeInfo()

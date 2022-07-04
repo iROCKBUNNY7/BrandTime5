@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.inittrigger.provide.scan;
+package com.jfireframework.jfire.importer.provide.property;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,18 +8,12 @@ import java.lang.annotation.Target;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 
-/**
- * 用来填充配置文件中packageNames的值
- * 
- * @author linbin
- *
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
 @Documented
-@Import(ComponentScanTrigger.class)
+@Import(PropertyPathImporter.class)
 @Configuration
-public @interface ComponentScan
+public @interface PropertyPath
 {
     public String[] value();
 }

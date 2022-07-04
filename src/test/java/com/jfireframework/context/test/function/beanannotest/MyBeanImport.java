@@ -4,10 +4,10 @@ import javax.annotation.Resource;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.inittrigger.JfireInitTrigger;
+import com.jfireframework.jfire.importer.JfireImporter;
 
 @Configuration
-public class MyBeanImport implements JfireInitTrigger
+public class MyBeanImport implements JfireImporter
 {
     @Resource
     private Environment environment;
@@ -30,7 +30,7 @@ public class MyBeanImport implements JfireInitTrigger
     }
     
     @Override
-    public void trigger(Environment environment)
+    public void importer(Environment environment)
     {
         environment.putProperty("person8", "insertPerson8");
     }

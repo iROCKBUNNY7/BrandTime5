@@ -24,7 +24,7 @@ import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.aop.AopUtil2;
+import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.field.FieldFactory;
@@ -34,7 +34,6 @@ import com.jfireframework.jfire.bean.field.dependency.impl.BeanNameMapField;
 import com.jfireframework.jfire.bean.field.dependency.impl.DefaultBeanField;
 import com.jfireframework.jfire.bean.field.dependency.impl.ListField;
 import com.jfireframework.jfire.bean.field.dependency.impl.MethodMapField;
-import com.jfireframework.jfire.bean.field.dependency.impl.ValueMapField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 import com.jfireframework.jfire.bean.impl.BaseBean;
 import com.jfireframework.jfire.bean.impl.DefaultBean;
@@ -47,7 +46,7 @@ import com.jfireframework.jfire.config.annotation.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.inittrigger.JfireInitTrigger;
+import com.jfireframework.jfire.importer.JfireImporter;
 import sun.reflect.MethodAccessor;
 
 public class JfireConfig
@@ -128,7 +127,7 @@ public class JfireConfig
         Plugin[] plugins = new Plugin[] { //
                 new PreparationPlugin(jfire), //
                 new ResolveImportAnnotationPlugin(), //
-                new ImportTriggerPlugin(), //
+                new ImporterPlugin(), //
                 new ResolveMethodConfigBeanDefinitionPlugin(), //
                 new FindAnnoedPostAndPreDestoryMethod(), //
                 new EnhancePlugin(), //
@@ -409,10 +408,8 @@ public class JfireConfig
         @Override
         public void process()
         {
-            // AopUtil aopUtil = new AopUtil(classLoader, annotationUtil);
-            // aopUtil.enhance(beanDefinitions);
-            AopUtil2 aopUtil2 = new AopUtil2(classLoader, annotationUtil);
-            aopUtil2.enhance(beanDefinitions);
+            AopUtil aopUtil = new AopUtil(classLoader, annotationUtil);
+            aopUtil.enhance(beanDefinitions);
         }
     }
     
@@ -548,12 +545,6 @@ public class JfireConfig
                     }
                     case DIFieldInfo.NONE:
                         break;
-                    case DIFieldInfo.VALUE_MAP:
-                    {
-                        DIField diField = new ValueMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), diFieldInfo.getValue_map_values());
-                        diFields.add(diField);
-                        break;
-                    }
                     default:
                         break;
                 }
@@ -753,7 +744,7 @@ public class JfireConfig
         }
     }
     
-    class ImportTriggerPlugin implements Plugin
+    class ImporterPlugin implements Plugin
     {
         
         @Override
@@ -765,7 +756,7 @@ public class JfireConfig
                 if (definition.getOriginType() != null)
                 {
                     
-                    if (JfireInitTrigger.class.isAssignableFrom(definition.getOriginType()))
+                    if (JfireImporter.class.isAssignableFrom(definition.getOriginType()))
                     {
                         definition.enableImportTrigger();
                         importTriggers.add(definition);
@@ -776,7 +767,7 @@ public class JfireConfig
             {
                 for (BeanDefinition definition : importTriggers)
                 {
-                    ((JfireInitTrigger) definition.getOriginType().newInstance()).trigger(environment);
+                    ((JfireImporter) definition.getOriginType().newInstance()).importer(environment);
                 }
             }
             catch (Exception e)
