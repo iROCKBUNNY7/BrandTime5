@@ -1,62 +1,27 @@
-package com.jfireframework.jfire.smc;
+package com.jfireframework.jfire.aop;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
-import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.aop.EnhanceAnnoInfo;
+import com.jfireframework.baseutil.smc.SmcHelper;
+import com.jfireframework.baseutil.smc.el.SmcEl;
+import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.jfire.aop.annotation.Transaction;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
-import com.jfireframework.jfire.smc.el.SmcEl;
-import com.jfireframework.jfire.smc.model.CompilerModel;
-import com.jfireframework.jfire.smc.model.MethodModel;
 import com.jfireframework.jfire.tx.TransactionIsolate;
 
-public class SmcHelper
+public class DynamicCodeTool
 {
     
-    private static final AtomicInteger count     = new AtomicInteger(0);
-    private static final AtomicInteger typeCount = new AtomicInteger(0);
+    private static final AtomicInteger count = new AtomicInteger(0);
     
     public static CompilerModel createClientClass(Class<?> type)
     {
-        CompilerModel compilerModle = new CompilerModel(type.getSimpleName() + "$Smc$" + typeCount.incrementAndGet(), type);
-        for (Method method : ReflectUtil.getAllMehtods(type))
-        {
-            if (canHaveChildMethod(method.getModifiers()))
-            {
-                MethodModel methodModel = new MethodModel(method);
-                if (method.getReturnType() == void.class)
-                {
-                    methodModel.setBody("super." + methodModel.getInvokeInfo() + ";");
-                }
-                else
-                {
-                    methodModel.setBody("return super." + methodModel.getInvokeInfo() + ";");
-                }
-                compilerModle.putMethod(method, methodModel);
-            }
-        }
-        return compilerModle;
-    }
-    
-    private static boolean canHaveChildMethod(int moditifer)
-    {
-        if ((Modifier.isPublic(moditifer) || Modifier.isProtected(moditifer)) //
-                && Modifier.isFinal(moditifer) == false //
-                && Modifier.isNative(moditifer) == false //
-                && Modifier.isStatic(moditifer) == false)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return SmcHelper.createClientClass(type);
     }
     
     public static void enhanceBefore(CompilerModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)

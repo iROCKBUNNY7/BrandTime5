@@ -17,6 +17,9 @@ import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
+import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
@@ -30,12 +33,10 @@ import com.jfireframework.jfire.cache.CacheManager;
 import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
-import com.jfireframework.jfire.smc.SmcHelper;
-import com.jfireframework.jfire.smc.compiler.JavaStringCompiler;
-import com.jfireframework.jfire.smc.model.CompilerModel;
-import com.jfireframework.jfire.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionManager;
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
 
 public class AopUtil
 {
@@ -118,7 +119,7 @@ public class AopUtil
             }
             if (needPut)
             {
-                logger.debug("准备增强bean：{}", beanAopDefinition.beanName);
+                logger.trace("准备增强bean：{}", beanAopDefinition.beanName);
                 beanAopDefinitions.put(beanAopDefinition.beanName, beanAopDefinition);
             }
         }
@@ -168,7 +169,7 @@ public class AopUtil
      */
     private void enhance(BeanAopDefinition beanAopDefinition) throws ClassNotFoundException
     {
-        CompilerModel compilerModel = SmcHelper.createClientClass(beanAopDefinition.originType);
+        CompilerModel compilerModel = DynamicCodeTool.createClientClass(beanAopDefinition.originType);
         if (beanAopDefinition.getTxMethods().size() > 0)
         {
             String txFieldName = "tx$smc";
@@ -206,7 +207,7 @@ public class AopUtil
         Collections.sort(beanAopDefinition.getEnhanceAnnoInfos(), new AescComparator());
         for (Method each : compilerModel.methods())
         {
-            logger.debug("准备检查方法:{}", each.getName());
+            logger.trace("准备检查方法:{}", each.getName());
             for (EnhanceAnnoInfo enhanceAnnoInfo : beanAopDefinition.getEnhanceAnnoInfos())
             {
                 switch (enhanceAnnoInfo.getType())
@@ -214,26 +215,25 @@ public class AopUtil
                     case EnhanceAnnoInfo.BEFORE:
                         if (enhanceAnnoInfo.match(each))
                         {
-                            logger.debug("方法:{}匹配规则:{},准备进行前置增强", each.getName(), enhanceAnnoInfo.getPath());
-                            SmcHelper.enhanceBefore(compilerModel, each, enhanceAnnoInfo);
+                            DynamicCodeTool.enhanceBefore(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.AFTER:
                         if (enhanceAnnoInfo.match(each))
                         {
-                            SmcHelper.enhanceAfter(compilerModel, each, enhanceAnnoInfo);
+                            DynamicCodeTool.enhanceAfter(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.AROUND:
                         if (enhanceAnnoInfo.match(each))
                         {
-                            SmcHelper.enhanceAround(compilerModel, each, enhanceAnnoInfo);
+                            DynamicCodeTool.enhanceAround(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                     case EnhanceAnnoInfo.THROW:
                         if (enhanceAnnoInfo.match(each))
                         {
-                            SmcHelper.enhanceException(compilerModel, each, enhanceAnnoInfo);
+                            DynamicCodeTool.enhanceException(compilerModel, each, enhanceAnnoInfo);
                         }
                         break;
                 }
@@ -264,7 +264,7 @@ public class AopUtil
     {
         for (Method method : txMethods)
         {
-            SmcHelper.addTxToMethod(compilerModel, txFieldName, method);
+            DynamicCodeTool.addTxToMethod(compilerModel, txFieldName, method);
         }
     }
     
@@ -281,7 +281,7 @@ public class AopUtil
     {
         for (Method method : resMethods)
         {
-            SmcHelper.addAutoResourceToMethod(compilerModel, resFieldName, method);
+            DynamicCodeTool.addAutoResourceToMethod(compilerModel, resFieldName, method);
         }
     }
     
@@ -293,15 +293,15 @@ public class AopUtil
             {
                 if (annotationUtil.isPresent(CacheGet.class, each))
                 {
-                    SmcHelper.addCacheGetToMethod(compilerModel, cacheFieldName, each);
+                    DynamicCodeTool.addCacheGetToMethod(compilerModel, cacheFieldName, each);
                 }
                 if (annotationUtil.isPresent(CachePut.class, each))
                 {
-                    SmcHelper.addCachePutToMethod(compilerModel, cacheFieldName, each);
+                    DynamicCodeTool.addCachePutToMethod(compilerModel, cacheFieldName, each);
                 }
                 if (annotationUtil.isPresent(CacheDelete.class, each))
                 {
-                    SmcHelper.addCacheDeleteToMethod(compilerModel, cacheFieldName, each);
+                    DynamicCodeTool.addCacheDeleteToMethod(compilerModel, cacheFieldName, each);
                 }
                 
             }

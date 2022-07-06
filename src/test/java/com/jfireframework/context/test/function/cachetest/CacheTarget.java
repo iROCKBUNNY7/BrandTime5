@@ -12,7 +12,7 @@ import com.jfireframework.jfire.cache.annotation.CachePut;
 public class CacheTarget
 {
     
-    @CacheGet(value = "\"ab\"", cacheName = "name", condition = "$0.getAge() > 13")
+    @CacheGet(value = "\"ab\"", cacheName = "name", condition = "$0.age > 13")
     public House get4(MutablePerson person)
     {
         return new House();

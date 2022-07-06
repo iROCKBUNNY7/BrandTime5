@@ -13,7 +13,7 @@ import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.config.Condition;
+import com.jfireframework.jfire.condition.Condition;
 
 public class Environment
 {
@@ -86,6 +86,11 @@ public class Environment
         public boolean isBeanDefinitionExist(Class<?> type)
         {
             return host.getBeanDefinition(type) != null;
+        }
+        
+        public AnnotationUtil getAnnotationUtil()
+        {
+            return host.getAnnotationUtil();
         }
     }
     

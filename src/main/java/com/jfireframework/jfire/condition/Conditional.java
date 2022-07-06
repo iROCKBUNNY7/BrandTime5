@@ -1,9 +1,8 @@
-package com.jfireframework.jfire.config.annotation;
+package com.jfireframework.jfire.condition;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import com.jfireframework.jfire.config.Condition;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

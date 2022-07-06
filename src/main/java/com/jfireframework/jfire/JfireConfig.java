@@ -41,8 +41,8 @@ import com.jfireframework.jfire.bean.impl.LoadByBean;
 import com.jfireframework.jfire.bean.impl.MethodConfigBean;
 import com.jfireframework.jfire.bean.impl.OuterEntityBean;
 import com.jfireframework.jfire.bean.load.LoadBy;
-import com.jfireframework.jfire.config.Condition;
-import com.jfireframework.jfire.config.annotation.Conditional;
+import com.jfireframework.jfire.condition.Condition;
+import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -714,12 +714,12 @@ public class JfireConfig
             {
                 Method method = entry.getKey();
                 if (annotationUtil.isPresent(Conditional.class, method.getDeclaringClass()) && //
-                        match(annotationUtil.getAnnotations(Conditional.class, method.getDeclaringClass()), annotationUtil) == false)
+                        match(annotationUtil.getAnnotations(Conditional.class, method.getDeclaringClass()), method.getDeclaringClass().getAnnotations()) == false)
                 {
                     continue;
                 }
                 if (annotationUtil.isPresent(Conditional.class, method) && //
-                        match(annotationUtil.getAnnotations(Conditional.class, method), annotationUtil) == false)
+                        match(annotationUtil.getAnnotations(Conditional.class, method), method.getAnnotations()) == false)
                 {
                     continue;
                 }
@@ -727,14 +727,14 @@ public class JfireConfig
             }
         }
         
-        boolean match(Conditional[] conditionals, AnnotationUtil annotationUtil)
+        boolean match(Conditional[] conditionals, Annotation[] annotations)
         {
             for (Conditional conditional : conditionals)
             {
                 for (Class<? extends Condition> type : conditional.value())
                 {
                     Condition condition = environment.getCondition(type);
-                    if (condition.match(environment.readOnlyEnvironment(), annotationUtil) == false)
+                    if (condition.match(environment.readOnlyEnvironment(), annotations) == false)
                     {
                         return false;
                     }
