@@ -370,7 +370,7 @@ public class JfireConfig
                 {
                     for (Class<?> each : anno.value())
                     {
-                        registerBeanDefinition(each);
+                        registerConfiurationBeanDefinition(each);
                         processImport(each);
                     }
                 }
