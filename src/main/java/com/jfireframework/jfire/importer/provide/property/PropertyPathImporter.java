@@ -9,13 +9,13 @@ import java.util.Properties;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 
-public class PropertyPathImporter implements JfireImporter
+public class PropertyPathImporter implements ImportSelecter
 {
     
     @Override
-    public void importer(Environment environment)
+    public void importSelect(Environment environment)
     {
         if (environment.isAnnotationPresent(PropertyPath.class))
         {

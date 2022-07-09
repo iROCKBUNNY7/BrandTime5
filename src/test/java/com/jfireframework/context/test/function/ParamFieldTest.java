@@ -8,9 +8,9 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 
-public class ParamFieldTest implements JfireImporter
+public class ParamFieldTest implements ImportSelecter
 {
     public static enum name
     {
@@ -47,7 +47,7 @@ public class ParamFieldTest implements JfireImporter
     private name        f14;
     
     @Override
-    public void importer(Environment environment)
+    public void importSelect(Environment environment)
     {
         environment.putProperty("f1", "1,2");
         environment.putProperty("f2", "aaa");

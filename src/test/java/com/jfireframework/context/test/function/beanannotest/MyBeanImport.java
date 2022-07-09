@@ -4,10 +4,10 @@ import javax.annotation.Resource;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 
 @Configuration
-public class MyBeanImport implements JfireImporter
+public class MyBeanImport implements ImportSelecter
 {
     @Resource
     private Environment environment;
@@ -30,7 +30,7 @@ public class MyBeanImport implements JfireImporter
     }
     
     @Override
-    public void importer(Environment environment)
+    public void importSelect(Environment environment)
     {
         environment.putProperty("person8", "insertPerson8");
     }

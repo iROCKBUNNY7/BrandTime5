@@ -46,7 +46,7 @@ import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 import sun.reflect.MethodAccessor;
 
 public class JfireConfig
@@ -756,7 +756,7 @@ public class JfireConfig
                 if (definition.getOriginType() != null)
                 {
                     
-                    if (JfireImporter.class.isAssignableFrom(definition.getOriginType()))
+                    if (ImportSelecter.class.isAssignableFrom(definition.getOriginType()))
                     {
                         definition.enableImportTrigger();
                         importTriggers.add(definition);
@@ -767,7 +767,7 @@ public class JfireConfig
             {
                 for (BeanDefinition definition : importTriggers)
                 {
-                    ((JfireImporter) definition.getOriginType().newInstance()).importer(environment);
+                    ((ImportSelecter) definition.getOriginType().newInstance()).importSelect(environment);
                 }
             }
             catch (Exception e)

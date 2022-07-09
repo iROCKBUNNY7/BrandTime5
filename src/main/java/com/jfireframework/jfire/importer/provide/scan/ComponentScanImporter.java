@@ -6,13 +6,13 @@ import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 
-public class ComponentScanImporter implements JfireImporter
+public class ComponentScanImporter implements ImportSelecter
 {
     
     @Override
-    public void importer(Environment environment)
+    public void importSelect(Environment environment)
     {
         if (environment.isAnnotationPresent(ComponentScan.class))
         {

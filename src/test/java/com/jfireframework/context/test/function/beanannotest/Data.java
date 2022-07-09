@@ -8,7 +8,7 @@ import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.JfireImporter;
+import com.jfireframework.jfire.importer.ImportSelecter;
 import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 @Configuration
@@ -18,11 +18,11 @@ import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 public class Data
 {
     
-    public static class NameProperty implements JfireImporter
+    public static class NameProperty implements ImportSelecter
     {
         
         @Override
-        public void importer(Environment environment)
+        public void importSelect(Environment environment)
         {
             environment.putProperty("name", "linbin");
         }
