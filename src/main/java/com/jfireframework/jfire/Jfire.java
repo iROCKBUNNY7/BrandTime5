@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.bean.BeanDefinition;
 
@@ -67,7 +67,6 @@ public class Jfire
                 result.add(each);
             }
         }
-        annotationUtil.clear();
         return result.toArray(new BeanDefinition[result.size()]);
     }
     

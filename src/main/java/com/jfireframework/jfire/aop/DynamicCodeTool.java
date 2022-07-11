@@ -1,8 +1,9 @@
 package com.jfireframework.jfire.aop;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.el.SmcEl;
@@ -13,6 +14,8 @@ import com.jfireframework.jfire.cache.annotation.CacheDelete;
 import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
 import com.jfireframework.jfire.tx.TransactionIsolate;
+import com.jfireframework.jfire.validate.Validate;
+import com.jfireframework.jfire.validate.ValidateResult;
 
 public class DynamicCodeTool
 {
@@ -195,6 +198,86 @@ public class DynamicCodeTool
         }
         insert.setBody(body);
         model.putMethod(method, insert);
+    }
+    
+    public static void addValidateToMethod(CompilerModel compilerModel, String validateFieldName, Method method)
+    {
+        int length = method.getParameterTypes().length;
+        if (length == 0)
+        {
+            return;
+        }
+        class Helper
+        {
+            private void addGroups(StringCache cache, Validate validate)
+            {
+                Class<?>[] groups = validate.groups();
+                cache.append("new Class[]{");
+                for (Class<?> each : groups)
+                {
+                    cache.append(each.getName()).appendComma();
+                }
+                if (cache.isCommaLast())
+                {
+                    cache.deleteLast();
+                }
+                cache.append("}");
+            }
+            
+            private void addValidateResultJudge(StringCache cache, String variableName)
+            {
+                cache.append("if(").append(variableName).append(".getDetails().length>0){\r\n");
+                cache.append("throw new com.jfireframework.jfire.validate.ValidateException(").append(variableName).append(");\r\n");
+                cache.append("}\r\n");
+            }
+            
+        }
+        Helper helper = new Helper();
+        AnnotationUtil annotationUtil = new AnnotationUtil();
+        MethodModel pred = compilerModel.getMethodModel(method);
+        String rename = method.getName() + "_" + count.incrementAndGet();
+        pred.setMethodName(rename);
+        compilerModel.putShadowMethodModel(pred);
+        MethodModel validatedMethod = new MethodModel(method);
+        StringCache cache = new StringCache();
+        String variableName = "validateResult_smc_" + count.incrementAndGet();
+        if (annotationUtil.isPresent(Validate.class, method))
+        {
+            cache.append(ValidateResult.class.getName()).append(" ").append(variableName).append(" = ").append(validateFieldName).append(".validateParams(new Object[]{");
+            for (int i = 0; i < length; i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            cache.deleteLast().append("},");
+            Validate validate = annotationUtil.getAnnotation(Validate.class, method);
+            helper.addGroups(cache, validate);
+            cache.append(");\r\n");
+            helper.addValidateResultJudge(cache, variableName);
+        }
+        else
+        {
+            Annotation[][] annotations = method.getParameterAnnotations();
+            cache.append(ValidateResult.class.getName()).append(" ").append(variableName).append(";\r\n");
+            for (int i = 0; i < annotations.length; i++)
+            {
+                if (annotationUtil.isPresent(Validate.class, annotations[i]))
+                {
+                    cache.append(variableName).append(" = ").append(validateFieldName).append(".validateParam($").append(i).appendComma();
+                    Validate validate = annotationUtil.getAnnotation(Validate.class, annotations[i]);
+                    helper.addGroups(cache, validate);
+                    cache.append(");\r\n");
+                    helper.addValidateResultJudge(cache, variableName);
+                }
+            }
+        }
+        if (method.getReturnType() != void.class)
+        {
+            cache.append("return ");
+        }
+        cache.append(pred.getInvokeInfo()).append(";\r\n");
+        validatedMethod.setBody(cache.toString());
+        compilerModel.putMethod(method, validatedMethod);
+        
     }
     
     public static void addTxToMethod(CompilerModel compilerModel, String txFieldName, Method method)

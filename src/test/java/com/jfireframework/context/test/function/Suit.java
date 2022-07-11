@@ -11,6 +11,7 @@ import com.jfireframework.context.test.function.initmethod.InitMethodTest;
 import com.jfireframework.context.test.function.lazyinit.LazyInitTest;
 import com.jfireframework.context.test.function.loader.HolderTest;
 import com.jfireframework.context.test.function.map.MapTest;
+import com.jfireframework.context.test.function.validate.ValidateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ //
@@ -20,7 +21,8 @@ import com.jfireframework.context.test.function.map.MapTest;
         ContextTest.class, CacheTest.class, InitMethodTest.class, //
         HolderTest.class, MapTest.class, //
         BeanAnnoTest.class, //
-        LazyInitTest.class
+        LazyInitTest.class, //
+        ValidateTest.class
 })
 
 public class Suit

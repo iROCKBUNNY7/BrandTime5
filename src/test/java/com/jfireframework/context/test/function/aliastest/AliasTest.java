@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.config.annotation.Configuration;

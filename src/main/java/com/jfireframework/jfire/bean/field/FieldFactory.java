@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.reflect.ReflectUtil;

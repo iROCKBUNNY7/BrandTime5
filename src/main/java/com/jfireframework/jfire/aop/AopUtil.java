@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.aop;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -8,11 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
@@ -35,6 +37,8 @@ import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionManager;
+import com.jfireframework.jfire.validate.JfireMethodValidator;
+import com.jfireframework.jfire.validate.Validate;
 
 public class AopUtil
 {
@@ -66,7 +70,6 @@ public class AopUtil
                 enhance(beanAopDefinition);
                 beanMap.get(beanAopDefinition.beanName).setType(beanAopDefinition.type);
             }
-            logger.trace("Aop增强分析完毕");
         }
         catch (Exception e)
         {
@@ -92,6 +95,20 @@ public class AopUtil
             // 由于增强是采用子类来实现的,所以事务注解只对当前的类有效.如果当前类的父类也有事务注解,在本次增强中就无法起作用
             for (Method method : ReflectUtil.getAllMehtods(candidate.getType()))
             {
+                if (annotationUtil.isPresent(Validate.class, method))
+                {
+                    beanAopDefinition.addValidateMethod(method);
+                    needPut = true;
+                    logger.trace("发现需要验证的方法{}", method.toString());
+                }
+                for (Annotation[] annotations : method.getParameterAnnotations())
+                {
+                    if (annotationUtil.isPresent(Validate.class, annotations))
+                    {
+                        beanAopDefinition.addValidateMethod(method);
+                        needPut = true;
+                    }
+                }
                 if (annotationUtil.isPresent(Transaction.class, method))
                 {
                     Verify.False(annotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
@@ -186,6 +203,13 @@ public class AopUtil
             compilerModel.addField(new ResourceAnnoFieldModel(cacheFieldName, CacheManager.class));
             addCacheToMethod(compilerModel, cacheFieldName, beanAopDefinition.getCacheMethods());
         }
+        // 验证应该是在内部的最外层
+        if (beanAopDefinition.getValidateMethods().size() > 0)
+        {
+            String validateFieldName = "validate$smc";
+            compilerModel.addField(new ResourceAnnoFieldModel(validateFieldName, JfireMethodValidator.class));
+            addValidateToMethod(compilerModel, validateFieldName, beanAopDefinition.getValidateMethods());
+        }
         if (beanAopDefinition.getEnhanceAnnoInfos().size() > 0)
         {
             /**
@@ -240,6 +264,7 @@ public class AopUtil
         JavaStringCompiler compiler = new JavaStringCompiler();
         try
         {
+            logger.trace("生成类:{}的源代码:\r\n{}\r\n", compilerModel.className(), compilerModel.toString());
             beanAopDefinition.type = compiler.compile(compilerModel, classLoader);
         }
         catch (Exception e)
@@ -263,6 +288,14 @@ public class AopUtil
         for (Method method : txMethods)
         {
             DynamicCodeTool.addTxToMethod(compilerModel, txFieldName, method);
+        }
+    }
+    
+    private void addValidateToMethod(CompilerModel compilerModel, String txFieldName, Set<Method> validateMethods)
+    {
+        for (Method method : validateMethods)
+        {
+            DynamicCodeTool.addValidateToMethod(compilerModel, txFieldName, method);
         }
     }
     
@@ -324,6 +357,7 @@ public class AopUtil
     
     class BeanAopDefinition
     {
+        private Set<Method>           validateMethods     = new HashSet<Method>(8);
         private List<Method>          autoResourceMethods = new ArrayList<Method>(8);
         private List<Method>          txMethods           = new ArrayList<Method>(8);
         private List<Method>          cacheMethods        = new ArrayList<Method>(8);
@@ -336,6 +370,11 @@ public class AopUtil
         {
             this.beanName = beanName;
             this.originType = originType;
+        }
+        
+        void addValidateMethod(Method method)
+        {
+            validateMethods.add(method);
         }
         
         void addAutoResourceMethod(Method method)
@@ -416,5 +455,9 @@ public class AopUtil
             return enhanceAnnoInfos;
         }
         
+        Set<Method> getValidateMethods()
+        {
+            return validateMethods;
+        }
     }
 }

@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.config.environment.Environment;
 import com.jfireframework.jfire.importer.ImportSelecter;
 

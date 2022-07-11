@@ -2,7 +2,7 @@ package com.jfireframework.jfire.aop;
 
 import java.lang.reflect.Method;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
+import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.order.Order;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.verify.Verify;
