@@ -35,8 +35,6 @@ import com.jfireframework.jfire.cache.annotation.CacheGet;
 import com.jfireframework.jfire.cache.annotation.CachePut;
 import com.jfireframework.jfire.tx.RessourceManager;
 import com.jfireframework.jfire.tx.TransactionManager;
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
 
 public class AopUtil
 {

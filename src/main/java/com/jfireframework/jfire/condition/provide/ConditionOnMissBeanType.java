@@ -1,6 +1,5 @@
 package com.jfireframework.jfire.condition.provide;
 
-import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.jfire.condition.Conditional;
@@ -13,7 +12,7 @@ public @interface ConditionOnMissBeanType
 {
     public Class<?>[] value();
     
-    public static class OnMissBeanType extends BaseCondition
+    public static class OnMissBeanType extends BaseCondition<ConditionOnMissBeanType>
     {
         
         public OnMissBeanType()
@@ -22,9 +21,9 @@ public @interface ConditionOnMissBeanType
         }
         
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, Annotation annotation)
+        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, ConditionOnMissBeanType conditionOnMissBeanType)
         {
-            for (Class<?> each : ((ConditionOnMissBeanType) annotation).value())
+            for (Class<?> each : conditionOnMissBeanType.value())
             {
                 if (readOnlyEnvironment.isBeanDefinitionExist(each))
                 {

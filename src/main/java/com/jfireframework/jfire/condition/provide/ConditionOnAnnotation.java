@@ -13,7 +13,7 @@ public @interface ConditionOnAnnotation
 {
     public Class<? extends Annotation>[] value();
     
-    public static class OnAnnotation extends BaseCondition
+    public static class OnAnnotation extends BaseCondition<ConditionOnAnnotation>
     {
         
         public OnAnnotation()
@@ -22,29 +22,9 @@ public @interface ConditionOnAnnotation
         }
         
         @Override
-        public boolean match(ReadOnlyEnvironment readOnlyEnvironment, Annotation[] annotations)
+        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, ConditionOnAnnotation conditionOnAnnotation)
         {
-            for (Annotation each : annotations)
-            {
-                if (each.annotationType() == ConditionOnAnnotation.class)
-                {
-                    for (Class<? extends Annotation> type : ((ConditionOnAnnotation) each).value())
-                    {
-                        if (readOnlyEnvironment.isAnnotationPresent(type) == false)
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            throw new NullPointerException();
-        }
-        
-        @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, Annotation annotation)
-        {
-            for (Class<? extends Annotation> type : ((ConditionOnAnnotation) annotation).value())
+            for (Class<? extends Annotation> type : conditionOnAnnotation.value())
             {
                 if (readOnlyEnvironment.isAnnotationPresent(type) == false)
                 {

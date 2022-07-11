@@ -4,12 +4,12 @@ import java.lang.reflect.Method;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.baseutil.order.Order;
+import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.annotation.AfterEnhance;
 import com.jfireframework.jfire.aop.annotation.AroundEnhance;
 import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
 import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
-import com.jfireframework.jfire.util.JfireTool;
 
 public class EnhanceAnnoInfo implements Order
 {
@@ -105,7 +105,7 @@ public class EnhanceAnnoInfo implements Order
             {
                 for (int i = 0; i < methodParamTypes.length; i++)
                 {
-                    if (JfireTool.getTypeName(methodParamTypes[i]).contains(paramTypeNames[i]))
+                    if (SmcHelper.getTypeName(methodParamTypes[i]).contains(paramTypeNames[i]))
                     {
                         continue;
                     }

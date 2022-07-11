@@ -9,33 +9,19 @@ public class LoadByBean extends BaseBean
     
     private final Bean loadByFactoryBean;
     
-    public LoadByBean(Class<?> type, String beanName, Bean loadByFactoryBean)
+    public LoadByBean(Class<?> type, boolean prototype, String beanName, Bean loadByFactoryBean, boolean lazyInitUntilFirstInvoke)
     {
-        super(type, beanName, false, null, null);
+        super(type, beanName, prototype, lazyInitUntilFirstInvoke);
         this.loadByFactoryBean = loadByFactoryBean;
     }
     
     @Override
-    public Object getInstance()
+    protected Object buildInstance(Map<String, Object> beanInstanceMap)
     {
-        BeanLoadFactory factory = (BeanLoadFactory) loadByFactoryBean.getInstance();
-        return factory.load(type);
-    }
-    
-    @Override
-    public Object getInstance(Map<String, Object> beanInstanceMap)
-    {
-        if (beanInstanceMap.containsKey(beanName))
-        {
-            return beanInstanceMap.get(beanName);
-        }
-        else
-        {
-            BeanLoadFactory factory = (BeanLoadFactory) loadByFactoryBean.getInstance(beanInstanceMap);
-            Object entity = factory.load(type);
-            beanInstanceMap.put(beanName, entity);
-            return entity;
-        }
+        BeanLoadFactory factory = (BeanLoadFactory) loadByFactoryBean.getInstance(beanInstanceMap);
+        Object entity = factory.load(type);
+        beanInstanceMap.put(beanName, entity);
+        return entity;
     }
     
 }

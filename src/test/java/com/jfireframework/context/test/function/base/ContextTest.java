@@ -13,12 +13,14 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.JfireInitFinish;
 import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 public class ContextTest
 {
     private static final Logger logger = LoggerFactory.getLogger(ContextTest.class);
     
+    @Configuration
     @ComponentScan("com.jfireframework.context.test.function.base")
     public static class ContextTestScan
     {

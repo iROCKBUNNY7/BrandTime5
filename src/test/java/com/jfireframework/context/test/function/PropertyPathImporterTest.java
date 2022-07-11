@@ -5,6 +5,7 @@ import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.importer.provide.property.PropertyPath;
 
 public class PropertyPathImporterTest
@@ -12,12 +13,14 @@ public class PropertyPathImporterTest
     @PropertyRead
     private int age;
     
+    @Configuration
     @PropertyPath("classpath:propertiestest.properties")
     public static class Test1
     {
         
     }
     
+    @Configuration
     @PropertyPath("file:src/test/resources/propertiestest.properties")
     public static class Test2
     {

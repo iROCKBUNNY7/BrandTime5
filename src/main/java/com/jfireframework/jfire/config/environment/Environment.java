@@ -78,6 +78,11 @@ public class Environment
             return host.getProperty(name);
         }
         
+        public boolean hasProperty(String name)
+        {
+            return host.getProperty(name) != null;
+        }
+        
         public boolean isBeanDefinitionExist(String beanName)
         {
             return host.getBeanDefinition(beanName) != null;

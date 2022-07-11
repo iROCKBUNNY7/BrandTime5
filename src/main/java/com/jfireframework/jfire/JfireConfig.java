@@ -27,6 +27,7 @@ import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.bean.field.FieldFactory;
 import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
@@ -102,14 +103,7 @@ public class JfireConfig
     
     public JfireConfig registerBeanDefinition(String resourceName, boolean prototype, Class<?> src)
     {
-        BeanDefinition beanDefinition = new BeanDefinition();
-        beanDefinition.setBeanName(resourceName);
-        beanDefinition.setType(src);
-        beanDefinition.setOriginType(src);
-        beanDefinition.setClassName(src.getName());
-        beanDefinition.enablePrototype(prototype);
-        beanDefinition.switchDefault();
-        mergeBeanDefinition(beanDefinition);
+        mergeBeanDefinition(buildBeanDefinition(resourceName, prototype, src));
         return this;
     }
     
@@ -199,21 +193,8 @@ public class JfireConfig
         }
     }
     
-    private BeanDefinition buildBeanDefinition(Class<?> ckass)
+    private BeanDefinition buildBeanDefinition(String beanName, boolean prototype, Class<?> ckass)
     {
-        Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
-        String beanName;
-        boolean prototype;
-        if (resource == null)
-        {
-            prototype = false;
-            beanName = ckass.getName();
-        }
-        else
-        {
-            prototype = resource.shareable() == false;
-            beanName = resource.name().equals("") ? ckass.getName() : resource.name();
-        }
         BeanDefinition beanDefinition = new BeanDefinition();
         beanDefinition.setBeanName(beanName);
         beanDefinition.enablePrototype(prototype);
@@ -240,7 +221,29 @@ public class JfireConfig
             beanDefinition.enableConfiguration();
             environment.addConfigClass(ckass);
         }
+        if (annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, ckass))
+        {
+            beanDefinition.enableLazyInitUntilFirstInvoke();
+        }
         return beanDefinition;
+    }
+    
+    private BeanDefinition buildBeanDefinition(Class<?> ckass)
+    {
+        Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
+        String beanName;
+        boolean prototype;
+        if (resource == null)
+        {
+            prototype = false;
+            beanName = ckass.getName();
+        }
+        else
+        {
+            prototype = resource.shareable() == false;
+            beanName = resource.name().equals("") ? ckass.getName() : resource.name();
+        }
+        return buildBeanDefinition(beanName, prototype, ckass);
     }
     
     private void mergeBeanDefinition(BeanDefinition definition)
@@ -452,11 +455,11 @@ public class JfireConfig
             }
             if (beanDefinition.isDefault())
             {
-                bean = new DefaultBean(beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), generateDiFields(beanDefinition), beanDefinition.getParamFields().toArray(new ParamField[beanDefinition.getParamFields().size()]));
+                bean = new DefaultBean(beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), generateDiFields(beanDefinition), beanDefinition.getParamFields().toArray(new ParamField[beanDefinition.getParamFields().size()]), beanDefinition.isLazyInitUntilFirstInvoke());
             }
             else if (beanDefinition.isLoadBy())
             {
-                bean = new LoadByBean(beanDefinition.getType(), beanDefinition.getBeanName(), constructBean(beanDefinitions.get(beanDefinition.getLoadByFactoryName())));
+                bean = new LoadByBean(beanDefinition.getType(), beanDefinition.isPrototype(), beanDefinition.getBeanName(), constructBean(beanDefinitions.get(beanDefinition.getLoadByFactoryName())), beanDefinition.isLazyInitUntilFirstInvoke());
             }
             else if (beanDefinition.isOutter())
             {
@@ -467,7 +470,7 @@ public class JfireConfig
                 try
                 {
                     MethodAccessor methodAccessor = ReflectUtil.fastMethod(beanDefinitions.get(beanDefinition.getHostBeanName()).getType().getDeclaredMethod(beanDefinition.getBeanAnnotatedMethod()));
-                    bean = new MethodConfigBean(constructBean(beanDefinitions.get(beanDefinition.getHostBeanName())), methodAccessor, beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype());
+                    bean = new MethodConfigBean(constructBean(beanDefinitions.get(beanDefinition.getHostBeanName())), methodAccessor, beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), beanDefinition.isLazyInitUntilFirstInvoke());
                 }
                 catch (Exception e)
                 {
@@ -630,6 +633,10 @@ public class JfireConfig
             String beanName = "".equals(annotatedBean.name()) ? method.getName() : annotatedBean.name();
             BeanDefinition beanDefinition = new BeanDefinition();
             beanDefinition.setBeanName(beanName);
+            if (annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, method))
+            {
+                beanDefinition.enableLazyInitUntilFirstInvoke();
+            }
             if (method.getGenericReturnType() instanceof Class)
             {
                 beanDefinition.setType(method.getReturnType());

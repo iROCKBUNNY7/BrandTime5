@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.jfireframework.baseutil.code.CodeLocation;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 
@@ -13,55 +12,49 @@ public class BeanDefinition
     /**
      * 由注解或者扫描出来的类上面有Resource注解定义的
      */
-    public static final int     DEFAULT            = 1;
+    public static final int     DEFAULT                      = 1;
     /**
      * 直接定义的外部实例
      */
-    public static final int     OUTTER             = 1 << 1;
+    public static final int     OUTTER                       = 1 << 1;
     /**
      * 由loadBy方式定义，获取实例时需要从实现了LoadBy接口的Bean进行获取
      */
-    public static final int     LOADBY             = 1 << 2;
+    public static final int     LOADBY                       = 1 << 2;
     /**
      * 由方法上注解了Bean注解进行定义的
      */
-    public static final int     METHOD_BEAN_CONFIG = 1 << 3;
-    public static final int     SHIFT              = 0xfffffff0;
-    public static final int     PROTOTYPE          = 1 << 4;
-    public static final int     JFIRE_INIT_FINISH  = 1 << 5;
-    public static final int     IMPORTTRIGGER      = 1 << 6;
-    public static final int     CONFIGURATION      = 1 << 7;
+    public static final int     METHOD_BEAN_CONFIG           = 1 << 3;
+    public static final int     SHIFT                        = 0xfffffff0;
+    public static final int     PROTOTYPE                    = 1 << 10;
+    public static final int     JFIRE_INIT_FINISH            = 1 << 11;
+    public static final int     IMPORTTRIGGER                = 1 << 12;
+    public static final int     CONFIGURATION                = 1 << 13;
+    public static final int     LAZY_INIT_UNITL_FIRST_INVOKE = 1 << 14;
     private int                 schema;
     private String              beanName;
     // 该bean的类的名称。值是原始类的名称，不能从type上面提取，因为type可能是被增强后的子类
     private String              className;
     private Class<?>            originType;
     private Class<?>            type;
-    private Map<String, String> params             = new HashMap<String, String>();
-    private Map<String, String> dependencies       = new HashMap<String, String>();
+    private Map<String, String> params                       = new HashMap<String, String>();
+    private Map<String, String> dependencies                 = new HashMap<String, String>();
     private String              postConstructMethod;
     private String              closeMethod;
     private String              loadByFactoryName;
     private Object              outterEntity;
-    private List<DIFieldInfo>   diFieldInfos       = new ArrayList<DIFieldInfo>();
-    private List<ParamField>    paramFields        = new ArrayList<ParamField>();
+    private List<DIFieldInfo>   diFieldInfos                 = new ArrayList<DIFieldInfo>();
+    private List<ParamField>    paramFields                  = new ArrayList<ParamField>();
     private Bean                constructedBean;
     // 该属性只用于在JfireInitializationCfg中使用
     private boolean             prototype;
     private String              hostBeanName;
     private String              beanAnnotatedMethod;
-    private String              trace;
     
     public BeanDefinition()
     {
         switchDefault();
         enablePrototype(false);
-        trace = CodeLocation.getCodeLocation(3);
-    }
-    
-    public String trace()
-    {
-        return trace;
     }
     
     public int mode()
@@ -333,7 +326,7 @@ public class BeanDefinition
     
     public void switchMethodBeanConfig()
     {
-        schema = schema & METHOD_BEAN_CONFIG;
+        schema = schema & SHIFT;
         setBit(METHOD_BEAN_CONFIG, true);
     }
     
@@ -361,4 +354,15 @@ public class BeanDefinition
     {
         setBit(CONFIGURATION, true);
     }
+    
+    public void enableLazyInitUntilFirstInvoke()
+    {
+        setBit(LAZY_INIT_UNITL_FIRST_INVOKE, true);
+    }
+    
+    public boolean isLazyInitUntilFirstInvoke()
+    {
+        return isBit(LAZY_INIT_UNITL_FIRST_INVOKE);
+    }
+    
 }

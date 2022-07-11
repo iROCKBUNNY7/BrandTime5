@@ -7,7 +7,7 @@ public class OuterEntityBean extends BaseBean
     
     public OuterEntityBean(String beanName, Object outterEntity)
     {
-        super(outterEntity.getClass(), beanName, false, null, null);
+        super(outterEntity.getClass(), beanName, false, null, null, false);
         singletonInstance = outterEntity;
     }
     
@@ -21,6 +21,12 @@ public class OuterEntityBean extends BaseBean
     public Object getInstance(Map<String, Object> beanInstanceMap)
     {
         return singletonInstance;
+    }
+    
+    @Override
+    protected Object buildInstance(Map<String, Object> beanInstanceMap)
+    {
+        throw new UnsupportedOperationException();
     }
     
 }

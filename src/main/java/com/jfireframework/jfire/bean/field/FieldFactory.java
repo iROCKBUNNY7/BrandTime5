@@ -175,8 +175,8 @@ public class FieldFactory
                     if (find > 1)
                     {
                         throw new UnSupportException(StringUtil.format(//
-                                "接口或抽象类{}的实现多于一个,无法自动注入{}.{},请在resource注解上注明需要注入的bean的名称.当前发现:{}和{}.debug信息:{}", //
-                                type.getName(), field.getDeclaringClass().getName(), field.getName(), each.getOriginType(), implBean.getOriginType(), implBean.trace()));
+                                "接口或抽象类{}的实现多于一个,无法自动注入{}.{},请在resource注解上注明需要注入的bean的名称.当前发现:{}和{}。", //
+                                type.getName(), field.getDeclaringClass().getName(), field.getName(), each.getBeanName(), implBean.getBeanName()));
                     }
                     implBean = each;
                 }

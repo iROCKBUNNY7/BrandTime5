@@ -4,10 +4,12 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 public class MapTest
 {
+    @Configuration
     @ComponentScan("com.jfireframework.context.test.function.map")
     public static class MapTestScan
     {

@@ -8,6 +8,7 @@ import com.jfireframework.context.test.function.base.ContextTest;
 import com.jfireframework.context.test.function.beanannotest.BeanAnnoTest;
 import com.jfireframework.context.test.function.cachetest.CacheTest;
 import com.jfireframework.context.test.function.initmethod.InitMethodTest;
+import com.jfireframework.context.test.function.lazyinit.LazyInitTest;
 import com.jfireframework.context.test.function.loader.HolderTest;
 import com.jfireframework.context.test.function.map.MapTest;
 
@@ -18,7 +19,8 @@ import com.jfireframework.context.test.function.map.MapTest;
         DiTest.class, //
         ContextTest.class, CacheTest.class, InitMethodTest.class, //
         HolderTest.class, MapTest.class, //
-        BeanAnnoTest.class//
+        BeanAnnoTest.class, //
+        LazyInitTest.class
 })
 
 public class Suit

@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.jfireframework.baseutil.aliasanno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
 
 @Testalis3(t = "sada")
@@ -39,6 +40,7 @@ public class AliasTest
     }
     
     @ComponentScan("com.jfireframework.context.test.function.aliastest")
+    @Configuration
     public static class aliasCompopntScan
     {
         

@@ -4,15 +4,16 @@ import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.condition.Condition;
 import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
 
-public abstract class BaseCondition implements Condition
+public abstract class BaseCondition<T extends Annotation> implements Condition
 {
-    protected final Class<? extends Annotation> selectAnnoType;
+    protected final Class<T> selectAnnoType;
     
-    public BaseCondition(Class<? extends Annotation> selectAnnoType)
+    public BaseCondition(Class<T> selectAnnoType)
     {
         this.selectAnnoType = selectAnnoType;
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public boolean match(ReadOnlyEnvironment readOnlyEnvironment, Annotation[] annotations)
     {
@@ -20,11 +21,11 @@ public abstract class BaseCondition implements Condition
         {
             if (each.annotationType() == selectAnnoType)
             {
-                return handleSelectAnnoType(readOnlyEnvironment, each);
+                return handleSelectAnnoType(readOnlyEnvironment, (T) each);
             }
         }
         throw new NullPointerException();
     }
     
-    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, Annotation annotation);
+    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, T annotation);
 }
