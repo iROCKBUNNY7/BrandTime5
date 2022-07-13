@@ -226,7 +226,7 @@ public class DynamicCodeTool
             
             private void addValidateResultJudge(StringCache cache, String variableName)
             {
-                cache.append("if(").append(variableName).append(".getDetails().length>0){\r\n");
+                cache.append("if(").append(variableName).append(".getDetails().size()>0){\r\n");
                 cache.append("throw new com.jfireframework.jfire.validate.ValidateException(").append(variableName).append(");\r\n");
                 cache.append("}\r\n");
             }

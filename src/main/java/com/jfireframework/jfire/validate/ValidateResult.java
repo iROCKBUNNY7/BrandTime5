@@ -1,15 +1,17 @@
 package com.jfireframework.jfire.validate;
 
+import java.util.List;
+
 public class ValidateResult
 {
-    private ValidateResultDetail[] details;
+    private List<ValidateResultDetail> details;
     
-    public ValidateResultDetail[] getDetails()
+    public List<ValidateResultDetail> getDetails()
     {
         return details;
     }
     
-    public void setDetails(ValidateResultDetail[] details)
+    public void setDetails(List<ValidateResultDetail> details)
     {
         this.details = details;
     }

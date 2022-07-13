@@ -11,7 +11,7 @@ public class ValidateException extends RuntimeException
     
     public ValidateException(ValidateResult result)
     {
-        super(result.getDetails()[0].getMessage());
+        super(result.getDetails().get(0).getMessage());
         this.result = result;
     }
     

@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function.validate;
 
-import com.sun.istack.internal.NotNull;
+import javax.validation.constraints.NotNull;
 
 public class User
 {

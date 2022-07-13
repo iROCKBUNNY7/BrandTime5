@@ -25,7 +25,7 @@ public class ValidateTest
         catch (ValidateException e)
         {
             ValidateResult result = e.getResult();
-            Assert.assertEquals("测试", result.getDetails()[0].getMessage());
+            Assert.assertEquals("测试", result.getDetails().get(0).getMessage());
         }
     }
     
@@ -45,7 +45,26 @@ public class ValidateTest
         catch (ValidateException e)
         {
             ValidateResult result = e.getResult();
-            Assert.assertEquals("测试", result.getDetails()[0].getMessage());
+            Assert.assertEquals("测试", result.getDetails().get(0).getMessage());
+        }
+    }
+    
+    @Test
+    public void test_2()
+    {
+        JfireConfig config = new JfireConfig();
+        config.registerBeanDefinition(Person.class, com.jfireframework.jfire.validate.internal.JfireMethodValidatorImpl.class);
+        Jfire jfire = new Jfire(config);
+        Person person = jfire.getBean(Person.class);
+        User user = new User();
+        try
+        {
+            person.sayHello(user);
+        }
+        catch (ValidateException e)
+        {
+            ValidateResult result = e.getResult();
+            Assert.assertEquals("may not be null", result.getDetails().get(0).getMessage());
         }
     }
 }
