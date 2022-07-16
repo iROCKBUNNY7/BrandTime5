@@ -17,6 +17,7 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
         ValidateResult result = new ValidateResult();
         ValidateResultDetail detail = new ValidateResultDetail();
         detail.setMessage("测试");
+        detail.setPath("name");
         List<ValidateResultDetail> details = new LinkedList<ValidateResult.ValidateResultDetail>();
         details.add(detail);
         result.setDetails(details);
@@ -28,6 +29,7 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
     {
         ValidateResult result = new ValidateResult();
         ValidateResultDetail detail = new ValidateResultDetail();
+        detail.setPath("name");
         detail.setMessage("测试");
         List<ValidateResultDetail> details = new LinkedList<ValidateResult.ValidateResultDetail>();
         details.add(detail);

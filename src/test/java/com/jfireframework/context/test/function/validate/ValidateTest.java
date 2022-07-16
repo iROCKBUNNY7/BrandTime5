@@ -1,11 +1,10 @@
 package com.jfireframework.context.test.function.validate;
 
+import javax.validation.ValidationException;
 import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.validate.ValidateException;
-import com.jfireframework.jfire.validate.ValidateResult;
 
 public class ValidateTest
 {
@@ -22,10 +21,9 @@ public class ValidateTest
         {
             person.sayHello(user);
         }
-        catch (ValidateException e)
+        catch (ValidationException e)
         {
-            ValidateResult result = e.getResult();
-            Assert.assertEquals("测试", result.getDetails().get(0).getMessage());
+            Assert.assertEquals("name:测试", e.getMessage());
         }
     }
     
@@ -42,10 +40,9 @@ public class ValidateTest
         {
             person.sayHello2(user);
         }
-        catch (ValidateException e)
+        catch (ValidationException e)
         {
-            ValidateResult result = e.getResult();
-            Assert.assertEquals("测试", result.getDetails().get(0).getMessage());
+            Assert.assertEquals("name:测试", e.getMessage());
         }
     }
     
@@ -61,10 +58,9 @@ public class ValidateTest
         {
             person.sayHello(user);
         }
-        catch (ValidateException e)
+        catch (ValidationException e)
         {
-            ValidateResult result = e.getResult();
-            Assert.assertEquals("may not be null", result.getDetails().get(0).getMessage());
+            Assert.assertEquals("name:may not be null", e.getMessage());
         }
     }
 }

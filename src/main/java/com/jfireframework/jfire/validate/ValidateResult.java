@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.validate;
 
 import java.util.List;
+import com.jfireframework.baseutil.collection.StringCache;
 
 public class ValidateResult
 {
@@ -14,6 +15,22 @@ public class ValidateResult
     public void setDetails(List<ValidateResultDetail> details)
     {
         this.details = details;
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringCache cache = new StringCache();
+        for (ValidateResultDetail each : details)
+        {
+            cache.append("{");
+            cache.append(each.getPath()).append(" : ").append(each.getMessage()).append("}").appendComma();
+        }
+        if (cache.isCommaLast())
+        {
+            cache.deleteLast();
+        }
+        return cache.toString();
     }
     
     public static class ValidateResultDetail
