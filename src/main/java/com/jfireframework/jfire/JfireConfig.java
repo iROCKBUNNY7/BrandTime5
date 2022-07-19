@@ -47,6 +47,7 @@ import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.extrastore.ExtraInfoStore;
 import com.jfireframework.jfire.importer.ImportSelecter;
 import sun.reflect.MethodAccessor;
 
@@ -56,6 +57,7 @@ public class JfireConfig
     protected ClassLoader                 classLoader     = JfireConfig.class.getClassLoader();
     protected Map<String, String>         properties      = new HashMap<String, String>();
     protected Environment                 environment     = new Environment(beanDefinitions, properties, this);
+    protected ExtraInfoStore              extraInfoStore  = new ExtraInfoStore();
     protected AnnotationUtil              annotationUtil  = environment.getAnnotationUtil();
     protected static final Logger         logger          = LoggerFactory.getLogger(JfireConfig.class);
     
@@ -411,7 +413,7 @@ public class JfireConfig
         @Override
         public void process()
         {
-            AopUtil aopUtil = new AopUtil(classLoader, annotationUtil);
+            AopUtil aopUtil = new AopUtil(classLoader, annotationUtil, extraInfoStore);
             aopUtil.enhance(beanDefinitions);
         }
     }
@@ -601,6 +603,7 @@ public class JfireConfig
         public void process()
         {
             environment.setClassLoader(classLoader);
+            registerSingletonEntity(ExtraInfoStore.class.getName(), extraInfoStore);
             registerSingletonEntity(Jfire.class.getName(), jfire);
             registerSingletonEntity(ClassLoader.class.getName(), classLoader);
             registerSingletonEntity(Environment.class.getName(), environment);

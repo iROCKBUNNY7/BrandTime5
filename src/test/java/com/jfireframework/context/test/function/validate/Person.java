@@ -1,19 +1,19 @@
 package com.jfireframework.context.test.function.validate;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.validate.Validate;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Resource
 public class Person
 {
-    @Validate
-    public String sayHello(User user)
+    public String sayHello(@Valid User user)
     {
         return "hello " + user.getName();
     }
     
-    public String sayHello2(@Validate User user)
+    public String sayHello2(@NotNull String name)
     {
-        return "hello " + user.getName();
+        return "hello";
     }
 }

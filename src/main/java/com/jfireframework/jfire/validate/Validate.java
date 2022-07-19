@@ -4,9 +4,17 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import javax.validation.Constraint;
 
-@Target({ ElementType.PARAMETER, ElementType.METHOD })
+/**
+ * 提供验证组信息
+ * 
+ * @author 林斌
+ *
+ */
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = {})
 public @interface Validate
 {
     /**
@@ -14,5 +22,6 @@ public @interface Validate
      * 
      * @return
      */
-    Class<?>[] groups() default {};
+    Class<?>[] groups();
+    
 }
