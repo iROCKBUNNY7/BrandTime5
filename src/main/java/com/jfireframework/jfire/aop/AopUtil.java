@@ -172,6 +172,7 @@ public class AopUtil
             }
             BeanAopDefinition beanAopDefinition = new BeanAopDefinition(candidate.getBeanName(), candidate.getType());
             // 由于增强是采用子类来实现的,所以事务注解只对当前的类有效.如果当前类的父类也有事务注解,在本次增强中就无法起作用
+            helper.hasEnhance = false;
             for (Method method : ReflectUtil.getAllMehtods(candidate.getType()))
             {
                 if (helper.hasValidateEnhance(method))

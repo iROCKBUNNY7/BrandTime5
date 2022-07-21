@@ -11,7 +11,7 @@ import javax.validation.Validation;
 import com.jfireframework.jfire.validate.JfireMethodValidator;
 import com.jfireframework.jfire.validate.ValidateResult;
 import com.jfireframework.jfire.validate.ValidateResult.ValidateResultDetail;
-import com.jfireframework.validator.engine.internal.JfireValidator;
+import com.jfireframework.validator.engine.JfireValidator;
 
 public class JfireMethodValidatorImpl implements JfireMethodValidator
 {
