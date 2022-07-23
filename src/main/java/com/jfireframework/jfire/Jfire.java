@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.bean.BeanDefinition;
 
 public class Jfire
@@ -37,7 +36,12 @@ public class Jfire
     @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> src)
     {
-        return (T) getBeanDefinition(src).getConstructedBean().getInstance();
+        BeanDefinition beanDefinition = getBeanDefinition(src);
+        if (beanDefinition == null)
+        {
+            return null;
+        }
+        return (T) beanDefinition.getConstructedBean().getInstance();
     }
     
     public BeanDefinition getBeanDefinition(Class<?> beanClass)
@@ -49,7 +53,7 @@ public class Jfire
                 return each;
             }
         }
-        throw new UnSupportException("bean:" + beanClass.getName() + "不存在");
+        return null;
     }
     
     public BeanDefinition getBeanDefinition(String resName)
