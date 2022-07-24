@@ -106,6 +106,10 @@ public class AopUtil
             
             boolean hasValidateEnhance(Method method)
             {
+                if (annotationUtil.isPresent(Constraint.class, method))
+                {
+                    return (hasEnhance = true);
+                }
                 for (Annotation[] annotations : method.getParameterAnnotations())
                 {
                     for (Annotation each : annotations)
