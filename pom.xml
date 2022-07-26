@@ -8,7 +8,7 @@
 		<artifactId>parent</artifactId>
 		<version>1.0.1</version>
 	</parent>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<artifactId>jfire</artifactId>
 	<name>context</name>
 	<description> 
@@ -38,18 +38,18 @@
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>codejson</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>baseutil</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>validator</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
