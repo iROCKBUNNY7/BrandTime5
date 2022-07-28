@@ -6,12 +6,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -28,6 +30,7 @@ import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
+import com.jfireframework.jfire.bean.annotation.Order;
 import com.jfireframework.jfire.bean.field.FieldFactory;
 import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
@@ -756,11 +759,80 @@ public class JfireConfig
     
     class ImporterPlugin implements Plugin
     {
+        class Entry
+        {
+            private int            order;
+            private BeanDefinition beanDefinition;
+            
+            public Entry(int order, BeanDefinition beanDefinition)
+            {
+                this.order = order;
+                this.beanDefinition = beanDefinition;
+            }
+            
+            public int getOrder()
+            {
+                return order;
+            }
+            
+            public void setOrder(int order)
+            {
+                this.order = order;
+            }
+            
+            public BeanDefinition getBeanDefinition()
+            {
+                return beanDefinition;
+            }
+            
+            public void setBeanDefinition(BeanDefinition beanDefinition)
+            {
+                this.beanDefinition = beanDefinition;
+            }
+            
+            @Override
+            public int hashCode()
+            {
+                return beanDefinition.hashCode();
+            }
+            
+            @Override
+            public boolean equals(Object o)
+            {
+                if (o == null)
+                {
+                    return false;
+                }
+                if (o instanceof Entry)
+                {
+                    if (beanDefinition == ((Entry) o).beanDefinition)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            
+        }
         
         @Override
         public void process()
         {
-            List<BeanDefinition> importTriggers = new ArrayList<BeanDefinition>();
+            TreeSet<Entry> set = new TreeSet<Entry>(new Comparator<Entry>() {
+                
+                @Override
+                public int compare(Entry o1, Entry o2)
+                {
+                    return o1.getOrder() - o2.getOrder();
+                }
+            });
             for (BeanDefinition definition : beanDefinitions.values())
             {
                 if (definition.getOriginType() != null)
@@ -768,16 +840,25 @@ public class JfireConfig
                     
                     if (ImportSelecter.class.isAssignableFrom(definition.getOriginType()))
                     {
-                        definition.enableImportTrigger();
-                        importTriggers.add(definition);
+                        Entry entry;
+                        if (definition.getOriginType().isAnnotationPresent(Order.class))
+                        {
+                            Order order = definition.getOriginType().getDeclaredAnnotation(Order.class);
+                            entry = new Entry(order.value(), definition);
+                        }
+                        else
+                        {
+                            entry = new Entry(0, definition);
+                        }
+                        set.add(entry);
                     }
                 }
             }
             try
             {
-                for (BeanDefinition definition : importTriggers)
+                for (Entry each : set)
                 {
-                    ((ImportSelecter) definition.getOriginType().newInstance()).importSelect(environment);
+                    ((ImportSelecter) each.beanDefinition.getOriginType().newInstance()).importSelect(environment);
                 }
             }
             catch (Exception e)
