@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -825,19 +824,11 @@ public class JfireConfig
         @Override
         public void process()
         {
-            TreeSet<Entry> set = new TreeSet<Entry>(new Comparator<Entry>() {
-                
-                @Override
-                public int compare(Entry o1, Entry o2)
-                {
-                    return o1.getOrder() - o2.getOrder();
-                }
-            });
+            ArrayList<Entry> set = new ArrayList<Entry>();
             for (BeanDefinition definition : beanDefinitions.values())
             {
                 if (definition.getOriginType() != null)
                 {
-                    
                     if (ImportSelecter.class.isAssignableFrom(definition.getOriginType()))
                     {
                         Entry entry;
@@ -854,6 +845,14 @@ public class JfireConfig
                     }
                 }
             }
+            Collections.sort(set, new Comparator<Entry>() {
+                
+                @Override
+                public int compare(Entry o1, Entry o2)
+                {
+                    return o1.order - o2.order;
+                }
+            });
             try
             {
                 for (Entry each : set)

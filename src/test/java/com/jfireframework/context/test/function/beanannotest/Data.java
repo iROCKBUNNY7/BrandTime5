@@ -29,7 +29,7 @@ public class Data
         
     }
     
-    @Resource
+    @Resource(name = "house")
     private House house;
     @Resource(name = "house2")
     private House house2;
@@ -74,9 +74,4 @@ public class Data
         return person;
     }
     
-    @Bean
-    public Class<Person> person9()
-    {
-        return Person.class;
-    }
 }

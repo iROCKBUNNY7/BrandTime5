@@ -37,8 +37,6 @@ public class BeanAnnoTest
         Assert.assertEquals(person7, person7_2);
         Person person8 = jfire.getBean("person8");
         Assert.assertEquals("insertPerson8", person8.getName());
-        Person person9 = jfire.getBean("person9");
-        Assert.assertNull(person9.getName());
     }
     
 }

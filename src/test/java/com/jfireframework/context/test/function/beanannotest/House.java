@@ -2,7 +2,7 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 
-@Resource
+@Resource(name = "house")
 public class House
 {
     private String name = "2";
