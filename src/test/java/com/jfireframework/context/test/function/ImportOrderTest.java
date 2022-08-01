@@ -20,7 +20,6 @@ public class ImportOrderTest
     @Test
     public void test()
     {
-        
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(Order1.class);
         Jfire jfire = new Jfire(jfireConfig);

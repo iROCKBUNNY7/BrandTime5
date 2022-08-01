@@ -39,6 +39,11 @@ public class Environment
         jfireConfig.registerBeanDefinition(beanDefinition);
     }
     
+    public void registerSingletonEntity(String beanName, Object entity)
+    {
+        jfireConfig.registerSingletonEntity(beanName, entity);
+    }
+    
     public void registerBeanDefinition(Class<?> ckass)
     {
         jfireConfig.registerBeanDefinition(ckass);
