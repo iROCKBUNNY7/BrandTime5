@@ -834,7 +834,7 @@ public class JfireConfig
                         Entry entry;
                         if (definition.getOriginType().isAnnotationPresent(Order.class))
                         {
-                            Order order = definition.getOriginType().getDeclaredAnnotation(Order.class);
+                            Order order = definition.getOriginType().getAnnotation(Order.class);
                             entry = new Entry(order.value(), definition);
                         }
                         else
