@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
@@ -96,6 +97,10 @@ public abstract class AbstractParamField implements ParamField
         else if (fieldType == File.class)
         {
             return new FileField(field, value);
+        }
+        else if (fieldType == byte[].class)
+        {
+            return new ByteArrayField(field, value);
         }
         else if (Enum.class.isAssignableFrom(fieldType))
         {
@@ -400,6 +405,24 @@ public abstract class AbstractParamField implements ParamField
             {
                 Enum<?> instance = map.get(value);
                 this.value = instance;
+            }
+        }
+        
+    }
+    
+    static class ByteArrayField extends AbstractParamField
+    {
+        
+        public ByteArrayField(Field field, String value)
+        {
+            super(field, value);
+            if (value.startsWith("0x"))
+            {
+                this.value = StringUtil.hexStringToBytes(value.substring(2));
+            }
+            else
+            {
+                this.value = Base64Tool.decode(value);
             }
         }
         
