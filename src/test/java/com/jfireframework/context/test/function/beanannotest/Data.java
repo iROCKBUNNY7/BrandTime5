@@ -9,7 +9,7 @@ import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
 import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.scan.ComponentScan;
+import com.jfireframework.jfire.importer.provide.ComponentScan;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")

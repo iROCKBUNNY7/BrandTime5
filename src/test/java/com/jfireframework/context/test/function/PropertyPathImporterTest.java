@@ -6,7 +6,7 @@ import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.annotation.Configuration;
-import com.jfireframework.jfire.importer.provide.property.PropertyPath;
+import com.jfireframework.jfire.importer.provide.PropertyPath;
 
 public class PropertyPathImporterTest
 {
