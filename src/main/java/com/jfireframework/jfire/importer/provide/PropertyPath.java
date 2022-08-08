@@ -27,8 +27,57 @@ public @interface PropertyPath
 {
     public String[] value();
     
-    class PropertyPathImporter implements ImportSelecter
+    public class PropertyPathImporter implements ImportSelecter
     {
+        IniFile processPath(String path)
+        {
+            InputStream inputStream = null;
+            try
+            {
+                if (path.startsWith("classpath:"))
+                {
+                    path = path.substring(10);
+                    if (this.getClass().getClassLoader().getResource(path) == null)
+                    {
+                        throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
+                    }
+                    inputStream = this.getClass().getClassLoader().getResourceAsStream(path);
+                }
+                else if (path.startsWith("file:"))
+                {
+                    path = path.substring(5);
+                    if (new File(path).exists() == false)
+                    {
+                        throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
+                    }
+                    inputStream = new FileInputStream(new File(path));
+                }
+                else
+                {
+                    throw new UnsupportedOperationException("不支持的资源识别前缀:" + path);
+                }
+                return IniReader.read(inputStream, Charset.forName("utf8"));
+            }
+            catch (Exception e)
+            {
+                throw new JustThrowException(e);
+            }
+            finally
+            {
+                try
+                {
+                    if (inputStream != null)
+                    {
+                        inputStream.close();
+                        inputStream = null;
+                    }
+                }
+                catch (IOException e)
+                {
+                    ;
+                }
+            }
+        }
         
         @Override
         public void importSelect(Environment environment)
@@ -39,55 +88,10 @@ public @interface PropertyPath
                 {
                     for (String path : propertyPath.value())
                     {
-                        InputStream inputStream = null;
-                        try
+                        IniFile iniFile = processPath(path);
+                        for (String each : iniFile.keySet())
                         {
-                            if (path.startsWith("classpath:"))
-                            {
-                                path = path.substring(10);
-                                if (this.getClass().getClassLoader().getResource(path) == null)
-                                {
-                                    throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
-                                }
-                                inputStream = this.getClass().getClassLoader().getResourceAsStream(path);
-                            }
-                            else if (path.startsWith("file:"))
-                            {
-                                path = path.substring(5);
-                                if (new File(path).exists() == false)
-                                {
-                                    throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
-                                }
-                                inputStream = new FileInputStream(new File(path));
-                            }
-                            else
-                            {
-                                throw new UnsupportedOperationException("不支持的资源识别前缀:" + path);
-                            }
-                            IniFile iniFile = IniReader.read(inputStream, Charset.forName("utf8"));
-                            for (String each : iniFile.keySet())
-                            {
-                                environment.putProperty(each, iniFile.getValue(each));
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            throw new JustThrowException(e);
-                        }
-                        finally
-                        {
-                            try
-                            {
-                                if (inputStream != null)
-                                {
-                                    inputStream.close();
-                                    inputStream = null;
-                                }
-                            }
-                            catch (IOException e)
-                            {
-                                ;
-                            }
+                            environment.putProperty(each, iniFile.getValue(each));
                         }
                     }
                 }
