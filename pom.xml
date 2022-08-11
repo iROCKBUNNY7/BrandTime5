@@ -10,7 +10,7 @@
 	</parent>
 	<version>1.1-SNAPSHOT</version>
 	<artifactId>jfire</artifactId>
-	<name>context</name>
+	<name>Jfire</name>
 	<description> 
 	Jfire is a IOC and AOP container. Provides a transparent object management. And provide a simple and efficient AOP API operation. At the same time also supports transparent transaction management.
 	</description>
