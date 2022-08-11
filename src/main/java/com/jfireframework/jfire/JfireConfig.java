@@ -1,12 +1,17 @@
 package com.jfireframework.jfire;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +23,8 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.jfireframework.baseutil.IniReader;
+import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
@@ -125,6 +132,7 @@ public class JfireConfig
         Plugin[] plugins = new Plugin[] { //
                 new PreparationPlugin(jfire), //
                 new ResolveImportAnnotationPlugin(), //
+                new StarterPlugin(), //
                 new ImporterPlugin(), //
                 new ResolveMethodConfigBeanDefinitionPlugin(), //
                 new FindAnnoedPostAndPreDestoryMethod(), //
@@ -861,6 +869,53 @@ public class JfireConfig
                 }
             }
             catch (Exception e)
+            {
+                throw new JustThrowException(e);
+            }
+        }
+        
+    }
+    
+    class StarterPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            String name = "META-INF/jfire.ini";
+            try
+            {
+                Enumeration<URL> resources = classLoader.getResources(name);
+                while (resources.hasMoreElements())
+                {
+                    URL url = resources.nextElement();
+                    InputStream inputStream = null;
+                    try
+                    {
+                        inputStream = url.openStream();
+                        IniFile iniFile = IniReader.read(inputStream, Charset.forName("utf8"));
+                        String value = iniFile.getValue("jfire.starter");
+                        if (StringUtil.isNotBlank(value))
+                        {
+                            logger.debug("find:{}", value);
+                            Class<?> starter = classLoader.loadClass(value);
+                            registerConfiurationBeanDefinition(starter);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        throw new JustThrowException(e);
+                    }
+                    finally
+                    {
+                        if (inputStream != null)
+                        {
+                            inputStream.close();
+                        }
+                    }
+                }
+            }
+            catch (IOException e)
             {
                 throw new JustThrowException(e);
             }

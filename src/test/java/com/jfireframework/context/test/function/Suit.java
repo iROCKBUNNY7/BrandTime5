@@ -22,6 +22,7 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
         HolderTest.class, MapTest.class, //
         BeanAnnoTest.class, //
         LazyInitTest.class, //
+        StarterTest.class, //
         ValidateTest.class
 })
 
