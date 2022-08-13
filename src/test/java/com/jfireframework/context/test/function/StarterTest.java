@@ -12,6 +12,11 @@ public class StarterTest
         
     }
     
+    public static class MyStarter2
+    {
+        
+    }
+    
     @Test
     public void test()
     {
@@ -19,6 +24,8 @@ public class StarterTest
         Jfire jfire = new Jfire(jfireConfig);
         MyStarter myStarter = jfire.getBean(MyStarter.class);
         Assert.assertNotNull(myStarter);
+        MyStarter2 myStarter2 = jfire.getBean(MyStarter2.class);
+        Assert.assertNotNull(myStarter2);
     }
     
 }
