@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -648,21 +647,22 @@ public class JfireConfig
         {
             int            order;
             BeanDefinition beanDefinition;
-            Set<Method>    methods = new TreeSet<Method>(new Comparator<Method>() {
-                                       
-                                       @Override
-                                       public int compare(Method o1, Method o2)
-                                       {
-                                           int order1 = annotationUtil.isPresent(Order.class, o1) ? annotationUtil.getAnnotation(Order.class, o1).value() : 0;
-                                           int order2 = annotationUtil.isPresent(Order.class, o2) ? annotationUtil.getAnnotation(Order.class, o2).value() : 0;
-                                           return order1 - order2;
-                                       }
-                                   });
+            List<Method>   methods = new ArrayList<Method>();
         }
         
         @Override
         public void process()
         {
+            Comparator<Method> comparator = new Comparator<Method>() {
+                
+                @Override
+                public int compare(Method o1, Method o2)
+                {
+                    int order1 = annotationUtil.isPresent(Order.class, o1) ? annotationUtil.getAnnotation(Order.class, o1).value() : 0;
+                    int order2 = annotationUtil.isPresent(Order.class, o2) ? annotationUtil.getAnnotation(Order.class, o2).value() : 0;
+                    return order1 - order2;
+                }
+            };
             List<OrderInfo> orderInfos = new ArrayList<JfireConfig.ResolveConfigBeanDefinitionPlugin.OrderInfo>();
             for (BeanDefinition each : beanDefinitions.values())
             {
@@ -679,6 +679,7 @@ public class JfireConfig
                             newInfo.methods.add(method);
                         }
                     }
+                    Collections.sort(newInfo.methods, comparator);
                     orderInfos.add(newInfo);
                 }
             }
