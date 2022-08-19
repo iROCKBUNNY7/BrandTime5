@@ -23,6 +23,7 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
         BeanAnnoTest.class, //
         LazyInitTest.class, //
         StarterTest.class, //
+        ConfigBeanTest.class, //
         ConfigurationBeanOrderTest.class, //
         ValidateTest.class
 })

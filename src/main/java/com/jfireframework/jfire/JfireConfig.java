@@ -61,7 +61,6 @@ import com.jfireframework.jfire.config.annotation.Order;
 import com.jfireframework.jfire.config.environment.Environment;
 import com.jfireframework.jfire.extrastore.ExtraInfoStore;
 import com.jfireframework.jfire.importer.ImportSelecter;
-import sun.reflect.MethodAccessor;
 
 public class JfireConfig
 {
@@ -484,8 +483,21 @@ public class JfireConfig
             {
                 try
                 {
-                    MethodAccessor methodAccessor = ReflectUtil.fastMethod(beanDefinitions.get(beanDefinition.getHostBeanName()).getType().getDeclaredMethod(beanDefinition.getBeanAnnotatedMethod()));
-                    bean = new MethodConfigBean(constructBean(beanDefinitions.get(beanDefinition.getHostBeanName())), methodAccessor, beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), beanDefinition.isLazyInitUntilFirstInvoke());
+                    Method method = beanDefinition.getBeanAnnotatedMethod();
+                    List<Bean> paramBeans = new ArrayList<Bean>();
+                    next: //
+                    for (Class<?> type : method.getParameterTypes())
+                    {
+                        for (BeanDefinition definition : beanDefinitions.values())
+                        {
+                            if (type.isAssignableFrom(definition.getOriginType()))
+                            {
+                                paramBeans.add(constructBean(definition));
+                                continue next;
+                            }
+                        }
+                    }
+                    bean = new MethodConfigBean(constructBean(beanDefinitions.get(beanDefinition.getHostBeanName())), paramBeans, method, beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), beanDefinition.isLazyInitUntilFirstInvoke());
                 }
                 catch (Exception e)
                 {
@@ -768,7 +780,7 @@ public class JfireConfig
                 beanDefinition.enablePrototype(annotatedBean.prototype());
                 beanDefinition.setClassName(beanDefinition.getType().getName());
                 beanDefinition.setHostBeanName(host.getBeanName());
-                beanDefinition.setBeanAnnotatedMethod(method.getName());
+                beanDefinition.setBeanAnnotatedMethod(method);
                 beanDefinition.switchMethodBeanConfig();
                 if ("".equals(annotatedBean.destroyMethod()) == false)
                 {

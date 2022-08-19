@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.bean;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,7 @@ public class BeanDefinition
     // 该属性只用于在JfireInitializationCfg中使用
     private boolean             prototype;
     private String              hostBeanName;
-    private String              beanAnnotatedMethod;
+    private Method              beanAnnotatedMethod;
     
     public BeanDefinition()
     {
@@ -82,12 +83,12 @@ public class BeanDefinition
         this.hostBeanName = hostBeanName;
     }
     
-    public String getBeanAnnotatedMethod()
+    public Method getBeanAnnotatedMethod()
     {
         return beanAnnotatedMethod;
     }
     
-    public void setBeanAnnotatedMethod(String beanAnnotatedMethod)
+    public void setBeanAnnotatedMethod(Method beanAnnotatedMethod)
     {
         this.beanAnnotatedMethod = beanAnnotatedMethod;
     }
