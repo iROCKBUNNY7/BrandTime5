@@ -21,13 +21,16 @@ public @interface AddProperty
         {
             if (environment.isAnnotationPresent(AddProperty.class))
             {
-                AddProperty addProperty = environment.getAnnotation(AddProperty.class);
-                for (String each : addProperty.value())
+                AddProperty[] addProperties = environment.getAnnotations(AddProperty.class);
+                for (AddProperty addProperty : addProperties)
                 {
-                    String[] tmp = each.split("=");
-                    String property = tmp[0].trim();
-                    String vlaue = tmp[1].trim();
-                    environment.putProperty(property, vlaue);
+                    for (String each : addProperty.value())
+                    {
+                        String[] tmp = each.split("=");
+                        String property = tmp[0].trim();
+                        String vlaue = tmp[1].trim();
+                        environment.putProperty(property, vlaue);
+                    }
                 }
             }
         }
