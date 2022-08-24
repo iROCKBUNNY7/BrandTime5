@@ -49,6 +49,11 @@ public class Environment
         jfireConfig.registerBeanDefinition(ckass);
     }
     
+    public void registerConfiurationBeanDefinition(Class<?> ckass)
+    {
+        jfireConfig.registerConfiurationBeanDefinition(ckass);
+    }
+    
     public void setClassLoader(ClassLoader classLoader)
     {
         this.classLoader = classLoader;
