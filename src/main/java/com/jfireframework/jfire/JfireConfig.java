@@ -126,13 +126,12 @@ public class JfireConfig
         Plugin[] plugins = new Plugin[] { //
                 new PreparationPlugin(jfire), //
                 new ResolveImportAnnotationPlugin(), //
-                new ImporterPlugin(), //
+                new TriggerImporterPlugin(), //
                 new ResolveConfigBeanDefinitionPlugin(), //
                 new FindAnnoedPostAndPreDestoryMethod(), //
                 new EnhancePlugin(), //
                 new InitDependencyAndParamFieldsPlugin(), //
                 new ConstructBeanPlugin(), //
-                new DetectJfireInitFinishInterfacePlugin(), //
                 new TriggerJfireInitFinishPlugin()
         };
         for (Plugin plugin : plugins)
@@ -581,11 +580,11 @@ public class JfireConfig
         public void process()
         {
             List<JfireInitFinish> tmp = new LinkedList<JfireInitFinish>();
-            for (BeanDefinition beanDefinition : beanDefinitions.values())
+            for (BeanDefinition each : beanDefinitions.values())
             {
-                if (beanDefinition.isJfireInitFinish())
+                if (JfireInitFinish.class.isAssignableFrom(each.getType()))
                 {
-                    tmp.add((JfireInitFinish) beanDefinition.getConstructedBean().getInstance());
+                    tmp.add((JfireInitFinish) each.getConstructedBean().getInstance());
                 }
             }
             Collections.sort(tmp, new AescComparator());
@@ -623,23 +622,6 @@ public class JfireConfig
             registerSingletonEntity(Jfire.class.getName(), jfire);
             registerSingletonEntity(ClassLoader.class.getName(), classLoader);
             registerSingletonEntity(Environment.class.getName(), environment);
-        }
-        
-    }
-    
-    class DetectJfireInitFinishInterfacePlugin implements Plugin
-    {
-        
-        @Override
-        public void process()
-        {
-            for (BeanDefinition each : beanDefinitions.values())
-            {
-                if (JfireInitFinish.class.isAssignableFrom(each.getType()))
-                {
-                    each.enableJfireInitFinish();
-                }
-            }
         }
         
     }
@@ -777,10 +759,6 @@ public class JfireConfig
                 {
                     beanDefinition.setCloseMethod(annotatedBean.destroyMethod());
                 }
-                if (JfireInitFinish.class.isAssignableFrom(method.getReturnType()))
-                {
-                    beanDefinition.enableJfireInitFinish();
-                }
                 return beanDefinition;
             }
             else
@@ -798,10 +776,6 @@ public class JfireConfig
                     {
                         beanDefinition.setCloseMethod(annotatedBean.destroyMethod());
                     }
-                    if (JfireInitFinish.class.isAssignableFrom(beanDefinition.getType()))
-                    {
-                        beanDefinition.enableJfireInitFinish();
-                    }
                     return beanDefinition;
                 }
                 else
@@ -812,7 +786,7 @@ public class JfireConfig
         }
     }
     
-    class ImporterPlugin implements Plugin
+    class TriggerImporterPlugin implements Plugin
     {
         class Entry
         {

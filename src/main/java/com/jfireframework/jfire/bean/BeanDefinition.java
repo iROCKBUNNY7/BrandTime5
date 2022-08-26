@@ -28,7 +28,6 @@ public class BeanDefinition
     public static final int     METHOD_BEAN_CONFIG           = 1 << 3;
     public static final int     SHIFT                        = 0xfffffff0;
     public static final int     PROTOTYPE                    = 1 << 10;
-    public static final int     JFIRE_INIT_FINISH            = 1 << 11;
     public static final int     IMPORTTRIGGER                = 1 << 12;
     public static final int     CONFIGURATION                = 1 << 13;
     public static final int     LAZY_INIT_UNITL_FIRST_INVOKE = 1 << 14;
@@ -287,19 +286,9 @@ public class BeanDefinition
         return isBit(PROTOTYPE);
     }
     
-    public boolean isJfireInitFinish()
-    {
-        return isBit(JFIRE_INIT_FINISH);
-    }
-    
     private void setBit(int bit, boolean enable)
     {
         schema = enable ? schema | bit : schema & (~bit);
-    }
-    
-    public void enableJfireInitFinish()
-    {
-        setBit(JFIRE_INIT_FINISH, true);
     }
     
     public void enablePrototype(boolean enable)
