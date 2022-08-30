@@ -11,12 +11,10 @@ public class ExtraInfoStore
     
     public int registerMethod(Method method)
     {
-        for (int i = 0; i < sequence; i++)
+        int index = methods.indexOf(method);
+        if (index != -1)
         {
-            if (method == methods.get(i))
-            {
-                return i;
-            }
+            return index;
         }
         methods.add(method);
         sequence += 1;

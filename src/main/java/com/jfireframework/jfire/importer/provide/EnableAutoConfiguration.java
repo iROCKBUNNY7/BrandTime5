@@ -1,19 +1,18 @@
 package com.jfireframework.jfire.importer.provide;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.net.JarURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jfireframework.baseutil.IniReader;
-import com.jfireframework.baseutil.IniReader.IniFile;
-import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -27,7 +26,9 @@ public @interface EnableAutoConfiguration
 {
     class AutoConfig implements ImportSelecter
     {
-        private static final Logger logger = LoggerFactory.getLogger(AutoConfig.class);
+        private static final Logger logger        = LoggerFactory.getLogger(AutoConfig.class);
+        private static final String directoryName = "META-INF/autoconfig/";
+        private static final int    offset        = directoryName.length();
         
         @Override
         public void importSelect(Environment environment)
@@ -36,47 +37,57 @@ public @interface EnableAutoConfiguration
             {
                 return;
             }
-            String name = "META-INF/jfire.ini";
             try
             {
                 ClassLoader classLoader = environment.getClassLoader();
-                Enumeration<URL> resources = classLoader.getResources(name);
+                Enumeration<URL> resources = classLoader.getResources(directoryName);
                 while (resources.hasMoreElements())
                 {
                     URL url = resources.nextElement();
-                    InputStream inputStream = null;
-                    try
+                    if (url.getProtocol().equals("jar"))
                     {
-                        inputStream = url.openStream();
-                        IniFile iniFile = IniReader.read(inputStream, Charset.forName("utf8"));
-                        String value = iniFile.getValue("jfire.starter");
-                        if (StringUtil.isNotBlank(value))
+                        JarURLConnection openConnection = (JarURLConnection) url.openConnection();
+                        JarFile jarFile = openConnection.getJarFile();
+                        Enumeration<JarEntry> entries = jarFile.entries();
+                        while (entries.hasMoreElements())
                         {
-                            logger.debug("find:{}", value);
-                            for (String each : value.split(","))
+                            JarEntry nextElement = entries.nextElement();
+                            if (nextElement.getName().startsWith(directoryName) && nextElement.isDirectory() == false)
                             {
-                                Class<?> starter = classLoader.loadClass(each);
-                                environment.registerConfiurationBeanDefinition(starter);
+                                String value = nextElement.getName().substring(offset);
+                                registgerAutoConfigor(value, environment);
                             }
                         }
                     }
-                    catch (Exception e)
+                    else if (url.getProtocol().equals("file"))
                     {
-                        throw new JustThrowException(e);
-                    }
-                    finally
-                    {
-                        if (inputStream != null)
+                        File file = new File(url.toURI());
+                        if (file.isDirectory())
                         {
-                            inputStream.close();
+                            for (File each : file.listFiles())
+                            {
+                                if (each.isDirectory() == false)
+                                {
+                                    String value = each.getName();
+                                    registgerAutoConfigor(value, environment);
+                                }
+                            }
                         }
                     }
                 }
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 throw new JustThrowException(e);
             }
+        }
+        
+        void registgerAutoConfigor(String className, Environment environment) throws ClassNotFoundException
+        {
+            String traceId = TRACEID.currentTraceId();
+            logger.debug("traceId:{} 注册自动配置类:{}", traceId, className);
+            Class<?> configor = environment.getClassLoader().loadClass(className);
+            environment.registerConfiurationBeanDefinition(configor);
         }
         
     }
