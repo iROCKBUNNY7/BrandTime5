@@ -236,7 +236,7 @@ public class FieldFactory
             BeanDefinition nameBean = beanNameMap.get(beanName);
             if (nameBean != null)
             {
-                Verify.True(field.getType() == nameBean.getType(), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
+                Verify.True(field.getType().isAssignableFrom(nameBean.getType()), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
                 DIFieldInfo diFieldInfo = new DIFieldInfo(field, DIFieldInfo.DEFAULT);
                 diFieldInfo.setBeanDefinition(nameBean);
                 return diFieldInfo;
