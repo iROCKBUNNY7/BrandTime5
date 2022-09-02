@@ -5,12 +5,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.aware.JfireAware;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.annotation.Order;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
 
 public class ImportOrderTest
 {
@@ -48,11 +48,11 @@ public class ImportOrderTest
     }
     
     @Order(1)
-    public static class Import1 implements ImportSelecter
+    public static class Import1 implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             String result = environment.getProperty("result");
             if (result == null)
@@ -66,14 +66,21 @@ public class ImportOrderTest
             environment.putProperty("result", result);
         }
         
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
+        }
+        
     }
     
     @Order(2)
-    public static class Import2 implements ImportSelecter
+    public static class Import2 implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             String result = environment.getProperty("result");
             if (result == null)
@@ -85,6 +92,13 @@ public class ImportOrderTest
                 result = result + ",2";
             }
             environment.putProperty("result", result);
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
         
     }

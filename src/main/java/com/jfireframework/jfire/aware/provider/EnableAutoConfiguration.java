@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.importer.provide;
+package com.jfireframework.jfire.aware.provider;
 
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -14,24 +14,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.exception.JustThrowException;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.EnableAutoConfiguration.AutoConfig;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.EnableAutoConfiguration.AutoConfig;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(AutoConfig.class)
 public @interface EnableAutoConfiguration
 {
-    class AutoConfig implements ImportSelecter
+    class AutoConfig implements JfireAware
     {
         private static final Logger logger        = LoggerFactory.getLogger(AutoConfig.class);
         private static final String directoryName = "META-INF/autoconfig/";
         private static final int    offset        = directoryName.length();
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             if (environment.isAnnotationPresent(EnableAutoConfiguration.class) == false)
             {
@@ -88,6 +88,13 @@ public @interface EnableAutoConfiguration
             logger.debug("traceId:{} 注册自动配置类:{}", traceId, className);
             Class<?> configor = environment.getClassLoader().loadClass(className);
             environment.registerConfiurationBeanDefinition(configor);
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
         
     }

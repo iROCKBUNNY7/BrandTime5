@@ -28,6 +28,7 @@ import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.AopUtil;
+import com.jfireframework.jfire.aware.JfireAware;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
@@ -52,7 +53,6 @@ import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.annotation.Order;
 import com.jfireframework.jfire.config.environment.Environment;
 import com.jfireframework.jfire.extrastore.ExtraInfoStore;
-import com.jfireframework.jfire.importer.ImportSelecter;
 
 public class JfireConfig
 {
@@ -859,7 +859,7 @@ public class JfireConfig
             {
                 if (definition.getOriginType() != null)
                 {
-                    if (ImportSelecter.class.isAssignableFrom(definition.getOriginType()))
+                    if (JfireAware.class.isAssignableFrom(definition.getOriginType()))
                     {
                         Entry entry;
                         if (definition.getOriginType().isAnnotationPresent(Order.class))
@@ -887,7 +887,7 @@ public class JfireConfig
             {
                 for (Entry each : set)
                 {
-                    ((ImportSelecter) each.beanDefinition.getOriginType().newInstance()).importSelect(environment);
+                    ((JfireAware) each.beanDefinition.getOriginType().newInstance()).awareBeforeInitialization(environment);
                 }
             }
             catch (Exception e)

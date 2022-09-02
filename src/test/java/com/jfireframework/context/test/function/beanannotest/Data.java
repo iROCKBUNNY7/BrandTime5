@@ -2,14 +2,14 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.ComponentScan;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.ComponentScan;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
@@ -18,13 +18,19 @@ import com.jfireframework.jfire.importer.provide.ComponentScan;
 public class Data
 {
     
-    public static class NameProperty implements ImportSelecter
+    public static class NameProperty implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             environment.putProperty("name", "linbin");
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            
         }
         
     }

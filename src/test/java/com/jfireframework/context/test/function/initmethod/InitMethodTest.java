@@ -4,9 +4,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.aware.provider.ComponentScan;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.config.annotation.Configuration;
-import com.jfireframework.jfire.importer.provide.ComponentScan;
 
 public class InitMethodTest
 {

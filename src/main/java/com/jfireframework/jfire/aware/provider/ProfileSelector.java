@@ -1,15 +1,15 @@
-package com.jfireframework.jfire.importer.provide;
+package com.jfireframework.jfire.aware.provider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.ProfileSelector.ProfileImporter;
+import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.annotation.Order;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.ProfileSelector.ProfileImporter;
-import com.jfireframework.jfire.importer.provide.PropertyPath.PropertyPathImporter;
 
 @Import(ProfileImporter.class)
 @Retention(RetentionPolicy.RUNTIME)
@@ -26,11 +26,11 @@ public @interface ProfileSelector
     }
     
     @Order(100)
-    class ProfileImporter implements ImportSelecter
+    class ProfileImporter implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             if (environment.isAnnotationPresent(ProfileSelector.class))
             {
@@ -63,6 +63,13 @@ public @interface ProfileSelector
                     }
                 }
             }
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
         
     }

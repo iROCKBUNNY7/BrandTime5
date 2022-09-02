@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.importer.provide;
+package com.jfireframework.jfire.aware.provider;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,10 +14,10 @@ import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.PropertyPath.PropertyPathImporter;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
@@ -27,7 +27,7 @@ public @interface PropertyPath
 {
     public String[] value();
     
-    public class PropertyPathImporter implements ImportSelecter
+    public class PropertyPathImporter implements JfireAware
     {
         IniFile processPath(String path)
         {
@@ -80,7 +80,7 @@ public @interface PropertyPath
         }
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             if (environment.isAnnotationPresent(PropertyPath.class))
             {
@@ -96,6 +96,13 @@ public @interface PropertyPath
                     }
                 }
             }
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
         
     }

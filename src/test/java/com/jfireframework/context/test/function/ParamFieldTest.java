@@ -6,11 +6,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.aware.JfireAware;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
 
-public class ParamFieldTest implements ImportSelecter
+public class ParamFieldTest implements JfireAware
 {
     public static enum name
     {
@@ -47,7 +47,7 @@ public class ParamFieldTest implements ImportSelecter
     private name        f14;
     
     @Override
-    public void importSelect(Environment environment)
+    public void awareBeforeInitialization(Environment environment)
     {
         environment.putProperty("f1", "1,2");
         environment.putProperty("f2", "aaa");
@@ -89,6 +89,13 @@ public class ParamFieldTest implements ImportSelecter
         Assert.assertEquals(set, data.f12);
         Assert.assertEquals(ParamFieldTest.class, data.f13);
         Assert.assertEquals(name.test1, data.f14);
+    }
+    
+    @Override
+    public void awareAfterInitialization(Environment environment)
+    {
+        // TODO Auto-generated method stub
+        
     }
     
 }

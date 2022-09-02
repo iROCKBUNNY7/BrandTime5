@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.importer.provide;
+package com.jfireframework.jfire.aware.provider;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -10,10 +10,10 @@ import java.util.List;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.ComponentScan.ComponentScanImporter;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.ComponentScan.ComponentScanImporter;
 
 /**
  * 用来填充配置文件中packageNames的值
@@ -29,11 +29,11 @@ public @interface ComponentScan
 {
     public String[] value();
     
-    class ComponentScanImporter implements ImportSelecter
+    class ComponentScanImporter implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             if (environment.isAnnotationPresent(ComponentScan.class))
             {
@@ -70,6 +70,13 @@ public @interface ComponentScan
                     environment.registerBeanDefinition(ckass);
                 }
             }
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
         
     }

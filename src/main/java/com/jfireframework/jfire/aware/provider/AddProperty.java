@@ -1,11 +1,11 @@
-package com.jfireframework.jfire.importer.provide;
+package com.jfireframework.jfire.aware.provider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.provider.AddProperty.ImportProperty;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
-import com.jfireframework.jfire.importer.ImportSelecter;
-import com.jfireframework.jfire.importer.provide.AddProperty.ImportProperty;
 
 @Import(ImportProperty.class)
 @Retention(RetentionPolicy.RUNTIME)
@@ -13,11 +13,11 @@ public @interface AddProperty
 {
     String[] value();
     
-    public static class ImportProperty implements ImportSelecter
+    public static class ImportProperty implements JfireAware
     {
         
         @Override
-        public void importSelect(Environment environment)
+        public void awareBeforeInitialization(Environment environment)
         {
             if (environment.isAnnotationPresent(AddProperty.class))
             {
@@ -33,6 +33,13 @@ public @interface AddProperty
                     }
                 }
             }
+        }
+        
+        @Override
+        public void awareAfterInitialization(Environment environment)
+        {
+            // TODO Auto-generated method stub
+            
         }
     }
 }
