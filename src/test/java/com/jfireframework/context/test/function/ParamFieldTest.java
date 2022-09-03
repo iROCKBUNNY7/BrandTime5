@@ -6,11 +6,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.JfireAwareBefore;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.environment.Environment;
 
-public class ParamFieldTest implements JfireAware
+public class ParamFieldTest implements JfireAwareBefore
 {
     public static enum name
     {
@@ -89,13 +89,6 @@ public class ParamFieldTest implements JfireAware
         Assert.assertEquals(set, data.f12);
         Assert.assertEquals(ParamFieldTest.class, data.f13);
         Assert.assertEquals(name.test1, data.f14);
-    }
-    
-    @Override
-    public void awareAfterInitialization(Environment environment)
-    {
-        // TODO Auto-generated method stub
-        
     }
     
 }

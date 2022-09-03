@@ -10,7 +10,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.JfireAwareBefore;
 import com.jfireframework.jfire.aware.provider.ComponentScan.ComponentScanImporter;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -29,7 +29,7 @@ public @interface ComponentScan
 {
     public String[] value();
     
-    class ComponentScanImporter implements JfireAware
+    class ComponentScanImporter implements JfireAwareBefore
     {
         
         @Override
@@ -70,13 +70,6 @@ public @interface ComponentScan
                     environment.registerBeanDefinition(ckass);
                 }
             }
-        }
-        
-        @Override
-        public void awareAfterInitialization(Environment environment)
-        {
-            // TODO Auto-generated method stub
-            
         }
         
     }

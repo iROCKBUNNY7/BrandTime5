@@ -4,7 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.JfireAwareBefore;
 import com.jfireframework.jfire.aware.provider.ProfileSelector.ProfileImporter;
 import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
 import com.jfireframework.jfire.config.annotation.Import;
@@ -26,7 +26,7 @@ public @interface ProfileSelector
     }
     
     @Order(100)
-    class ProfileImporter implements JfireAware
+    class ProfileImporter implements JfireAwareBefore
     {
         
         @Override
@@ -63,13 +63,6 @@ public @interface ProfileSelector
                     }
                 }
             }
-        }
-        
-        @Override
-        public void awareAfterInitialization(Environment environment)
-        {
-            // TODO Auto-generated method stub
-            
         }
         
     }

@@ -2,7 +2,7 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
-import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.JfireAwareBefore;
 import com.jfireframework.jfire.aware.provider.ComponentScan;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.condition.Conditional;
@@ -18,19 +18,13 @@ import com.jfireframework.jfire.config.environment.Environment;
 public class Data
 {
     
-    public static class NameProperty implements JfireAware
+    public static class NameProperty implements JfireAwareBefore
     {
         
         @Override
         public void awareBeforeInitialization(Environment environment)
         {
             environment.putProperty("name", "linbin");
-        }
-        
-        @Override
-        public void awareAfterInitialization(Environment environment)
-        {
-            
         }
         
     }

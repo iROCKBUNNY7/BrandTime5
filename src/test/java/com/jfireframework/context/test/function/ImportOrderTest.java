@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.JfireAware;
+import com.jfireframework.jfire.aware.JfireAwareBefore;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
@@ -48,7 +48,7 @@ public class ImportOrderTest
     }
     
     @Order(1)
-    public static class Import1 implements JfireAware
+    public static class Import1 implements JfireAwareBefore
     {
         
         @Override
@@ -66,17 +66,10 @@ public class ImportOrderTest
             environment.putProperty("result", result);
         }
         
-        @Override
-        public void awareAfterInitialization(Environment environment)
-        {
-            // TODO Auto-generated method stub
-            
-        }
-        
     }
     
     @Order(2)
-    public static class Import2 implements JfireAware
+    public static class Import2 implements JfireAwareBefore
     {
         
         @Override
@@ -92,13 +85,6 @@ public class ImportOrderTest
                 result = result + ",2";
             }
             environment.putProperty("result", result);
-        }
-        
-        @Override
-        public void awareAfterInitialization(Environment environment)
-        {
-            // TODO Auto-generated method stub
-            
         }
         
     }
