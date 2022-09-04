@@ -28,7 +28,8 @@ import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.AopUtil;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
+import com.jfireframework.jfire.aware.JfireAwareContextInited;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
@@ -579,21 +580,21 @@ public class JfireConfig
         @Override
         public void process()
         {
-            List<JfireInitFinish> tmp = new LinkedList<JfireInitFinish>();
+            List<JfireAwareContextInited> tmp = new LinkedList<JfireAwareContextInited>();
             for (BeanDefinition each : beanDefinitions.values())
             {
-                if (JfireInitFinish.class.isAssignableFrom(each.getType()))
+                if (JfireAwareContextInited.class.isAssignableFrom(each.getType()))
                 {
-                    tmp.add((JfireInitFinish) each.getConstructedBean().getInstance());
+                    tmp.add((JfireAwareContextInited) each.getConstructedBean().getInstance());
                 }
             }
             Collections.sort(tmp, new AescComparator());
-            for (JfireInitFinish each : tmp)
+            for (JfireAwareContextInited each : tmp)
             {
                 logger.trace("准备执行方法{}.afterContextInit", each.getClass().getName());
                 try
                 {
-                    each.afterContextInit();
+                    each.awareContextInited();
                 }
                 catch (Exception e)
                 {
@@ -808,7 +809,7 @@ public class JfireConfig
             {
                 if (definition.getOriginType() != null)
                 {
-                    if (JfireAwareBefore.class.isAssignableFrom(definition.getOriginType()))
+                    if (JfireAwareBeforeInitialization.class.isAssignableFrom(definition.getOriginType()))
                     {
                         Entry entry;
                         if (definition.getOriginType().isAnnotationPresent(Order.class))
@@ -836,7 +837,7 @@ public class JfireConfig
             {
                 for (Entry each : list)
                 {
-                    ((JfireAwareBefore) each.beanDefinition.getOriginType().newInstance()).awareBeforeInitialization(environment);
+                    ((JfireAwareBeforeInitialization) each.beanDefinition.getOriginType().newInstance()).awareBeforeInitialization(environment);
                 }
             }
             catch (Exception e)

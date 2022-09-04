@@ -11,7 +11,7 @@ import com.jfireframework.context.test.function.base.data.ImmutablePerson;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.JfireInitFinish;
+import com.jfireframework.jfire.aware.JfireAwareContextInited;
 import com.jfireframework.jfire.aware.provider.ComponentScan;
 import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.config.annotation.Configuration;
@@ -49,7 +49,7 @@ public class ContextTest
         logger.debug(mutablePerson.getHome().getName());
         assertEquals(mutablePerson.getHome(), immutablePerson.getHome());
         assertEquals("林斌的房子", jfire.getBean(House.class).getName());
-        assertEquals(1, jfire.getBeanDefinitionByInterface(JfireInitFinish.class).length);
+        assertEquals(1, jfire.getBeanDefinitionByInterface(JfireAwareContextInited.class).length);
     }
     
     /**
@@ -108,7 +108,7 @@ public class ContextTest
     public void testInit()
     {
         JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
-        assertEquals(1, new Jfire(jfireConfig).getBeanDefinitionByInterface(JfireInitFinish.class).length);
+        assertEquals(1, new Jfire(jfireConfig).getBeanDefinitionByInterface(JfireAwareContextInited.class).length);
     }
     
     @Test

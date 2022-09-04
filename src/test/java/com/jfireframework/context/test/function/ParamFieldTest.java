@@ -6,11 +6,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.environment.Environment;
 
-public class ParamFieldTest implements JfireAwareBefore
+public class ParamFieldTest implements JfireAwareBeforeInitialization
 {
     public static enum name
     {

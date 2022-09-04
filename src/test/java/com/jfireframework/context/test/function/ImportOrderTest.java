@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.annotation.Import;
@@ -48,7 +48,7 @@ public class ImportOrderTest
     }
     
     @Order(1)
-    public static class Import1 implements JfireAwareBefore
+    public static class Import1 implements JfireAwareBeforeInitialization
     {
         
         @Override
@@ -69,7 +69,7 @@ public class ImportOrderTest
     }
     
     @Order(2)
-    public static class Import2 implements JfireAwareBefore
+    public static class Import2 implements JfireAwareBeforeInitialization
     {
         
         @Override

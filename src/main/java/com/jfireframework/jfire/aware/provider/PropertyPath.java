@@ -14,7 +14,7 @@ import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -27,7 +27,7 @@ public @interface PropertyPath
 {
     public String[] value();
     
-    public class PropertyPathImporter implements JfireAwareBefore
+    public class PropertyPathImporter implements JfireAwareBeforeInitialization
     {
         IniFile processPath(String path)
         {

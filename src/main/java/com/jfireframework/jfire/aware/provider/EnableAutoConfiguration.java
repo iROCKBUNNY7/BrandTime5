@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.aware.provider.EnableAutoConfiguration.AutoConfig;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -24,7 +24,7 @@ import com.jfireframework.jfire.config.environment.Environment;
 @Import(AutoConfig.class)
 public @interface EnableAutoConfiguration
 {
-    class AutoConfig implements JfireAwareBefore
+    class AutoConfig implements JfireAwareBeforeInitialization
     {
         private static final Logger logger        = LoggerFactory.getLogger(AutoConfig.class);
         private static final String directoryName = "META-INF/autoconfig/";

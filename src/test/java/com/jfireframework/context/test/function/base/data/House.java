@@ -1,10 +1,10 @@
 package com.jfireframework.context.test.function.base.data;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.JfireInitFinish;
+import com.jfireframework.jfire.aware.JfireAwareContextInited;
 
 @Resource
-public class House implements JfireInitFinish
+public class House implements JfireAwareContextInited
 {
     private String          name;
     @Resource
@@ -31,7 +31,7 @@ public class House implements JfireInitFinish
     }
     
     @Override
-    public void afterContextInit()
+    public void awareContextInited()
     {
         name = "林斌的房子";
     }

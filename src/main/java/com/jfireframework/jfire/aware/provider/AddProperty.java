@@ -2,7 +2,7 @@ package com.jfireframework.jfire.aware.provider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.aware.provider.AddProperty.ImportProperty;
 import com.jfireframework.jfire.config.annotation.Import;
 import com.jfireframework.jfire.config.environment.Environment;
@@ -13,7 +13,7 @@ public @interface AddProperty
 {
     String[] value();
     
-    public static class ImportProperty implements JfireAwareBefore
+    public static class ImportProperty implements JfireAwareBeforeInitialization
     {
         
         @Override

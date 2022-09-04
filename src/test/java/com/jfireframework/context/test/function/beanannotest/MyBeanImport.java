@@ -1,13 +1,13 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.aware.JfireAwareBefore;
+import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.config.annotation.Bean;
 import com.jfireframework.jfire.config.annotation.Configuration;
 import com.jfireframework.jfire.config.environment.Environment;
 
 @Configuration
-public class MyBeanImport implements JfireAwareBefore
+public class MyBeanImport implements JfireAwareBeforeInitialization
 {
     @Resource
     private Environment environment;
