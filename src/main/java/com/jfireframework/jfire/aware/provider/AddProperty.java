@@ -26,10 +26,13 @@ public @interface AddProperty
                 {
                     for (String each : addProperty.value())
                     {
-                        String[] tmp = each.split("=");
-                        String property = tmp[0].trim();
-                        String vlaue = tmp[1].trim();
-                        environment.putProperty(property, vlaue);
+                        int index = each.indexOf('=');
+                        if (index != -1)
+                        {
+                            String property = each.substring(0, index).trim();
+                            String vlaue = each.substring(index + 1).trim();
+                            environment.putProperty(property, vlaue);
+                        }
                     }
                 }
             }
