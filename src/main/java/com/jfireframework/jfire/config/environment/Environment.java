@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +72,11 @@ public class Environment
         public ReadOnlyEnvironment(Environment host)
         {
             this.host = host;
+        }
+        
+        public Collection<BeanDefinition> beanDefinitions()
+        {
+            return host.beanDefinitions.values();
         }
         
         public boolean isAnnotationPresent(Class<? extends Annotation> annoType)

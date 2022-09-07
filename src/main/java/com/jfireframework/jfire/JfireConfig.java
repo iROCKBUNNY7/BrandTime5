@@ -29,6 +29,7 @@ import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
+import com.jfireframework.jfire.aware.JfireAwareConstructBeanFinished;
 import com.jfireframework.jfire.aware.JfireAwareContextInited;
 import com.jfireframework.jfire.bean.Bean;
 import com.jfireframework.jfire.bean.BeanDefinition;
@@ -133,7 +134,8 @@ public class JfireConfig
                 new EnhancePlugin(), //
                 new InitDependencyAndParamFieldsPlugin(), //
                 new ConstructBeanPlugin(), //
-                new TriggerJfireInitFinishPlugin()
+                new AwareConstructBeanFinishedPlugin(), //
+                new AwareContextInitedPlugin()
         };
         for (Plugin plugin : plugins)
         {
@@ -395,7 +397,7 @@ public class JfireConfig
             for (BeanDefinition each : beanDefinitions.values())
             {
                 Verify.notNull(each.getOriginType(), "bean:{}没有原始类型", each.getBeanName());
-                for (Method method : each.getOriginType().getDeclaredMethods())
+                for (Method method : ReflectUtil.getAllMehtods(each.getOriginType()))
                 {
                     if (annotationUtil.isPresent(PostConstruct.class, method))
                     {
@@ -574,7 +576,36 @@ public class JfireConfig
         }
     }
     
-    class TriggerJfireInitFinishPlugin implements Plugin
+    class AwareConstructBeanFinishedPlugin implements Plugin
+    {
+        
+        @Override
+        public void process()
+        {
+            List<JfireAwareConstructBeanFinished> list = new ArrayList<JfireAwareConstructBeanFinished>();
+            try
+            {
+                for (BeanDefinition beanDefinition : beanDefinitions.values())
+                {
+                    if (JfireAwareConstructBeanFinished.class.isAssignableFrom(beanDefinition.getType()))
+                    {
+                        list.add((JfireAwareConstructBeanFinished) beanDefinition.getOriginType().newInstance());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new JustThrowException(e);
+            }
+            for (JfireAwareConstructBeanFinished each : list)
+            {
+                each.awareConstructBeanFinished(environment.readOnlyEnvironment());
+            }
+        }
+        
+    }
+    
+    class AwareContextInitedPlugin implements Plugin
     {
         
         @Override
@@ -844,17 +875,6 @@ public class JfireConfig
             {
                 throw new JustThrowException(e);
             }
-        }
-        
-    }
-    
-    class AwareAfterInitializationPlugin implements Plugin
-    {
-        
-        @Override
-        public void process()
-        {
-            
         }
         
     }

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class FieldFactory
      */
     public static List<DIFieldInfo> buildDependencyFields(AnnotationUtil annotationUtil, BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
     {
-        Field[] fields = ReflectUtil.getAllFields(beanInfo.getType());
+        List<Field> fields = getAllFields(beanInfo.getType());
         List<DIFieldInfo> list = new LinkedList<DIFieldInfo>();
         try
         {
@@ -51,6 +52,20 @@ public class FieldFactory
         catch (Exception e)
         {
             throw new JustThrowException(e);
+        }
+        return list;
+    }
+    
+    static List<Field> getAllFields(Class<?> ckass)
+    {
+        List<Field> list = new ArrayList<Field>();
+        while (ckass != Object.class)
+        {
+            for (Field each : ckass.getDeclaredFields())
+            {
+                list.add(each);
+            }
+            ckass = ckass.getSuperclass();
         }
         return list;
     }
@@ -274,7 +289,7 @@ public class FieldFactory
      */
     public static List<ParamField> buildParamField(AnnotationUtil annotationUtil, BeanDefinition beanDefinition, Map<String, String> params, Map<String, String> properties, ClassLoader classLoader)
     {
-        Field[] fields = ReflectUtil.getAllFields(beanDefinition.getType());
+        List<Field> fields = getAllFields(beanDefinition.getType());
         List<ParamField> list = new LinkedList<ParamField>();
         for (Field field : fields)
         {
