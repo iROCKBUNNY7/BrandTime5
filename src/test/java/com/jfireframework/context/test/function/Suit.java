@@ -15,11 +15,16 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ //
-        AliasTest.class, AopTest.class, ParamFieldTest.class, //
+        AliasTest.class, //
+        AopTest.class, //
+        ParamFieldTest.class, //
         PropertyPathImporterTest.class, //
         DiTest.class, //
-        ContextTest.class, CacheTest.class, InitMethodTest.class, //
-        HolderTest.class, MapTest.class, //
+        ContextTest.class, //
+        CacheTest.class, //
+        InitMethodTest.class, //
+        HolderTest.class, //
+        MapTest.class, //
         BeanAnnoTest.class, //
         LazyInitTest.class, //
         StarterTest.class, //

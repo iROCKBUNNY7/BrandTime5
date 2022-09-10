@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
+import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 
 public class BeanDefinition
@@ -43,7 +43,7 @@ public class BeanDefinition
     private String              closeMethod;
     private String              loadByFactoryName;
     private Object              outterEntity;
-    private List<DIFieldInfo>   diFieldInfos                 = new ArrayList<DIFieldInfo>();
+    private List<DIField>       diFields                 = new ArrayList<DIField>();
     private List<ParamField>    paramFields                  = new ArrayList<ParamField>();
     private Bean                constructedBean;
     // 该属性只用于在JfireInitializationCfg中使用
@@ -123,28 +123,24 @@ public class BeanDefinition
         return originType;
     }
     
-    public void addDIFieldInfos(List<DIFieldInfo> diFieldInfos, boolean clearBeforeAdd)
+    public void addDIFieldInfos(List<DIField> diFieldInfos)
     {
-        if (clearBeforeAdd)
-        {
-            this.diFieldInfos.clear();
-        }
-        this.diFieldInfos.addAll(diFieldInfos);
+        this.diFields.addAll(diFieldInfos);
     }
     
-    public List<DIFieldInfo> getDiFieldInfos()
+    public DIField[] getDiFieldArray()
     {
-        return diFieldInfos;
+        return diFields.toArray(new DIField[diFields.size()]);
     }
     
-    public void setDiFieldInfos(List<DIFieldInfo> diFieldInfos)
+    public ParamField[] getParamFieldArray()
     {
-        this.diFieldInfos = diFieldInfos;
+        return paramFields.toArray(new ParamField[paramFields.size()]);
     }
     
-    public void setParamFields(List<ParamField> paramFields)
+    public List<DIField> getDiFields()
     {
-        this.paramFields = paramFields;
+        return diFields;
     }
     
     public List<ParamField> getParamFields()
@@ -152,12 +148,8 @@ public class BeanDefinition
         return paramFields;
     }
     
-    public void addParamFields(List<ParamField> paramFields, boolean clearBeforeAdd)
+    public void addParamFields(List<ParamField> paramFields)
     {
-        if (clearBeforeAdd)
-        {
-            this.paramFields.clear();
-        }
         this.paramFields.addAll(paramFields);
     }
     

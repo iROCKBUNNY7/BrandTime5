@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>baseutil</artifactId>
-			<version>1.1</version>
+			<version>1.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jfireframework</groupId>

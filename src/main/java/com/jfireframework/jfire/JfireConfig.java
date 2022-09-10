@@ -21,11 +21,13 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.baseutil.time.Timewatch;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.aop.AopUtil;
 import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
@@ -36,11 +38,6 @@ import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.bean.field.FieldFactory;
 import com.jfireframework.jfire.bean.field.dependency.DIField;
-import com.jfireframework.jfire.bean.field.dependency.DIFieldInfo;
-import com.jfireframework.jfire.bean.field.dependency.impl.BeanNameMapField;
-import com.jfireframework.jfire.bean.field.dependency.impl.DefaultBeanField;
-import com.jfireframework.jfire.bean.field.dependency.impl.ListField;
-import com.jfireframework.jfire.bean.field.dependency.impl.MethodMapField;
 import com.jfireframework.jfire.bean.field.param.ParamField;
 import com.jfireframework.jfire.bean.impl.BaseBean;
 import com.jfireframework.jfire.bean.impl.DefaultBean;
@@ -125,6 +122,7 @@ public class JfireConfig
     
     protected void initJfire(Jfire jfire)
     {
+        String traceId = TRACEID.newTraceId();
         Plugin[] plugins = new Plugin[] { //
                 new PreparationPlugin(jfire), //
                 new ResolveImportAnnotationPlugin(), //
@@ -137,9 +135,13 @@ public class JfireConfig
                 new AwareConstructBeanFinishedPlugin(), //
                 new AwareContextInitedPlugin()
         };
+        Timewatch timewatch = new Timewatch();
         for (Plugin plugin : plugins)
         {
+            timewatch.start();
             plugin.process();
+            timewatch.end();
+            logger.debug("traceId:{} 插件:{}耗费时间:{}毫秒", traceId, plugin.name(), timewatch.getTotal());
         }
     }
     
@@ -309,14 +311,14 @@ public class JfireConfig
             }
             Bean constructedBean = exist.getConstructedBean() != null ? exist.getConstructedBean() : definition.getConstructedBean();
             int schema = exist.schema() | definition.schema();
-            Map<String, DIFieldInfo> set1 = new HashMap<String, DIFieldInfo>();
-            for (DIFieldInfo each : exist.getDiFieldInfos())
+            Map<String, DIField> set1 = new HashMap<String, DIField>();
+            for (DIField each : exist.getDiFields())
             {
-                set1.put(each.getFieldName(), each);
+                set1.put(each.name(), each);
             }
-            for (DIFieldInfo each : definition.getDiFieldInfos())
+            for (DIField each : definition.getDiFields())
             {
-                set1.put(each.getFieldName(), each);
+                set1.put(each.name(), each);
             }
             Map<String, ParamField> set2 = new HashMap<String, ParamField>();
             for (ParamField each : exist.getParamFields())
@@ -338,8 +340,8 @@ public class JfireConfig
             exist.setOutterEntity(outterEntity);
             exist.setConstructedBean(constructedBean);
             exist.setSchema(schema);
-            exist.getDiFieldInfos().clear();
-            exist.getDiFieldInfos().addAll(set1.values());
+            exist.getDiFields().clear();
+            exist.getDiFields().addAll(set1.values());
             exist.getParamFields().clear();
             exist.getParamFields().addAll(set2.values());
         }
@@ -348,6 +350,8 @@ public class JfireConfig
     interface Plugin
     {
         void process();
+        
+        String name();
     }
     
     class ResolveImportAnnotationPlugin implements Plugin
@@ -387,6 +391,12 @@ public class JfireConfig
             });
         }
         
+        @Override
+        public String name()
+        {
+            return "ResolveImportAnnotationPlugin";
+        }
+        
     }
     
     class FindAnnoedPostAndPreDestoryMethod implements Plugin
@@ -410,6 +420,12 @@ public class JfireConfig
                 }
             }
         }
+        
+        @Override
+        public String name()
+        {
+            return "FindAnnoedPostAndPreDestoryMethod";
+        }
     }
     
     class EnhancePlugin implements Plugin
@@ -420,6 +436,12 @@ public class JfireConfig
         {
             AopUtil aopUtil = new AopUtil(classLoader, annotationUtil, extraInfoStore);
             aopUtil.enhance(beanDefinitions);
+        }
+        
+        @Override
+        public String name()
+        {
+            return "EnhancePlugin";
         }
     }
     
@@ -433,10 +455,16 @@ public class JfireConfig
             {
                 if (candidate.isDefault())
                 {
-                    candidate.addDIFieldInfos(FieldFactory.buildDependencyFields(annotationUtil, candidate, beanDefinitions), true);
-                    candidate.addParamFields(FieldFactory.buildParamField(annotationUtil, candidate, candidate.getParams(), properties, classLoader), true);
+                    candidate.addDIFieldInfos(FieldFactory.buildDependencyFields(annotationUtil, candidate, beanDefinitions));
+                    candidate.addParamFields(FieldFactory.buildParamField(annotationUtil, candidate, candidate.getParams(), properties, classLoader));
                 }
             }
+        }
+        
+        @Override
+        public String name()
+        {
+            return "InitDependencyAndParamFieldsPlugin";
         }
         
     }
@@ -462,7 +490,7 @@ public class JfireConfig
             }
             if (beanDefinition.isDefault())
             {
-                bean = new DefaultBean(beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), generateDiFields(beanDefinition), beanDefinition.getParamFields().toArray(new ParamField[beanDefinition.getParamFields().size()]), beanDefinition.isLazyInitUntilFirstInvoke());
+                bean = new DefaultBean(beanDefinition.getType(), beanDefinition.getBeanName(), beanDefinition.isPrototype(), beanDefinition.getDiFieldArray(), beanDefinition.getParamFieldArray(), beanDefinition.isLazyInitUntilFirstInvoke());
             }
             else if (beanDefinition.isLoadBy())
             {
@@ -526,53 +554,15 @@ public class JfireConfig
                     throw new JustThrowException(e);
                 }
             }
-            logger.debug("构建bean:{}完毕", beanDefinition.getBeanName());
+            String traceId = TRACEID.currentTraceId();
+            logger.debug("traceId:{} 构建bean:{}完毕", traceId, beanDefinition.getBeanName());
             return bean;
         }
         
-        private DIField[] generateDiFields(BeanDefinition beanDefinition)
+        @Override
+        public String name()
         {
-            List<DIField> diFields = new ArrayList<DIField>();
-            for (DIFieldInfo diFieldInfo : beanDefinition.getDiFieldInfos())
-            {
-                switch (diFieldInfo.mode())
-                {
-                    case DIFieldInfo.DEFAULT:
-                    {
-                        DIField diField = new DefaultBeanField(diFieldInfo.getField(), diFieldInfo.getBeanDefinition());
-                        diFields.add(diField);
-                        break;
-                    }
-                    case DIFieldInfo.LIST:
-                    {
-                        DIField diField = new ListField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions());
-                        diFields.add(diField);
-                        break;
-                    }
-                    case DIFieldInfo.BEAN_NAME_MAP:
-                    {
-                        List<String> beanNames = new ArrayList<String>();
-                        for (BeanDefinition each : diFieldInfo.getBeanDefinitions())
-                        {
-                            beanNames.add(each.getBeanName());
-                        }
-                        DIField diField = new BeanNameMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), beanNames.toArray(new String[beanNames.size()]));
-                        diFields.add(diField);
-                        break;
-                    }
-                    case DIFieldInfo.METHOD_MAP:
-                    {
-                        DIField diField = new MethodMapField(diFieldInfo.getField(), diFieldInfo.getBeanDefinitions(), diFieldInfo.getMethod_map_method());
-                        diFields.add(diField);
-                        break;
-                    }
-                    case DIFieldInfo.NONE:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return diFields.toArray(new DIField[diFields.size()]);
+            return "ConstructBeanPlugin";
         }
     }
     
@@ -601,6 +591,12 @@ public class JfireConfig
             {
                 each.awareConstructBeanFinished(environment.readOnlyEnvironment());
             }
+        }
+        
+        @Override
+        public String name()
+        {
+            return "AwareConstructBeanFinishedPlugin";
         }
         
     }
@@ -635,6 +631,12 @@ public class JfireConfig
             }
         }
         
+        @Override
+        public String name()
+        {
+            return "TriggerJfireInitFinishPlugin";
+        }
+        
     }
     
     class PreparationPlugin implements Plugin
@@ -654,6 +656,12 @@ public class JfireConfig
             registerSingletonEntity(Jfire.class.getName(), jfire);
             registerSingletonEntity(ClassLoader.class.getName(), classLoader);
             registerSingletonEntity(Environment.class.getName(), environment);
+        }
+        
+        @Override
+        public String name()
+        {
+            return "PreparationPlugin";
         }
         
     }
@@ -816,6 +824,12 @@ public class JfireConfig
                 }
             }
         }
+        
+        @Override
+        public String name()
+        {
+            return "ResolveConfigBeanDefinitionPlugin";
+        }
     }
     
     class AwareBeforeInitializationPlugin implements Plugin
@@ -875,6 +889,12 @@ public class JfireConfig
             {
                 throw new JustThrowException(e);
             }
+        }
+        
+        @Override
+        public String name()
+        {
+            return "AwareBeforeInitializationPlugin";
         }
         
     }

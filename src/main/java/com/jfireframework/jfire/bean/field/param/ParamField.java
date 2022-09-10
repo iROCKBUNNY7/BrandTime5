@@ -7,12 +7,14 @@ public interface ParamField
      * 
      * @param entity
      */
-    public void setParam(Object entity);
+    void setParam(Object entity);
     
     /**
      * 返回参数属性的名称
      * 
      * @return
      */
-    public String getName();
+    String getName();
+    
+    ParamResolver resolver();
 }
