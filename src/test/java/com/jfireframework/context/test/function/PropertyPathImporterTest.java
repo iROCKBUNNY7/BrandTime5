@@ -2,11 +2,11 @@ package com.jfireframework.context.test.function;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.PropertyPath;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.PropertyPath;
 
 public class PropertyPathImporterTest
 {
@@ -35,7 +35,7 @@ public class PropertyPathImporterTest
     {
         JfireConfig jfireConfig = new JfireConfig(Test1.class);
         jfireConfig.registerBeanDefinition(PropertyPathImporterTest.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         PropertyPathImporterTest test = jfire.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }
@@ -48,7 +48,7 @@ public class PropertyPathImporterTest
     {
         JfireConfig jfireConfig = new JfireConfig(Test2.class);
         jfireConfig.registerBeanDefinition(PropertyPathImporterTest.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         PropertyPathImporterTest test = jfire.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }

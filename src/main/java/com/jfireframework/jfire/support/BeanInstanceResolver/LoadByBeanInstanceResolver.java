@@ -11,9 +11,9 @@ import javax.annotation.Resource;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.Utils;
-import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
 
 public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
 {

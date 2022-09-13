@@ -3,8 +3,8 @@ package com.jfireframework.context.test.function.validate;
 import javax.validation.ValidationException;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.kernel.Jfire;
 
 public class ValidateTest
 {
@@ -13,8 +13,8 @@ public class ValidateTest
     public void test_2()
     {
         JfireConfig config = new JfireConfig();
-        config.registerBeanDefinition(Person.class, com.jfireframework.jfire.validate.internal.JfireMethodValidatorImpl.class);
-        Jfire jfire = new Jfire(config);
+        config.registerBeanDefinition(Person.class, com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.internal.JfireMethodValidatorImpl.class);
+        Jfire jfire = config.build();
         Person person = jfire.getBean(Person.class);
         User user = new User();
         try

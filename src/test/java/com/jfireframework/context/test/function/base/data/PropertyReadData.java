@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function.base.data;
 
-import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
 
 public class PropertyReadData
 {

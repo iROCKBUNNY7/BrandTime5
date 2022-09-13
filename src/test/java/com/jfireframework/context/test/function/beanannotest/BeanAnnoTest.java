@@ -3,8 +3,8 @@ package com.jfireframework.context.test.function.beanannotest;
 import java.util.Properties;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.kernel.Jfire;
 
 public class BeanAnnoTest
 {
@@ -12,7 +12,7 @@ public class BeanAnnoTest
     public void test()
     {
         JfireConfig jfireConfig = new JfireConfig(Data.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Person person = jfire.getBean("person");
         Assert.assertTrue(person != null);
         Person person2 = jfire.getBean("person2");
@@ -21,7 +21,7 @@ public class BeanAnnoTest
         Properties properties = new Properties();
         properties.put("person2", "pass");
         jfireConfig.addProperties(properties);
-        jfire = new Jfire(jfireConfig);
+        jfire = jfireConfig.build();
         person2 = jfire.getBean("person2");
         Assert.assertTrue(person2 != null);
         Person person4 = jfire.getBean("person4");

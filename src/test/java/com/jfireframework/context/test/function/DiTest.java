@@ -5,9 +5,9 @@ import java.util.List;
 import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.annotation.field.CanBeNull;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.CanBeNull;
 
 public class DiTest
 {
@@ -54,7 +54,7 @@ public class DiTest
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(ForDi1.class, ForDi2.class);
         jfireConfig.registerBeanDefinition(Holder.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Holder holder = jfire.getBean(Holder.class);
         Assert.assertEquals(2, holder.f.size());
     }
@@ -68,7 +68,7 @@ public class DiTest
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition("di", false, ForDi1.class);
         jfireConfig.registerBeanDefinition(Holder2.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Holder2 holder = jfire.getBean(Holder2.class);
         Assert.assertNotNull(holder.di);
     }
@@ -81,7 +81,7 @@ public class DiTest
     {
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(Holder3.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Holder3 holder = jfire.getBean(Holder3.class);
         Assert.assertNull(holder.di);
     }

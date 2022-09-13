@@ -16,4 +16,9 @@ public class Utils
     {
         return local.get();
     }
+    
+    public static void clearAnnotationUtil()
+    {
+        local.remove();
+    }
 }

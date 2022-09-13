@@ -1,8 +1,8 @@
 package com.jfireframework.context.test.function.aop;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.aop.annotation.AutoResource;
-import com.jfireframework.jfire.aop.annotation.Transaction;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoResource;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
 
 @Resource
 public class Person

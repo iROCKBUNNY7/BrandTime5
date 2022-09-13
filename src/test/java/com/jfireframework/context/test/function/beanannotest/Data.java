@@ -2,14 +2,14 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
-import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
-import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.Import;
-import com.jfireframework.jfire.support.jfireprepared.SelectImport;
-import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.Import;
+import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
+import com.jfireframework.jfire.support.JfirePrepared.condition.Conditional;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")

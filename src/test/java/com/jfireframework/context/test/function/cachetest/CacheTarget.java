@@ -4,9 +4,9 @@ import javax.annotation.Resource;
 import com.jfireframework.baseutil.uniqueid.AutumnId;
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
-import com.jfireframework.jfire.cache.annotation.CacheDelete;
-import com.jfireframework.jfire.cache.annotation.CacheGet;
-import com.jfireframework.jfire.cache.annotation.CachePut;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheDelete;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheGet;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CachePut;
 
 @Resource
 public class CacheTarget

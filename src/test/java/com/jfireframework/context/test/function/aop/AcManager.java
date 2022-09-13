@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.aop;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.tx.RessourceManager;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.tx.RessourceManager;
 
 @Resource
 public class AcManager implements RessourceManager

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.order.Order;
-import com.jfireframework.jfire.bean.annotation.field.MapKey;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKey;
 
 @Resource
 public class Host

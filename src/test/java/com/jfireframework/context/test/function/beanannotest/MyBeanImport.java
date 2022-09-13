@@ -2,9 +2,9 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.SelectImport;
-import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
 
 @Configuration
 public class MyBeanImport implements SelectImport

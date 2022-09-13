@@ -3,10 +3,10 @@ package com.jfireframework.context.test.function;
 import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
 
 @Configuration
 @Resource
@@ -41,7 +41,7 @@ public class ConfigBeanTest
     {
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(ConfigBeanTest.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Home home = jfire.getBean(Home.class);
         Person person = jfire.getBean(Person.class);
         Assert.assertNotNull(person);

@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.lazyinit;
 
 import javax.annotation.PostConstruct;
-import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
 
 @LazyInitUniltFirstInvoke
 public class OriginInstance

@@ -25,28 +25,29 @@ import com.jfireframework.baseutil.smc.model.CompilerModel;
 import com.jfireframework.baseutil.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.Utils;
-import com.jfireframework.jfire.aop.DynamicCodeTool;
-import com.jfireframework.jfire.aop.EnhanceAnnoInfo;
-import com.jfireframework.jfire.aop.annotation.AfterEnhance;
-import com.jfireframework.jfire.aop.annotation.AroundEnhance;
-import com.jfireframework.jfire.aop.annotation.AutoResource;
-import com.jfireframework.jfire.aop.annotation.BeforeEnhance;
-import com.jfireframework.jfire.aop.annotation.EnhanceClass;
-import com.jfireframework.jfire.aop.annotation.ThrowEnhance;
-import com.jfireframework.jfire.aop.annotation.Transaction;
-import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
-import com.jfireframework.jfire.bean.field.FieldFactory;
-import com.jfireframework.jfire.bean.field.dependency.DIField;
-import com.jfireframework.jfire.bean.field.param.ParamField;
-import com.jfireframework.jfire.cache.CacheManager;
-import com.jfireframework.jfire.cache.annotation.CacheDelete;
-import com.jfireframework.jfire.cache.annotation.CacheGet;
-import com.jfireframework.jfire.cache.annotation.CachePut;
 import com.jfireframework.jfire.kernel.BeanDefinition;
+import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.ExtraInfoStore;
-import com.jfireframework.jfire.tx.RessourceManager;
-import com.jfireframework.jfire.tx.TransactionManager;
-import com.jfireframework.jfire.validate.JfireMethodValidator;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.DynamicCodeTool;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.EnhanceAnnoInfo;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AfterEnhance;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AroundEnhance;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoResource;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.BeforeEnhance;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.EnhanceClass;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.ThrowEnhance;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.CacheManager;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheDelete;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheGet;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CachePut;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.tx.RessourceManager;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.tx.TransactionManager;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.JfireMethodValidator;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.FieldFactory;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.DIField;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.ParamField;
 
 public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 {
@@ -61,11 +62,11 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
     private Class<?>                  enhanceType;
     private static AtomicInteger      enhanceCount = new AtomicInteger(0);
     
-    public ReflectBeanInstanceResolver(String beanName, Class<?> type, boolean prototype, ClassLoader classLoader, ExtraInfoStore extraInfoStore, Map<String, String> properties)
+    public ReflectBeanInstanceResolver(String beanName, Class<?> type, boolean prototype, Environment environment)
     {
-        this.classLoader = classLoader;
-        this.extraInfoStore = extraInfoStore;
-        this.properties = properties;
+        classLoader = environment.getClassLoader();
+        extraInfoStore = environment.getExtraInfoStore();
+        properties = environment.getProperties();
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         lazyInitUntilFirstInvoke = annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type);
         baseInitialize(beanName, type, prototype, lazyInitUntilFirstInvoke);

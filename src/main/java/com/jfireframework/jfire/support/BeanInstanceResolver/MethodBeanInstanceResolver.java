@@ -7,10 +7,10 @@ import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.Utils;
-import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
-import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
 
 public class MethodBeanInstanceResolver extends BaseBeanInstanceResolver
 {

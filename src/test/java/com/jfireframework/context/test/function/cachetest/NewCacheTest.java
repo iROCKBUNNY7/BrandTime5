@@ -2,8 +2,8 @@ package com.jfireframework.context.test.function.cachetest;
 
 import org.junit.Test;
 import com.jfireframework.context.test.function.base.data.House;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
+import com.jfireframework.jfire.kernel.Jfire;
 
 public class NewCacheTest
 {
@@ -14,7 +14,7 @@ public class NewCacheTest
         config.registerBeanDefinition(CacheTarget.class);
         config.registerBeanDefinition(DemoCache.class);
         config.registerBeanDefinition(CacheManagerTest.class);
-        Jfire jfire = new Jfire(config);
+        Jfire jfire = config.build();
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
         House house = cacheTarget.get(5);
         System.out.println(house);

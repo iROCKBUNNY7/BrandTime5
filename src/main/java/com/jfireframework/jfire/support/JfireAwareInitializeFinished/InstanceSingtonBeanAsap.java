@@ -8,7 +8,7 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.JfireAwareInitializeFinished;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.support.JfireAwareInitializeFinished.InstanceSingtonBeanAsap.instanceSingtonBean;
-import com.jfireframework.jfire.support.jfireprepared.Import;
+import com.jfireframework.jfire.support.JfirePrepared.Import;
 
 @Import(instanceSingtonBean.class)
 @Retention(RetentionPolicy.RUNTIME)

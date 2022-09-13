@@ -11,12 +11,12 @@ import org.slf4j.LoggerFactory;
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.context.test.function.base.data.ImmutablePerson;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.kernel.BeanDefinition;
+import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.kernel.JfireAwareContextInited;
-import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
 
 public class ContextTest
 {
@@ -36,7 +36,7 @@ public class ContextTest
     public void testConstruction()
     {
         JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
-        baseTest(new Jfire(jfireConfig), 4);
+        baseTest(jfireConfig.build(), 4);
     }
     
     private void baseTest(Jfire jfire, int expected)
@@ -61,7 +61,7 @@ public class ContextTest
         jfireConfig.registerBeanDefinition(House.class);
         jfireConfig.registerBeanDefinition(MutablePerson.class);
         jfireConfig.registerBeanDefinition(ImmutablePerson.class);
-        baseTest(new Jfire(jfireConfig), 3);
+        baseTest(jfireConfig.build(), 3);
     }
     
     @Test
@@ -71,21 +71,21 @@ public class ContextTest
         jfireConfig.registerBeanDefinition(House.class.getName(), false, House.class);
         jfireConfig.registerBeanDefinition(MutablePerson.class);
         jfireConfig.registerBeanDefinition(ImmutablePerson.class);
-        baseTest(new Jfire(jfireConfig), 3);
+        baseTest(jfireConfig.build(), 3);
     }
     
     @Test
     public void testInit()
     {
         JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
-        assertEquals(1, new Jfire(jfireConfig).getBeanDefinitionByInterface(JfireAwareContextInited.class).length);
+        assertEquals(1, jfireConfig.build().getBeanDefinitionByInterface(JfireAwareContextInited.class).length);
     }
     
     @Test
     public void testInit2()
     {
         JfireConfig jfireConfig = new JfireConfig(ContextTestScan.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         BeanDefinition bean = jfire.getBeanDefinition(House.class);
         Map<String, Object> map = new HashMap<String, Object>();
         assertEquals("林斌的房子", ((House) bean.getBeanInstanceResolver().getInstance(map)).getName());

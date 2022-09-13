@@ -2,10 +2,10 @@ package com.jfireframework.context.test.function;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.EnableAutoConfiguration;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.EnableAutoConfiguration;
 
 @EnableAutoConfiguration
 @Configuration
@@ -19,7 +19,7 @@ public class StarterTest
     public void test()
     {
         JfireConfig jfireConfig = new JfireConfig(StarterTest.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         MyStarter myStarter = jfire.getBean(MyStarter.class);
         Assert.assertNotNull(myStarter);
     }

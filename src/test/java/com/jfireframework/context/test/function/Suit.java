@@ -17,20 +17,22 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
 @Suite.SuiteClasses({ //
         AliasTest.class, //
         AopTest.class, //
-        ParamFieldTest.class, //
-        PropertyPathImporterTest.class, //
-        DiTest.class, //
         ContextTest.class, //
+        BeanAnnoTest.class, //
+        ParamFieldTest.class, //
         CacheTest.class, //
         InitMethodTest.class, //
+        LazyInitTest.class, //
         HolderTest.class, //
         MapTest.class, //
-        BeanAnnoTest.class, //
-        LazyInitTest.class, //
-        StarterTest.class, //
+        ValidateTest.class, //
         ConfigBeanTest.class, //
         ConfigurationBeanOrderTest.class, //
-        ValidateTest.class
+        DiTest.class, //
+        ImportOrderTest.class, //
+        ParamFieldTest.class, //
+        PropertyPathImporterTest.class, //
+        StarterTest.class, //
 })
 
 public class Suit

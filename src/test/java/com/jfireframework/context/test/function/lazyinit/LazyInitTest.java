@@ -4,10 +4,10 @@ import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
 
 @Resource
 public class LazyInitTest
@@ -60,7 +60,7 @@ public class LazyInitTest
     {
         JfireConfig jfireConfig = new JfireConfig(scan.class);
         jfireConfig.registerBeanDefinition(OriginInstance.class.getName(), false, OriginInstance.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         LazyInitTest container = jfire.getBean(LazyInitTest.class);
         Assert.assertEquals(0, invokedCount);
         container.name();
@@ -77,7 +77,7 @@ public class LazyInitTest
     {
         JfireConfig jfireConfig = new JfireConfig(scan.class);
         jfireConfig.registerBeanDefinition(OriginInstance.class.getName(), true, OriginInstance.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         LazyInitTest container = jfire.getBean(LazyInitTest.class);
         Assert.assertEquals(0, invokedCount);
         container.name();
@@ -94,7 +94,7 @@ public class LazyInitTest
     {
         JfireConfig jfireConfig = new JfireConfig(scan.class);
         jfireConfig.registerBeanDefinition(OriginInstance.class.getName(), false, OriginInstance.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         LazyInitTest container = jfire.getBean(LazyInitTest.class);
         Assert.assertEquals(0, invokedCount2);
         container.name2();
@@ -111,7 +111,7 @@ public class LazyInitTest
     {
         JfireConfig jfireConfig = new JfireConfig(scan.class);
         jfireConfig.registerBeanDefinition(OriginInstance.class.getName(), false, OriginInstance.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         LazyInitTest container = jfire.getBean(LazyInitTest.class);
         Assert.assertEquals(0, invokedCount3);
         container.name3();

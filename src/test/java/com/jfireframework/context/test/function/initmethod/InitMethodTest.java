@@ -2,10 +2,9 @@ package com.jfireframework.context.test.function.initmethod;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
 
 public class InitMethodTest
 {
@@ -20,7 +19,7 @@ public class InitMethodTest
     public void test()
     {
         JfireConfig config = new JfireConfig(InitMethodTestScan.class);
-        Person person = new Jfire(config).getBean(Person.class);
+        Person person = config.build().getBean(Person.class);
         Assert.assertEquals(23, person.getAge());
         Assert.assertEquals("林斌", person.getName());
     }

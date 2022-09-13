@@ -1,8 +1,8 @@
 package com.jfireframework.context.test.function.lazyinit;
 
-import com.jfireframework.jfire.bean.annotation.LazyInitUniltFirstInvoke;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
 
 @Configuration
 public class Provider

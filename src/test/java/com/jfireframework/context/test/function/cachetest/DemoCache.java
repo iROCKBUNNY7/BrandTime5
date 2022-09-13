@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.cachetest;
 
 import java.util.HashMap;
-import com.jfireframework.jfire.cache.Cache;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.Cache;
 
 public class DemoCache implements Cache
 {

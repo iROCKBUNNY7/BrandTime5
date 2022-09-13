@@ -8,10 +8,10 @@ import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
 
 @Testalis3(t = "sada")
 public class AliasTest
@@ -50,7 +50,7 @@ public class AliasTest
     public void test2()
     {
         JfireConfig jfireConfig = new JfireConfig(aliasCompopntScan.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         SingleDemo demo = (SingleDemo) jfire.getBean("demo");
         assertFalse(demo == null);
     }

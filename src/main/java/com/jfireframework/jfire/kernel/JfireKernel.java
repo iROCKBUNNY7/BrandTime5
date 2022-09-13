@@ -20,16 +20,16 @@ public class JfireKernel
 {
     protected static final Logger logger = LoggerFactory.getLogger(JfireKernel.class);
     
-    public void initJfire(Environment environment, Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, ClassLoader classLoader, ExtraInfoStore extraInfoStore)
+    public void initialize(Environment environment, Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, ClassLoader classLoader, ExtraInfoStore extraInfoStore)
     {
         String traceId = TRACEID.newTraceId();
-        Plugin[] plugins = new Plugin[] { //
-                new ProcessPreparedPlugin(), //
-                new InitializeBeanInstanceResolverPlugin(), //
-                new AwareInitializeFinishedPlugin(), //
-                new AwareContextInitedPlugin() };
+        Stage[] plugins = new Stage[] { //
+                new ProcessPreparedStage(), //
+                new InitializeBeanInstanceResolverStage(), //
+                new AwareInitializeFinishedStage(), //
+                new AwareContextInitedStage() };
         Timewatch timewatch = new Timewatch();
-        for (Plugin plugin : plugins)
+        for (Stage plugin : plugins)
         {
             timewatch.start();
             plugin.process(environment, beanDefinitions, properties, classLoader, extraInfoStore);
@@ -38,14 +38,14 @@ public class JfireKernel
         }
     }
     
-    interface Plugin
+    interface Stage
     {
         void process(Environment environment, Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, ClassLoader classLoader, ExtraInfoStore extraInfoStore);
         
         String name();
     }
     
-    abstract class NameablePlugin implements Plugin
+    abstract class NameableStage implements Stage
     {
         @Override
         public String name()
@@ -54,7 +54,7 @@ public class JfireKernel
         }
     }
     
-    class ProcessPreparedPlugin extends NameablePlugin
+    class ProcessPreparedStage extends NameableStage
     {
         class OrderEntry
         {
@@ -104,7 +104,7 @@ public class JfireKernel
         
     }
     
-    class InitializeBeanInstanceResolverPlugin extends NameablePlugin
+    class InitializeBeanInstanceResolverStage extends NameableStage
     {
         
         @Override
@@ -118,7 +118,7 @@ public class JfireKernel
         
     }
     
-    class AwareInitializeFinishedPlugin extends NameablePlugin
+    class AwareInitializeFinishedStage extends NameableStage
     {
         
         @Override
@@ -147,7 +147,7 @@ public class JfireKernel
         
     }
     
-    class AwareContextInitedPlugin extends NameablePlugin
+    class AwareContextInitedStage extends NameableStage
     {
         
         @Override

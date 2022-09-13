@@ -4,11 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.support.jfireprepared.SelectImport;
+import com.jfireframework.jfire.kernel.Jfire;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
 
 public class ParamFieldTest implements SelectImport
 {
@@ -70,7 +70,7 @@ public class ParamFieldTest implements SelectImport
     {
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(ParamFieldTest.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         ParamFieldTest data = jfire.getBean(ParamFieldTest.class);
         Assert.assertArrayEquals(new int[] { 1, 2 }, data.f1);
         Assert.assertEquals("aaa", data.f2);

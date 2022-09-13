@@ -3,14 +3,14 @@ package com.jfireframework.context.test.function;
 import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.kernel.Environment;
+import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.Import;
-import com.jfireframework.jfire.support.jfireprepared.SelectImport;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.Import;
+import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
 
 public class ImportOrderTest
 {
@@ -22,7 +22,7 @@ public class ImportOrderTest
     {
         JfireConfig jfireConfig = new JfireConfig();
         jfireConfig.registerBeanDefinition(Order1.class);
-        Jfire jfire = new Jfire(jfireConfig);
+        Jfire jfire = jfireConfig.build();
         Order1 order1 = jfire.getBean(Order1.class);
         Assert.assertEquals("1,2", order1.getResult());
     }

@@ -12,41 +12,30 @@ import java.util.Map;
 import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.condition.Condition;
+import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.support.JfirePrepared.condition.Condition;
 
 public class Environment
 {
     protected final Map<String, BeanDefinition>                beanDefinitions;
     protected final Map<String, String>                        properties;
-    protected final JfireConfig                                jfireConfig;
     protected final Set<Method>                                configMethods       = new HashSet<Method>();
     protected final Set<Class<?>>                              configClasses       = new HashSet<Class<?>>();
     protected final Map<Class<? extends Condition>, Condition> conditionImplStore  = new HashMap<Class<? extends Condition>, Condition>();
     private final ReadOnlyEnvironment                          readOnlyEnvironment = new ReadOnlyEnvironment(this);
-    private final AnnotationUtil                               annotationUtil      = new AnnotationUtil();
+    private final ExtraInfoStore                               extraInfoStore;
     private ClassLoader                                        classLoader;
     
-    public Environment(Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, JfireConfig jfireConfig)
+    public Environment(Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, ExtraInfoStore extraInfoStore)
     {
         this.beanDefinitions = beanDefinitions;
         this.properties = properties;
-        this.jfireConfig = jfireConfig;
+        this.extraInfoStore = extraInfoStore;
     }
     
     public void registerBeanDefinition(BeanDefinition beanDefinition)
     {
-        jfireConfig.registerBeanDefinition(beanDefinition);
-    }
-    
-    public void registerSingletonEntity(String beanName, Object entity)
-    {
-        jfireConfig.registerSingletonEntity(beanName, entity);
-    }
-    
-    public void registerBeanDefinition(Class<?> ckass)
-    {
-        jfireConfig.registerBeanDefinition(ckass);
+        beanDefinitions.put(beanDefinition.getBeanName(), beanDefinition);
     }
     
     public void setClassLoader(ClassLoader classLoader)
@@ -57,6 +46,16 @@ public class Environment
     public ClassLoader getClassLoader()
     {
         return classLoader;
+    }
+    
+    public ExtraInfoStore getExtraInfoStore()
+    {
+        return extraInfoStore;
+    }
+    
+    public Map<String, String> getProperties()
+    {
+        return properties;
     }
     
     public Map<String, BeanDefinition> getBeanDefinitions()
@@ -108,10 +107,6 @@ public class Environment
             return host.getBeanDefinition(type) != null;
         }
         
-        public AnnotationUtil getAnnotationUtil()
-        {
-            return host.getAnnotationUtil();
-        }
     }
     
     public ReadOnlyEnvironment readOnlyEnvironment()
@@ -131,6 +126,7 @@ public class Environment
     
     public boolean isAnnotationPresent(Class<? extends Annotation> annoType)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         for (Class<?> each : configClasses)
         {
             if (annotationUtil.isPresent(annoType, each))
@@ -150,6 +146,7 @@ public class Environment
     
     public <T extends Annotation> T getAnnotation(Class<T> type)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         for (Class<?> each : configClasses)
         {
             if (annotationUtil.isPresent(type, each))
@@ -170,6 +167,7 @@ public class Environment
     @SuppressWarnings("unchecked")
     public <T extends Annotation> T[] getAnnotations(Class<T> type)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         List<T> list = new ArrayList<T>();
         for (Class<?> each : configClasses)
         {
@@ -244,8 +242,4 @@ public class Environment
         return instance;
     }
     
-    public AnnotationUtil getAnnotationUtil()
-    {
-        return annotationUtil;
-    }
 }

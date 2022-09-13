@@ -14,14 +14,15 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.ExtraInfoStore;
+import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.kernel.JfireKernel;
 import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.LoadBy;
 import com.jfireframework.jfire.support.BeanInstanceResolver.OutterBeanInstanceResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
-import com.jfireframework.jfire.support.jfireprepared.Configuration;
-import com.jfireframework.jfire.support.jfireprepared.Import;
-import com.jfireframework.jfire.support.jfireprepared.SelectImport;
+import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.Import;
+import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
 
 public class JfireConfig
 {
@@ -29,8 +30,7 @@ public class JfireConfig
     protected ClassLoader                 classLoader     = JfireConfig.class.getClassLoader();
     protected Map<String, String>         properties      = new HashMap<String, String>();
     protected ExtraInfoStore              extraInfoStore  = new ExtraInfoStore();
-    protected Environment                 environment     = new Environment(beanDefinitions, properties, this);
-    protected AnnotationUtil              annotationUtil  = environment.getAnnotationUtil();
+    protected Environment                 environment     = new Environment(beanDefinitions, properties, extraInfoStore);
     protected static final Logger         logger          = LoggerFactory.getLogger(JfireConfig.class);
     
     public JfireConfig()
@@ -39,6 +39,7 @@ public class JfireConfig
     
     public JfireConfig(Class<?> configClass)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         if (annotationUtil.isPresent(Configuration.class, configClass))
         {
             environment.addConfigClass(configClass);
@@ -78,8 +79,9 @@ public class JfireConfig
         return this;
     }
     
-    protected void initJfire(Jfire jfire)
+    public Jfire build()
     {
+        Jfire jfire = new Jfire(environment.getBeanDefinitions());
         environment.setClassLoader(classLoader);
         registerSingletonEntity(ExtraInfoStore.class.getName(), extraInfoStore);
         registerSingletonEntity(Jfire.class.getName(), jfire);
@@ -88,8 +90,9 @@ public class JfireConfig
         registerBeanDefinition(Import.ProcessImport.class);
         registerBeanDefinition(SelectImport.ProcessSelectImport.class);
         registerBeanDefinition(Configuration.ProcessConfiguration.class);
-        JfireKernel jfireKernel = new JfireKernel();
-        jfireKernel.initJfire(environment, beanDefinitions, properties, classLoader, extraInfoStore);
+        new JfireKernel().initialize(environment, beanDefinitions, properties, classLoader, extraInfoStore);
+        Utils.clearAnnotationUtil();
+        return jfire;
     }
     
     public JfireConfig setClassLoader(ClassLoader classLoader)
@@ -120,6 +123,7 @@ public class JfireConfig
     
     private BeanDefinition buildBeanDefinition(String beanName, boolean prototype, Class<?> ckass)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         BeanDefinition beanDefinition;
         if (annotationUtil.isPresent(LoadBy.class, ckass))
         {
@@ -128,7 +132,7 @@ public class JfireConfig
         }
         else if (ckass.isInterface() == false)
         {
-            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype, classLoader, extraInfoStore, properties);
+            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype, environment);
             beanDefinition = new BeanDefinition(beanName, ckass, prototype, resolver);
         }
         else
@@ -141,6 +145,7 @@ public class JfireConfig
     
     private BeanDefinition buildBeanDefinition(Class<?> ckass)
     {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
         String beanName;
         boolean prototype;

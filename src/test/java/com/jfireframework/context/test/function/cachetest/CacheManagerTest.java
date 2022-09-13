@@ -1,8 +1,8 @@
 package com.jfireframework.context.test.function.cachetest;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.cache.Cache;
-import com.jfireframework.jfire.cache.CacheManager;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.Cache;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.CacheManager;
 
 @Resource
 public class CacheManagerTest implements CacheManager
