@@ -4,9 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.provider.ComponentScan;
-import com.jfireframework.jfire.bean.BeanDefinition;
-import com.jfireframework.jfire.config.annotation.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
 
 public class InitMethodTest
 {
@@ -26,17 +25,4 @@ public class InitMethodTest
         Assert.assertEquals("林斌", person.getName());
     }
     
-    @Test
-    public void testcfg()
-    {
-        JfireConfig config = new JfireConfig(InitMethodTestScan.class);
-        BeanDefinition beanInfo = new BeanDefinition();
-        beanInfo.setBeanName("p2");
-        beanInfo.setPostConstructMethod("initage");
-        config.registerBeanDefinition(beanInfo);
-        Jfire jfire = new Jfire(config);
-        Person2 person2 = jfire.getBean(Person2.class);
-        System.out.println("dsasdasd");
-        Assert.assertEquals(12, person2.getAge());
-    }
 }

@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.extrastore;
+package com.jfireframework.jfire.kernel;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

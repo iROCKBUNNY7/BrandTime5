@@ -1,15 +1,19 @@
-package com.jfireframework.jfire.config.annotation;
+package com.jfireframework.jfire.kernel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.annotation.Resource;
 
-@Target({ ElementType.TYPE })
+/**
+ * 用于指定顺序
+ * 
+ * @author 林斌
+ *
+ */
+@Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Resource
-public @interface Configuration
+public @interface Order
 {
-    
+    int value();
 }

@@ -5,8 +5,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.annotation.Bean;
-import com.jfireframework.jfire.config.annotation.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
 
 @Configuration
 @Resource

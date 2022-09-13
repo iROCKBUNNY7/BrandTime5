@@ -45,6 +45,7 @@ public class Enhance
     public void order3(ProceedPoint point)
     {
         order = 3;
+        System.out.println("触发");
     }
     
     @BeforeEnhance(value = "order()")

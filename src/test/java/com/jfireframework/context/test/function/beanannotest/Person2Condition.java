@@ -2,7 +2,7 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.condition.Condition;
-import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 
 public class Person2Condition implements Condition
 {

@@ -1,33 +1,26 @@
-package com.jfireframework.jfire.aware.provider;
+package com.jfireframework.jfire.support.jfireprepared;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.nio.charset.Charset;
 import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
-import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
-import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.kernel.Environment;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.*;
+import java.nio.charset.Charset;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
 @Documented
-@Import(PropertyPathImporter.class)
+@Import(PropertyPath.PropertyPathImporter.class)
 public @interface PropertyPath
 {
     public String[] value();
     
-    public class PropertyPathImporter implements JfireAwareBeforeInitialization
+    public class PropertyPathImporter implements SelectImport
     {
         IniFile processPath(String path)
         {
@@ -80,7 +73,7 @@ public @interface PropertyPath
         }
         
         @Override
-        public void awareBeforeInitialization(Environment environment)
+        public void selectImport(Environment environment)
         {
             if (environment.isAnnotationPresent(PropertyPath.class))
             {

@@ -5,12 +5,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
-import com.jfireframework.jfire.config.annotation.Configuration;
-import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.annotation.Order;
-import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.kernel.Environment;
+import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.Import;
+import com.jfireframework.jfire.support.jfireprepared.SelectImport;
 
 public class ImportOrderTest
 {
@@ -48,11 +48,11 @@ public class ImportOrderTest
     }
     
     @Order(1)
-    public static class Import1 implements JfireAwareBeforeInitialization
+    public static class Import1 implements SelectImport
     {
         
         @Override
-        public void awareBeforeInitialization(Environment environment)
+        public void selectImport(Environment environment)
         {
             String result = environment.getProperty("result");
             if (result == null)
@@ -69,11 +69,11 @@ public class ImportOrderTest
     }
     
     @Order(2)
-    public static class Import2 implements JfireAwareBeforeInitialization
+    public static class Import2 implements SelectImport
     {
         
         @Override
-        public void awareBeforeInitialization(Environment environment)
+        public void selectImport(Environment environment)
         {
             String result = environment.getProperty("result");
             if (result == null)

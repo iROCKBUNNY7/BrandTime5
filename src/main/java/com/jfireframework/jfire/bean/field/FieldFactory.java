@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Resource;
-import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.bean.field.dependency.DIField;
 import com.jfireframework.jfire.bean.field.dependency.DiFieldImpl;
@@ -42,6 +40,7 @@ import com.jfireframework.jfire.bean.field.param.impl.StringResolver;
 import com.jfireframework.jfire.bean.field.param.impl.WBooleanResolver;
 import com.jfireframework.jfire.bean.field.param.impl.WFloatResolver;
 import com.jfireframework.jfire.bean.field.param.impl.WLongResolver;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 
 public class FieldFactory
 {
@@ -49,14 +48,11 @@ public class FieldFactory
     /**
      * 根据配置信息和field上的注解信息,返回该bean所有的依赖注入的field
      * 
-     * @param bean
-     * @param beans
-     * @param beanConfig
      * @return
      */
-    public static List<DIField> buildDependencyFields(AnnotationUtil annotationUtil, BeanDefinition beanInfo, Map<String, BeanDefinition> beanDefinitions)
+    public static List<DIField> buildDependencyFields(AnnotationUtil annotationUtil, Class<?> type, Map<String, BeanDefinition> beanDefinitions)
     {
-        List<Field> fields = getAllFields(beanInfo.getType());
+        List<Field> fields = getAllFields(type);
         List<DIField> list = new LinkedList<DIField>();
         try
         {
@@ -116,21 +112,15 @@ public class FieldFactory
     /**
      * 根据配置文件，返回该bean所有的条件输入注入的field
      * 
-     * @param bean
-     * @param beanConfig
      * @return
      */
-    public static List<ParamField> buildParamField(AnnotationUtil annotationUtil, BeanDefinition beanDefinition, Map<String, String> params, Map<String, String> properties, ClassLoader classLoader)
+    public static List<ParamField> buildParamField(AnnotationUtil annotationUtil, Class<?> type, Map<String, String> properties, ClassLoader classLoader)
     {
-        List<Field> fields = getAllFields(beanDefinition.getType());
+        List<Field> fields = getAllFields(type);
         List<ParamField> list = new LinkedList<ParamField>();
         for (Field field : fields)
         {
-            if (params.containsKey(field.getName()))
-            {
-                list.add(buildParamField(field, params.get(field.getName()), annotationUtil));
-            }
-            else if (annotationUtil.isPresent(PropertyRead.class, field))
+            if (annotationUtil.isPresent(PropertyRead.class, field))
             {
                 PropertyRead propertyRead = annotationUtil.getAnnotation(PropertyRead.class, field);
                 String propertyName = propertyRead.value().equals("") ? field.getName() : propertyRead.value();
@@ -187,7 +177,7 @@ public class FieldFactory
         else
         {
             Class<?> fieldType = field.getType();
-            ParamResolver resolver;
+            ParamResolver resolver = null;
             if (Enum.class.isAssignableFrom(fieldType))
             {
                 resolver = new EnumResolver();
@@ -204,12 +194,9 @@ public class FieldFactory
                     throw new JustThrowException(e);
                 }
             }
-            else
-            {
-                throw new RuntimeException(StringUtil.format("属性类型{}还未支持，请联系框架作者eric@jfire.com", fieldType));
-            }
             resolver.initialize(value, field);
             return new ParamFieldImpl(field, resolver);
         }
     }
+    
 }

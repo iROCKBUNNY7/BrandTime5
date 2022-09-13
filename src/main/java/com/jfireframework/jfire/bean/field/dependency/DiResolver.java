@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 import sun.misc.Unsafe;
 
 public interface DiResolver

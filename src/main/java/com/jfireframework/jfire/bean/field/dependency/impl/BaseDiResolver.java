@@ -6,9 +6,9 @@ import javax.annotation.Resource;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.field.CanBeNull;
 import com.jfireframework.jfire.bean.field.dependency.DiResolver;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 
 public class BaseDiResolver implements DiResolver
 {
@@ -24,7 +24,7 @@ public class BaseDiResolver implements DiResolver
         }
         if (injectValue instanceof BeanDefinition)
         {
-            Object instance = ((BeanDefinition) injectValue).getConstructedBean().getInstance(beanInstanceMap);
+            Object instance = ((BeanDefinition) injectValue).getBeanInstanceResolver().getInstance(beanInstanceMap);
             unsafe.putObject(src, offset, instance);
         }
     }
@@ -39,7 +39,7 @@ public class BaseDiResolver implements DiResolver
             BeanDefinition nameBean = beanDefinitions.get(resource.name());
             if (nameBean != null)
             {
-                Verify.True(field.getType() == nameBean.getType(), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
+                Verify.True(field.getType() == nameBean.getOriginType(), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
                 injectValue = nameBean;
             }
             else
@@ -60,7 +60,7 @@ public class BaseDiResolver implements DiResolver
             BeanDefinition nameBean = beanDefinitions.get(beanName);
             if (nameBean != null)
             {
-                Verify.True(field.getType().isAssignableFrom(nameBean.getType()), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
+                Verify.True(field.getType().isAssignableFrom(nameBean.getOriginType()), "bean:{}不是类:{}的实例", nameBean.getBeanName(), field.getType().getName());
                 injectValue = nameBean;
                 return;
             }
@@ -69,7 +69,7 @@ public class BaseDiResolver implements DiResolver
                 Class<?> fieldType = field.getType();
                 for (BeanDefinition each : beanDefinitions.values())
                 {
-                    if (fieldType.isAssignableFrom(each.getType()))
+                    if (fieldType.isAssignableFrom(each.getOriginType()))
                     {
                         injectValue = each;
                         return;

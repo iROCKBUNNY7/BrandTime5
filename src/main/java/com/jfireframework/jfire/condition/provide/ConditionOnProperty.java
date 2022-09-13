@@ -4,7 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.condition.provide.ConditionOnProperty.OnProperty;
-import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(OnProperty.class)

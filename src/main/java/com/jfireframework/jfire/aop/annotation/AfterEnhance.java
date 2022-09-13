@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface AfterEnhance
 {
-    public String value() default "";
+    String value() default "";
     
-    public int order() default 1;
+    int order() default 1;
 }

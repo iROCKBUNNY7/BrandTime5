@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.provider.ComponentScan;
-import com.jfireframework.jfire.config.annotation.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.ComponentScan;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
 
 public class MapTest
 {

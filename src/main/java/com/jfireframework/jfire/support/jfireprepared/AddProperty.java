@@ -1,23 +1,20 @@
-package com.jfireframework.jfire.aware.provider;
+package com.jfireframework.jfire.support.jfireprepared;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
-import com.jfireframework.jfire.aware.provider.AddProperty.ImportProperty;
-import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.kernel.Environment;
 
-@Import(ImportProperty.class)
+@Import(AddProperty.ImportProperty.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AddProperty
 {
     String[] value();
     
-    public static class ImportProperty implements JfireAwareBeforeInitialization
+      class ImportProperty implements SelectImport
     {
         
         @Override
-        public void awareBeforeInitialization(Environment environment)
+        public void selectImport(Environment environment)
         {
             if (environment.isAnnotationPresent(AddProperty.class))
             {

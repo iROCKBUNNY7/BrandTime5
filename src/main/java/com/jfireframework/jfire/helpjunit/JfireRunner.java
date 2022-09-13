@@ -12,7 +12,7 @@ import org.junit.runners.model.Statement;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.config.annotation.Import;
+import com.jfireframework.jfire.support.jfireprepared.Import;
 
 public class JfireRunner extends BlockJUnit4ClassRunner
 {
@@ -53,6 +53,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
         return testRules.isEmpty() ? statement : new RunRules(statement, testRules, describeChild(method));
     }
     
+    @SuppressWarnings("unlikely-arg-type")
     private Statement withMethodRules(FrameworkMethod method, List<TestRule> testRules, Object target, Statement result)
     {
         for (org.junit.rules.MethodRule each : getMethodRules(target))

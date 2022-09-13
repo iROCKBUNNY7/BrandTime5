@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.base.data;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.aware.JfireAwareContextInited;
+import com.jfireframework.jfire.kernel.JfireAwareContextInited;
 
 @Resource
 public class House implements JfireAwareContextInited

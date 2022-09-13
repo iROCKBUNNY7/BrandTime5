@@ -8,10 +8,10 @@ import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.condition.Condition;
 import com.jfireframework.jfire.condition.Conditional;
 import com.jfireframework.jfire.condition.provide.ConditionOnBean;
-import com.jfireframework.jfire.config.annotation.Bean;
-import com.jfireframework.jfire.config.annotation.Configuration;
-import com.jfireframework.jfire.config.annotation.Order;
-import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
 
 public class ConfigurationBeanOrderTest
 {
@@ -83,7 +83,7 @@ public class ConfigurationBeanOrderTest
     public void test()
     {
         JfireConfig jfireConfig = new JfireConfig();
-        jfireConfig.registerConfiurationBeanDefinition(Order1.class);
+        jfireConfig.registerBeanDefinition(Order1.class);
         Jfire jfire = new Jfire(jfireConfig);
         User1 user1 = jfire.getBean(User1.class);
         Assert.assertNotNull(user1);
@@ -95,7 +95,7 @@ public class ConfigurationBeanOrderTest
     public void test_2()
     {
         JfireConfig jfireConfig = new JfireConfig();
-        jfireConfig.registerConfiurationBeanDefinition(Order2.class);
+        jfireConfig.registerBeanDefinition(Order2.class);
         Jfire jfire = new Jfire(jfireConfig);
         User1 user1 = jfire.getBean(User1.class);
         Assert.assertNotNull(user1);

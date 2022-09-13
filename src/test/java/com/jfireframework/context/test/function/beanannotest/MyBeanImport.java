@@ -1,13 +1,13 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
-import com.jfireframework.jfire.config.annotation.Bean;
-import com.jfireframework.jfire.config.annotation.Configuration;
-import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.kernel.Environment;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.SelectImport;
+import com.jfireframework.jfire.support.jfireprepared.Configuration.Bean;
 
 @Configuration
-public class MyBeanImport implements JfireAwareBeforeInitialization
+public class MyBeanImport implements SelectImport
 {
     @Resource
     private Environment environment;
@@ -30,7 +30,7 @@ public class MyBeanImport implements JfireAwareBeforeInitialization
     }
     
     @Override
-    public void awareBeforeInitialization(Environment environment)
+    public void selectImport(Environment environment)
     {
         environment.putProperty("person8", "insertPerson8");
     }

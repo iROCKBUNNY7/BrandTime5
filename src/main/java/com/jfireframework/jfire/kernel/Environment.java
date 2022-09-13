@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.config.environment;
+package com.jfireframework.jfire.kernel;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -13,7 +13,6 @@ import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.condition.Condition;
 
 public class Environment
@@ -50,11 +49,6 @@ public class Environment
         jfireConfig.registerBeanDefinition(ckass);
     }
     
-    public void registerConfiurationBeanDefinition(Class<?> ckass)
-    {
-        jfireConfig.registerConfiurationBeanDefinition(ckass);
-    }
-    
     public void setClassLoader(ClassLoader classLoader)
     {
         this.classLoader = classLoader;
@@ -63,6 +57,11 @@ public class Environment
     public ClassLoader getClassLoader()
     {
         return classLoader;
+    }
+    
+    public Map<String, BeanDefinition> getBeanDefinitions()
+    {
+        return beanDefinitions;
     }
     
     public static class ReadOnlyEnvironment

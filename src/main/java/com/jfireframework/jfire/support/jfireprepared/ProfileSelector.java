@@ -1,24 +1,20 @@
-package com.jfireframework.jfire.aware.provider;
+package com.jfireframework.jfire.support.jfireprepared;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.jfire.aware.JfireAwareBeforeInitialization;
-import com.jfireframework.jfire.aware.provider.ProfileSelector.ProfileImporter;
-import com.jfireframework.jfire.aware.provider.PropertyPath.PropertyPathImporter;
-import com.jfireframework.jfire.config.annotation.Import;
-import com.jfireframework.jfire.config.annotation.Order;
-import com.jfireframework.jfire.config.environment.Environment;
+import com.jfireframework.jfire.kernel.Environment;
+import com.jfireframework.jfire.kernel.Order;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-@Import(ProfileImporter.class)
+@Import(ProfileSelector.ProfileImporter.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileSelector
 {
     
     Profile[] value();
     
-    public @interface Profile
+     @interface Profile
     {
         String name();
         
@@ -26,15 +22,15 @@ public @interface ProfileSelector
     }
     
     @Order(100)
-    class ProfileImporter implements JfireAwareBeforeInitialization
+    class ProfileImporter implements SelectImport
     {
         
         @Override
-        public void awareBeforeInitialization(Environment environment)
+        public void selectImport(Environment environment)
         {
             if (environment.isAnnotationPresent(ProfileSelector.class))
             {
-                PropertyPathImporter util = new PropertyPathImporter();
+                PropertyPath.PropertyPathImporter util = new PropertyPath.PropertyPathImporter();
                 for (ProfileSelector selector : environment.getAnnotations(ProfileSelector.class))
                 {
                     String activeAttribute = environment.getProperty("jfire.profile.active");

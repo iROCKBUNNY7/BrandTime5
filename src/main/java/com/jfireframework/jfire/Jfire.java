@@ -1,16 +1,24 @@
 package com.jfireframework.jfire;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.bean.BeanDefinition;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 
 public class Jfire
 {
-    protected Map<String, BeanDefinition> beanDefinitions;
-    protected AnnotationUtil              annotationUtil;
+    protected Map<String, BeanDefinition>             beanDefinitions;
+    protected AnnotationUtil                          annotationUtil;
+    protected static ThreadLocal<Map<String, Object>> local = new ThreadLocal<Map<String, Object>>() {
+                                                                @Override
+                                                                protected Map<String, Object> initialValue()
+                                                                {
+                                                                    return new HashMap<String, Object>();
+                                                                }
+                                                            };
     
     public Jfire(JfireConfig jfireConfig)
     {
@@ -25,7 +33,10 @@ public class Jfire
         BeanDefinition beanDefinition = beanDefinitions.get(name);
         if (beanDefinition != null)
         {
-            return (T) beanDefinition.getInstance();
+            Map<String, Object> map = local.get();
+            Object instance = beanDefinition.getBeanInstanceResolver().getInstance(map);
+            map.clear();
+            return (T) instance;
         }
         else
         {
@@ -41,14 +52,18 @@ public class Jfire
         {
             return null;
         }
-        return (T) beanDefinition.getConstructedBean().getInstance();
+        Map<String, Object> map = local.get();
+        T instance = (T) beanDefinition.getBeanInstanceResolver().getInstance(map);
+        map.clear();
+        return instance;
     }
     
     public BeanDefinition getBeanDefinition(Class<?> beanClass)
     {
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (beanClass.isAssignableFrom(each.getOriginType()))
+            Class<?> type = each.getOriginType();
+            if (type == beanClass)
             {
                 return each;
             }
@@ -94,7 +109,7 @@ public class Jfire
     {
         for (BeanDefinition each : beanDefinitions.values())
         {
-            each.getConstructedBean().close();
+            each.getBeanInstanceResolver().close();
         }
     }
 }

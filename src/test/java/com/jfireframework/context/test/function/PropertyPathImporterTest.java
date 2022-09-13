@@ -4,9 +4,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.jfireframework.jfire.Jfire;
 import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.aware.provider.PropertyPath;
 import com.jfireframework.jfire.bean.annotation.field.PropertyRead;
-import com.jfireframework.jfire.config.annotation.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.Configuration;
+import com.jfireframework.jfire.support.jfireprepared.PropertyPath;
 
 public class PropertyPathImporterTest
 {

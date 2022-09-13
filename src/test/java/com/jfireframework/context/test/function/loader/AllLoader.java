@@ -3,7 +3,7 @@ package com.jfireframework.context.test.function.loader;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
-import com.jfireframework.jfire.bean.load.BeanLoadFactory;
+import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.BeanLoadFactory;
 
 @Resource(name = "allLoader")
 public class AllLoader implements BeanLoadFactory

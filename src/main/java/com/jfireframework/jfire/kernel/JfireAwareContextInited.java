@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.aware;
+package com.jfireframework.jfire.kernel;
 
 import com.jfireframework.baseutil.order.Order;
 

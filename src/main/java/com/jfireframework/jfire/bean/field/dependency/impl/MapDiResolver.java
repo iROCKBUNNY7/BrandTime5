@@ -11,9 +11,9 @@ import java.util.Map;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.annotation.field.MapKey;
 import com.jfireframework.jfire.bean.field.dependency.DiResolver;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 
 public class MapDiResolver implements DiResolver
 {
@@ -47,7 +47,7 @@ public class MapDiResolver implements DiResolver
                 {
                     try
                     {
-                        entryValue = each.getConstructedBean().getInstance(beanInstanceMap);
+                        entryValue = each.getBeanInstanceResolver().getInstance(beanInstanceMap);
                         entryKey = method.invoke(entryValue);
                         map.put(entryKey, entryValue);
                     }
@@ -72,7 +72,7 @@ public class MapDiResolver implements DiResolver
                 {
                     try
                     {
-                        entryValue = each.getConstructedBean().getInstance(beanInstanceMap);
+                        entryValue = each.getBeanInstanceResolver().getInstance(beanInstanceMap);
                         entryKey = each.getBeanName();
                         map.put(entryKey, entryValue);
                     }
@@ -100,7 +100,7 @@ public class MapDiResolver implements DiResolver
         injectValue = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (valueClass.isAssignableFrom(each.getType()))
+            if (valueClass.isAssignableFrom(each.getOriginType()))
             {
                 injectValue.add(each);
             }

@@ -2,7 +2,7 @@ package com.jfireframework.jfire.condition.provide;
 
 import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.condition.Condition;
-import com.jfireframework.jfire.config.environment.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 
 public abstract class BaseCondition<T extends Annotation> implements Condition
 {

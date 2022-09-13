@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.bean.BeanDefinition;
 import com.jfireframework.jfire.bean.field.dependency.DiResolver;
+import com.jfireframework.jfire.kernel.BeanDefinition;
 
 public class ListDiResolver implements DiResolver
 {
@@ -25,7 +25,7 @@ public class ListDiResolver implements DiResolver
         }
         for (BeanDefinition each : injectValue)
         {
-            list.add(each.getConstructedBean().getInstance(beanInstanceMap));
+            list.add(each.getBeanInstanceResolver().getInstance(beanInstanceMap));
         }
     }
     
@@ -46,7 +46,7 @@ public class ListDiResolver implements DiResolver
         injectValue = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (beanInterface.isAssignableFrom(each.getType()))
+            if (beanInterface.isAssignableFrom(each.getOriginType()))
             {
                 injectValue.add(each);
             }
