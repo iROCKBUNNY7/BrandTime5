@@ -1,7 +1,5 @@
 package com.jfireframework.jfire;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import javax.annotation.Resource;
@@ -26,12 +24,9 @@ import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
 
 public class JfireConfig
 {
-    protected Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
-    protected ClassLoader                 classLoader     = JfireConfig.class.getClassLoader();
-    protected Map<String, String>         properties      = new HashMap<String, String>();
-    protected ExtraInfoStore              extraInfoStore  = new ExtraInfoStore();
-    protected Environment                 environment     = new Environment(beanDefinitions, properties, extraInfoStore);
-    protected static final Logger         logger          = LoggerFactory.getLogger(JfireConfig.class);
+    protected ClassLoader         classLoader = Jfire.class.getClassLoader();
+    protected Environment         environment = new Environment();
+    protected static final Logger logger      = LoggerFactory.getLogger(JfireConfig.class);
     
     public JfireConfig()
     {
@@ -74,7 +69,7 @@ public class JfireConfig
     {
         for (BeanDefinition definition : definitions)
         {
-            beanDefinitions.put(definition.getBeanName(), definition);
+            environment.registerBeanDefinition(definition);
         }
         return this;
     }
@@ -83,14 +78,14 @@ public class JfireConfig
     {
         Jfire jfire = new Jfire(environment.getBeanDefinitions());
         environment.setClassLoader(classLoader);
-        registerSingletonEntity(ExtraInfoStore.class.getName(), extraInfoStore);
+        registerSingletonEntity(ExtraInfoStore.class.getName(), environment.getExtraInfoStore());
         registerSingletonEntity(Jfire.class.getName(), jfire);
         registerSingletonEntity(ClassLoader.class.getName(), classLoader);
         registerSingletonEntity(Environment.class.getName(), environment);
         registerBeanDefinition(Import.ProcessImport.class);
         registerBeanDefinition(SelectImport.ProcessSelectImport.class);
         registerBeanDefinition(Configuration.ProcessConfiguration.class);
-        new JfireKernel().initialize(environment, beanDefinitions, properties, classLoader, extraInfoStore);
+        new JfireKernel().initialize(environment);
         Utils.clearAnnotationUtil();
         return jfire;
     }
@@ -108,7 +103,7 @@ public class JfireConfig
         {
             for (Entry<Object, Object> entry : each.entrySet())
             {
-                this.properties.put((String) entry.getKey(), (String) entry.getValue());
+                environment.putProperty((String) entry.getKey(), (String) entry.getValue());
             }
         }
         return this;
@@ -116,8 +111,8 @@ public class JfireConfig
     
     public JfireConfig registerSingletonEntity(String beanName, Object entity)
     {
-        BeanDefinition beanDefinition = new BeanDefinition(beanName, entity.getClass(), false, new OutterBeanInstanceResolver(beanName, entity.getClass(), entity));
-        beanDefinitions.put(beanName, beanDefinition);
+        BeanDefinition beanDefinition = new BeanDefinition(beanName, entity.getClass(), false, new OutterBeanInstanceResolver(beanName, entity));
+        environment.registerBeanDefinition(beanDefinition);
         return this;
     }
     
@@ -132,14 +127,14 @@ public class JfireConfig
         }
         else if (ckass.isInterface() == false)
         {
-            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype, environment);
+            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
             beanDefinition = new BeanDefinition(beanName, ckass, prototype, resolver);
         }
         else
         {
             throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", ckass.getName()));
         }
-        beanDefinitions.put(beanName, beanDefinition);
+        environment.registerBeanDefinition(beanDefinition);
         return beanDefinition;
     }
     

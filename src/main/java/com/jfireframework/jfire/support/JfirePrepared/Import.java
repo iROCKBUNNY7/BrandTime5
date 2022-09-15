@@ -6,6 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.Environment;
@@ -25,21 +28,22 @@ public @interface Import
     
     class ProcessImport implements JfirePrepared
     {
-        @SuppressWarnings("unchecked")
+        private static final Logger logger = LoggerFactory.getLogger(ProcessImport.class);
+        
         @Override
         public void prepared(Environment environment)
         {
             AnnotationUtil annotationUtil = new AnnotationUtil();
             Map<String, BeanDefinition> beanDefinitions = environment.getBeanDefinitions();
-            List<Class<? extends JfirePrepared>> tmp = new ArrayList<Class<? extends JfirePrepared>>();
+            List<Class<?>> tmp = new ArrayList<Class<?>>();
             for (BeanDefinition each : beanDefinitions.values())
             {
-                if (each.getOriginType() != null && annotationUtil.isPresent(Import.class, each.getOriginType()))
+                if (each.getType() != null && annotationUtil.isPresent(Import.class, each.getType()))
                 {
-                    tmp.add((Class<? extends JfirePrepared>) each.getOriginType());
+                    tmp.add(each.getType());
                 }
             }
-            for (Class<? extends JfirePrepared> each : tmp)
+            for (Class<?> each : tmp)
             {
                 processImport(each, environment, annotationUtil);
             }
@@ -49,12 +53,14 @@ public @interface Import
         {
             if (annotationUtil.isPresent(Import.class, ckass))
             {
+                String traceId = TRACEID.currentTraceId();
                 Import[] annotations = annotationUtil.getAnnotations(Import.class, ckass);
                 for (Import annotation : annotations)
                 {
                     for (Class<?> each : annotation.value())
                     {
-                        BeanDefinition beanDefinition = new BeanDefinition(each.getName(), each, false, new ReflectBeanInstanceResolver(each.getName(), each, false, environment));
+                        logger.debug("traceId:{} 导入类:{}", traceId, each.getName());
+                        BeanDefinition beanDefinition = new BeanDefinition(each.getName(), each, false, new ReflectBeanInstanceResolver(each.getName(), each, false));
                         environment.registerBeanDefinition(beanDefinition);
                         processImport(each, environment, annotationUtil);
                     }

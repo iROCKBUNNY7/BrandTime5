@@ -13,6 +13,7 @@ import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
+import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
 
 public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
@@ -31,8 +32,9 @@ public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
     }
     
     @Override
-    public void initialize(Map<String, BeanDefinition> definitions)
+    public void initialize(Environment environment)
     {
+        Map<String, BeanDefinition> definitions = environment.getBeanDefinitions();
         BeanDefinition beanDefinition = definitions.get(factoryBeanName);
         Verify.notNull(beanDefinition, "需要的工厂bean:{}不存在", factoryBeanName);
         factoryBean = beanDefinition.getBeanInstanceResolver();

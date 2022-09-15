@@ -1,19 +1,17 @@
 package com.jfireframework.jfire.support.BeanInstanceResolver;
 
 import java.util.Map;
-import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
+import com.jfireframework.jfire.kernel.Environment;
 
 public class OutterBeanInstanceResolver implements BeanInstanceResolver
 {
-    private final String   beanName;
-    private final Class<?> type;
-    private final Object   instance;
+    private final String beanName;
+    private final Object instance;
     
-    public OutterBeanInstanceResolver(String beanName, Class<?> type, Object instance)
+    public OutterBeanInstanceResolver(String beanName, Object instance)
     {
         this.beanName = beanName;
-        this.type = type;
         this.instance = instance;
     }
     
@@ -25,7 +23,7 @@ public class OutterBeanInstanceResolver implements BeanInstanceResolver
     }
     
     @Override
-    public void initialize(Map<String, BeanDefinition> definitions)
+    public void initialize(Environment environment)
     {
         ;
     }
@@ -35,17 +33,4 @@ public class OutterBeanInstanceResolver implements BeanInstanceResolver
     {
         ;
     }
-    
-    @Override
-    public String beanName()
-    {
-        return beanName;
-    }
-    
-    @Override
-    public Class<?> beanType()
-    {
-        return type;
-    }
-    
 }

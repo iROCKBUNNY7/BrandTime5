@@ -4,9 +4,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.support.LazyInitHelper;
 
@@ -29,18 +27,12 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
         this.lazyInitUntilFirstInvoke = lazyInitUntilFirstInvoke;
         if (lazyInitUntilFirstInvoke)
         {
-            lazyInitHelper = new LazyInitHelper(prototype, type) {
+            lazyInitHelper = new LazyInitHelper(prototype, type, beanName) {
                 
                 @Override
                 protected Object buildInstance(Map<String, Object> beanInstanceMap)
                 {
                     return BaseBeanInstanceResolver.this.buildInstance(beanInstanceMap);
-                }
-                
-                @Override
-                protected Object initSingletonInstance(Map<String, Object> beanInstanceMap)
-                {
-                    return BaseBeanInstanceResolver.this.initSingletonInstance(beanInstanceMap);
                 }
                 
             };
@@ -72,8 +64,7 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
     {
         try
         {
-            Object instance;
-            instance = lazyInitHelper.generateLazyInitProxyInstance();
+            Object instance = lazyInitHelper.getLazyInitProxyInstance();
             beanInstanceMap.put(beanName, instance);
             return instance;
         }
@@ -89,8 +80,14 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
         {
             if (singletonInstance == null)
             {
-                initSingletonInstance(beanInstanceMap);
-                return singletonInstance;
+                synchronized (this)
+                {
+                    if (singletonInstance == null)
+                    {
+                        singletonInstance = buildInstance(beanInstanceMap);
+                    }
+                    return singletonInstance;
+                }
             }
             else
             {
@@ -100,22 +97,6 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
         else
         {
             return buildInstance(beanInstanceMap);
-        }
-    }
-    
-    protected synchronized Object initSingletonInstance(Map<String, Object> beanInstanceMap)
-    {
-        try
-        {
-            if (singletonInstance == null)
-            {
-                singletonInstance = buildInstance(beanInstanceMap);
-            }
-            return singletonInstance;
-        }
-        catch (Exception e)
-        {
-            throw new UnSupportException(StringUtil.format("初始化bean实例错误，实例名称:{},对象类名:{}", beanName, type.getName()), e);
         }
     }
     
@@ -135,18 +116,6 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
                 throw new JustThrowException(e);
             }
         }
-    }
-    
-    @Override
-    public String beanName()
-    {
-        return beanName;
-    }
-    
-    @Override
-    public Class<?> beanType()
-    {
-        return type;
     }
     
 }

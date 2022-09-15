@@ -41,14 +41,14 @@ public interface SelectImport
             ArrayList<Entry> list = new ArrayList<Entry>();
             for (BeanDefinition definition : environment.getBeanDefinitions().values())
             {
-                if (definition.getOriginType() != null)
+                if (definition.getType() != null)
                 {
-                    if (SelectImport.class.isAssignableFrom(definition.getOriginType()))
+                    if (SelectImport.class.isAssignableFrom(definition.getType()))
                     {
                         Entry entry;
-                        if (definition.getOriginType().isAnnotationPresent(Order.class))
+                        if (definition.getType().isAnnotationPresent(Order.class))
                         {
-                            Order order = definition.getOriginType().getAnnotation(Order.class);
+                            Order order = definition.getType().getAnnotation(Order.class);
                             entry = new Entry(order.value(), definition);
                         }
                         else
@@ -72,8 +72,8 @@ public interface SelectImport
                 String traceId = TRACEID.currentTraceId();
                 for (Entry each : list)
                 {
-                    logger.debug("traceId:{} 准备执行:{}", traceId, each.beanDefinition.getOriginType());
-                    ((SelectImport) each.beanDefinition.getOriginType().newInstance()).selectImport(environment);
+                    logger.debug("traceId:{} 准备执行:{}", traceId, each.beanDefinition.getType().getName());
+                    ((SelectImport) each.beanDefinition.getType().newInstance()).selectImport(environment);
                 }
             }
             catch (Exception e)

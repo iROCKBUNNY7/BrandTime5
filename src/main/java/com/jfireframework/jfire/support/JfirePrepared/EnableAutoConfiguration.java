@@ -87,7 +87,7 @@ public @interface EnableAutoConfiguration
             String traceId = TRACEID.currentTraceId();
             logger.debug("traceId:{} 扫描发现并注册类:{}", traceId, className);
             Class<?> configor = environment.getClassLoader().loadClass(className);
-            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(className, configor, false, environment);
+            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(className, configor, false);
             environment.registerBeanDefinition(new BeanDefinition(className, configor, false, resolver));
         }
         

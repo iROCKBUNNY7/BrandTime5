@@ -100,7 +100,7 @@ public class MapDiResolver implements DiResolver
         injectValue = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (valueClass.isAssignableFrom(each.getOriginType()))
+            if (valueClass.isAssignableFrom(each.getType()))
             {
                 injectValue.add(each);
             }

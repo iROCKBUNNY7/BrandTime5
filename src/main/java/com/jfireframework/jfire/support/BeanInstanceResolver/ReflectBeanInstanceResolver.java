@@ -51,22 +51,17 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.p
 
 public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 {
-    private final ClassLoader         classLoader;
-    private final ExtraInfoStore      extraInfoStore;
-    private final Map<String, String> properties;
-    private String                    postConstructMethod;
-    private Method                    _postConstructMethod;
-    private String                    closeMethod;
-    private List<DIField>             diFields;
-    private List<ParamField>          paramFields;
-    private Class<?>                  enhanceType;
-    private static AtomicInteger      enhanceCount = new AtomicInteger(0);
+    private ClassLoader          classLoader;
+    private ExtraInfoStore       extraInfoStore;
+    private Map<String, String>  properties;
+    private Method               postConstructMethod;
+    private List<DIField>        diFields;
+    private List<ParamField>     paramFields;
+    private Class<?>             enhanceType;
+    private static AtomicInteger enhanceCount = new AtomicInteger(0);
     
-    public ReflectBeanInstanceResolver(String beanName, Class<?> type, boolean prototype, Environment environment)
+    public ReflectBeanInstanceResolver(String beanName, Class<?> type, boolean prototype)
     {
-        classLoader = environment.getClassLoader();
-        extraInfoStore = environment.getExtraInfoStore();
-        properties = environment.getProperties();
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         lazyInitUntilFirstInvoke = annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type);
         baseInitialize(beanName, type, prototype, lazyInitUntilFirstInvoke);
@@ -89,7 +84,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
             }
             if (postConstructMethod != null)
             {
-                _postConstructMethod.invoke(instance);
+                postConstructMethod.invoke(instance);
             }
             return instance;
         }
@@ -100,44 +95,17 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
     }
     
     @Override
-    public void initialize(Map<String, BeanDefinition> definitions)
+    public void initialize(Environment environment)
     {
-        findAnnoedPostAndPreDestoryMethod();
+        properties = environment.getProperties();
+        classLoader = environment.getClassLoader();
+        extraInfoStore = environment.getExtraInfoStore();
+        Map<String, BeanDefinition> definitions = environment.getBeanDefinitions();
         enhanceType = enhance(definitions);
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         diFields = FieldFactory.buildDependencyFields(annotationUtil, enhanceType, definitions);
         paramFields = FieldFactory.buildParamField(annotationUtil, enhanceType, properties, classLoader);
-        if (postConstructMethod != null)
-        {
-            _postConstructMethod = getMethod(postConstructMethod, enhanceType);
-            _postConstructMethod.setAccessible(true);
-        }
-        if (closeMethod != null)
-        {
-            preDestoryMethod = getMethod(closeMethod, enhanceType);
-            preDestoryMethod.setAccessible(true);
-        }
-    }
-    
-    Method getMethod(String name, Class<?> type)
-    {
-        while (type != Object.class)
-        {
-            try
-            {
-                Method method = type.getDeclaredMethod(name);
-                return method;
-            }
-            catch (NoSuchMethodException e)
-            {
-                continue;
-            }
-            catch (Exception e)
-            {
-                throw new JustThrowException(e);
-            }
-        }
-        throw new NullPointerException();
+        findAnnoedPostAndPreDestoryMethod();
     }
     
     void findAnnoedPostAndPreDestoryMethod()
@@ -147,11 +115,27 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
         {
             if (annotationUtil.isPresent(PostConstruct.class, method))
             {
-                postConstructMethod = method.getName();
+                try
+                {
+                    postConstructMethod = enhanceType.getDeclaredMethod(method.getName());
+                    postConstructMethod.setAccessible(true);
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
             }
             if (annotationUtil.isPresent(PreDestroy.class, method))
             {
-                closeMethod = method.getName();
+                try
+                {
+                    preDestoryMethod = enhanceType.getDeclaredMethod(method.getName());
+                    preDestoryMethod.setAccessible(true);
+                }
+                catch (Exception e)
+                {
+                    throw new JustThrowException(e);
+                }
             }
         }
     }
@@ -461,9 +445,9 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         for (BeanDefinition enhanceBeanDefinition : beanDefinitions.values())
         {
-            if (annotationUtil.isPresent(EnhanceClass.class, enhanceBeanDefinition.getOriginType()))
+            if (annotationUtil.isPresent(EnhanceClass.class, enhanceBeanDefinition.getType()))
             {
-                String rule = annotationUtil.getAnnotation(EnhanceClass.class, enhanceBeanDefinition.getOriginType()).value();
+                String rule = annotationUtil.getAnnotation(EnhanceClass.class, enhanceBeanDefinition.getType()).value();
                 if (StringUtil.match(type.getName(), rule))
                 {
                     beanAopDefinition.resolveEnhanceBeanDefinition(enhanceBeanDefinition);
@@ -506,7 +490,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
             String enhanceBeanfieldName = "jfireinvoker$" + enhanceCount.incrementAndGet();
             String path;
             int order;
-            for (Method each : enhanceBeanDefinition.getOriginType().getDeclaredMethods())
+            for (Method each : enhanceBeanDefinition.getType().getDeclaredMethods())
             {
                 if (annotationUtil.isPresent(AfterEnhance.class, each))
                 {
@@ -531,7 +515,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
                     ThrowEnhance throwEnhance = annotationUtil.getAnnotation(ThrowEnhance.class, each);
                     path = throwEnhance.value().equals("") ? each.getName() + "(*)" : throwEnhance.value();
                     order = throwEnhance.order();
-                    EnhanceAnnoInfo enhanceAnnoInfo = new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getOriginType(), enhanceBeanfieldName, path, order, each);
+                    EnhanceAnnoInfo enhanceAnnoInfo = new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each);
                     enhanceAnnoInfo.setThrowtype(throwEnhance.type());
                     enhanceAnnoInfos.add(enhanceAnnoInfo);
                     continue;
@@ -540,7 +524,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
                 {
                     continue;
                 }
-                enhanceAnnoInfos.add(new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getOriginType(), enhanceBeanfieldName, path, order, each));
+                enhanceAnnoInfos.add(new EnhanceAnnoInfo(annotationUtil, enhanceBeanDefinition.getBeanName(), enhanceBeanDefinition.getType(), enhanceBeanfieldName, path, order, each));
             }
         }
         

@@ -6,8 +6,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Resource;
-import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
@@ -73,13 +70,13 @@ public @interface Configuration
             List<ConfigurationOrder> configurationOrders = new ArrayList<Configuration.ProcessConfiguration.ConfigurationOrder>();
             for (BeanDefinition each : environment.getBeanDefinitions().values())
             {
-                if (annotationUtil.isPresent(Configuration.class, each.getOriginType()))
+                if (annotationUtil.isPresent(Configuration.class, each.getType()))
                 {
-                    int order = annotationUtil.isPresent(Order.class, each.getOriginType()) ? annotationUtil.getAnnotation(Order.class, each.getOriginType()).value() : 0;
+                    int order = annotationUtil.isPresent(Order.class, each.getType()) ? annotationUtil.getAnnotation(Order.class, each.getType()).value() : 0;
                     ConfigurationOrder configurationOrder = new ConfigurationOrder();
-                    configurationOrder.type = each.getOriginType();
+                    configurationOrder.type = each.getType();
                     configurationOrder.order = order;
-                    for (Method method : each.getOriginType().getDeclaredMethods())
+                    for (Method method : each.getType().getDeclaredMethods())
                     {
                         if (annotationUtil.isPresent(Bean.class, method))
                         {
@@ -162,27 +159,9 @@ public @interface Configuration
         {
             Bean annotatedBean = annotationUtil.getAnnotation(Bean.class, method);
             String beanName = "".equals(annotatedBean.name()) ? method.getName() : annotatedBean.name();
-            if (method.getGenericReturnType() instanceof Class)
-            {
-                BeanInstanceResolver resolver = new MethodBeanInstanceResolver(method);
-                BeanDefinition beanDefinition = new BeanDefinition(beanName, method.getReturnType(), annotatedBean.prototype(), resolver);
-                return beanDefinition;
-            }
-            else
-            {
-                Type returnType = method.getGenericReturnType();
-                if (returnType instanceof ParameterizedType)
-                {
-                    returnType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
-                    BeanInstanceResolver resolver = new MethodBeanInstanceResolver(method);
-                    BeanDefinition beanDefinition = new BeanDefinition(beanName, (Class<?>) returnType, annotatedBean.prototype(), resolver);
-                    return beanDefinition;
-                }
-                else
-                {
-                    throw new UnsupportedOperationException(StringUtil.format("不支持配置，请检查方法:{}", method.toGenericString()));
-                }
-            }
+            BeanInstanceResolver resolver = new MethodBeanInstanceResolver(method);
+            BeanDefinition beanDefinition = new BeanDefinition(beanName, method.getReturnType(), annotatedBean.prototype(), resolver);
+            return beanDefinition;
         }
     }
     

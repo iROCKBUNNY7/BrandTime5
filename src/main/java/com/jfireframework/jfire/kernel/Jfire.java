@@ -57,12 +57,25 @@ public class Jfire
     
     public BeanDefinition getBeanDefinition(Class<?> beanClass)
     {
-        for (BeanDefinition each : beanDefinitions.values())
+        if (beanClass.isInterface())
         {
-            Class<?> type = each.getOriginType();
-            if (type == beanClass)
+            for (BeanDefinition each : beanDefinitions.values())
             {
-                return each;
+                if (beanClass.isAssignableFrom(each.getType()))
+                {
+                    return each;
+                }
+            }
+        }
+        else
+        {
+            for (BeanDefinition each : beanDefinitions.values())
+            {
+                Class<?> type = each.getType();
+                if (type == beanClass)
+                {
+                    return each;
+                }
             }
         }
         return null;
@@ -78,7 +91,7 @@ public class Jfire
         List<BeanDefinition> result = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (annotationUtil.isPresent(annotationType, each.getOriginType()))
+            if (annotationUtil.isPresent(annotationType, each.getType()))
             {
                 result.add(each);
             }
@@ -91,7 +104,7 @@ public class Jfire
         List<BeanDefinition> list = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (type.isAssignableFrom(each.getOriginType()))
+            if (type.isAssignableFrom(each.getType()))
             {
                 list.add(beanDefinitions.get(each.getBeanName()));
             }

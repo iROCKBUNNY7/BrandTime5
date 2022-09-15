@@ -6,7 +6,9 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
+import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
@@ -16,9 +18,10 @@ import com.jfireframework.baseutil.smc.model.MethodModel;
 
 public abstract class LazyInitHelper
 {
-    private final Constructor<?>                      proxyConstructor;
     private final boolean                             prototype;
     private final Class<?>                            originType;
+    private final String                              beanName;
+    private final Object                              lazyInitProxyInstance;
     private volatile Object                           singletonInstance;
     static final AtomicInteger                        typeCount = new AtomicInteger(1);
     protected static ThreadLocal<Map<String, Object>> local     = new ThreadLocal<Map<String, Object>>() {
@@ -29,11 +32,19 @@ public abstract class LazyInitHelper
                                                                     }
                                                                 };
     
-    public LazyInitHelper(boolean prototype, Class<?> originType)
+    public LazyInitHelper(boolean prototype, Class<?> originType, String beanName)
     {
         this.prototype = prototype;
         this.originType = originType;
-        proxyConstructor = generateLazyInitProxy();
+        this.beanName = beanName;
+        try
+        {
+            lazyInitProxyInstance = generateLazyInitProxy().newInstance(this);
+        }
+        catch (Exception e)
+        {
+            throw new JustThrowException(e);
+        }
     }
     
     public Object truelyInitAndGet()
@@ -63,13 +74,27 @@ public abstract class LazyInitHelper
     
     protected abstract Object buildInstance(Map<String, Object> beanInstanceMap);
     
-    protected abstract Object initSingletonInstance(Map<String, Object> beanInstanceMap);
-    
-    public Object generateLazyInitProxyInstance()
+    protected synchronized Object initSingletonInstance(Map<String, Object> beanInstanceMap)
     {
         try
         {
-            return proxyConstructor.newInstance(LazyInitHelper.this);
+            if (singletonInstance == null)
+            {
+                singletonInstance = buildInstance(beanInstanceMap);
+            }
+            return singletonInstance;
+        }
+        catch (Exception e)
+        {
+            throw new UnSupportException(StringUtil.format("初始化bean实例错误，实例名称:{},对象类名:{}", beanName, originType.getName()), e);
+        }
+    }
+    
+    public Object getLazyInitProxyInstance()
+    {
+        try
+        {
+            return lazyInitProxyInstance;
         }
         catch (Exception e)
         {

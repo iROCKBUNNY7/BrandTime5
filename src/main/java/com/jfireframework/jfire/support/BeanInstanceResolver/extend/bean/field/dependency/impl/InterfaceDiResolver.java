@@ -46,7 +46,7 @@ public class InterfaceDiResolver implements DiResolver
             else
             {
                 Verify.exist(nameBean, "属性{}.{}指定需要bean:{}注入，但是该bean不存在，请检查", field.getDeclaringClass().getName(), field.getName(), resource.name());
-                Verify.True(type.isAssignableFrom(nameBean.getOriginType()), "bean:{}不是接口:{}的实现", nameBean.getOriginType().getName(), type.getName());
+                Verify.True(type.isAssignableFrom(nameBean.getType()), "bean:{}不是接口:{}的实现", nameBean.getType().getName(), type.getName());
                 injectValue = nameBean;
             }
         }
@@ -57,7 +57,7 @@ public class InterfaceDiResolver implements DiResolver
             BeanDefinition implBean = null;
             for (BeanDefinition each : beanDefinitions.values())
             {
-                if (type.isAssignableFrom(each.getOriginType()))
+                if (type.isAssignableFrom(each.getType()))
                 {
                     find++;
                     if (find > 1)

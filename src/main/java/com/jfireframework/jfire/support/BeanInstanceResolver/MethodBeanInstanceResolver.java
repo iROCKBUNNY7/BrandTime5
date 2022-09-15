@@ -9,6 +9,7 @@ import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
+import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
 
@@ -71,12 +72,13 @@ public class MethodBeanInstanceResolver extends BaseBeanInstanceResolver
     }
     
     @Override
-    public void initialize(Map<String, BeanDefinition> definitions)
+    public void initialize(Environment environment)
     {
+        Map<String, BeanDefinition> definitions = environment.getBeanDefinitions();
         Class<?> hostBeanType = method.getDeclaringClass();
         for (BeanDefinition each : definitions.values())
         {
-            if (hostBeanType == each.getOriginType() || hostBeanType == each.getOriginType().getSuperclass())
+            if (hostBeanType == each.getType() || hostBeanType == each.getType().getSuperclass())
             {
                 hostBean = each.getBeanInstanceResolver();
                 break;
@@ -89,7 +91,7 @@ public class MethodBeanInstanceResolver extends BaseBeanInstanceResolver
             Class<?> type = paramTypes[i];
             for (BeanDefinition each : definitions.values())
             {
-                if (type == each.getOriginType() || type == each.getOriginType().getSuperclass())
+                if (type == each.getType() || type == each.getType().getSuperclass())
                 {
                     paramBeans[i] = each.getBeanInstanceResolver();
                     break;

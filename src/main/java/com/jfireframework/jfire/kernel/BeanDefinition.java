@@ -1,16 +1,19 @@
 package com.jfireframework.jfire.kernel;
 
+import com.jfireframework.baseutil.exception.JustThrowException;
+
 public class BeanDefinition
 {
     private final String               beanName;
-    private final Class<?>             originType;
+    private final Class<?>             type;
     private final boolean              prototype;
     private final BeanInstanceResolver beanInstanceResolver;
+    private Object                     reflectInstance;
     
-    public BeanDefinition(String beanName, Class<?> originType, boolean prototype, BeanInstanceResolver beanInstanceResolver)
+    public BeanDefinition(String beanName, Class<?> type, boolean prototype, BeanInstanceResolver beanInstanceResolver)
     {
         this.beanName = beanName;
-        this.originType = originType;
+        this.type = type;
         this.prototype = prototype;
         this.beanInstanceResolver = beanInstanceResolver;
     }
@@ -25,14 +28,30 @@ public class BeanDefinition
         return beanName;
     }
     
-    public Class<?> getOriginType()
+    public Class<?> getType()
     {
-        return originType;
+        return type;
     }
     
     public boolean isPrototype()
     {
         return prototype;
+    }
+    
+    public Object getReflectInstance()
+    {
+        if (reflectInstance == null)
+        {
+            try
+            {
+                reflectInstance = type.newInstance();
+            }
+            catch (Exception e)
+            {
+                throw new JustThrowException(e);
+            }
+        }
+        return reflectInstance;
     }
     
 }

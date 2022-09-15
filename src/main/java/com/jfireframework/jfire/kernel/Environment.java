@@ -17,26 +17,14 @@ import com.jfireframework.jfire.support.JfirePrepared.condition.Condition;
 
 public class Environment
 {
-    protected final Map<String, BeanDefinition>                beanDefinitions;
-    protected final Map<String, String>                        properties;
+    protected final Map<String, BeanDefinition>                beanDefinitions     = new HashMap<String, BeanDefinition>();
+    protected final Map<String, String>                        properties          = new HashMap<String, String>();
     protected final Set<Method>                                configMethods       = new HashSet<Method>();
     protected final Set<Class<?>>                              configClasses       = new HashSet<Class<?>>();
     protected final Map<Class<? extends Condition>, Condition> conditionImplStore  = new HashMap<Class<? extends Condition>, Condition>();
     private final ReadOnlyEnvironment                          readOnlyEnvironment = new ReadOnlyEnvironment(this);
-    private final ExtraInfoStore                               extraInfoStore;
+    private final ExtraInfoStore                               extraInfoStore      = new ExtraInfoStore();
     private ClassLoader                                        classLoader;
-    
-    public Environment(Map<String, BeanDefinition> beanDefinitions, Map<String, String> properties, ExtraInfoStore extraInfoStore)
-    {
-        this.beanDefinitions = beanDefinitions;
-        this.properties = properties;
-        this.extraInfoStore = extraInfoStore;
-    }
-    
-    public void registerBeanDefinition(BeanDefinition beanDefinition)
-    {
-        beanDefinitions.put(beanDefinition.getBeanName(), beanDefinition);
-    }
     
     public void setClassLoader(ClassLoader classLoader)
     {
@@ -45,7 +33,14 @@ public class Environment
     
     public ClassLoader getClassLoader()
     {
-        return classLoader;
+        if (classLoader == null)
+        {
+            return Environment.class.getClassLoader();
+        }
+        else
+        {
+            return classLoader;
+        }
     }
     
     public ExtraInfoStore getExtraInfoStore()
@@ -61,6 +56,11 @@ public class Environment
     public Map<String, BeanDefinition> getBeanDefinitions()
     {
         return beanDefinitions;
+    }
+    
+    public void registerBeanDefinition(BeanDefinition beanDefinition)
+    {
+        beanDefinitions.put(beanDefinition.getBeanName(), beanDefinition);
     }
     
     public static class ReadOnlyEnvironment
@@ -201,7 +201,7 @@ public class Environment
     {
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (type.isAssignableFrom(each.getOriginType()))
+            if (type == each.getType())
             {
                 return each;
             }

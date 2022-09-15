@@ -77,7 +77,7 @@ public @interface ComponentScan
                     }
                     else
                     {
-                        resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype, environment);
+                        resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
                     }
                     environment.registerBeanDefinition(new BeanDefinition(beanName, ckass, prototype, resolver));
                 }

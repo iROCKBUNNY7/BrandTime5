@@ -6,14 +6,11 @@ public interface BeanInstanceResolver
 {
     Object getInstance(Map<String, Object> beanInstanceMap);
     
-    void initialize(Map<String, BeanDefinition> definitions);
+    void initialize(Environment environment);
     
     /**
      * 当容器被关闭的时候该方法会被调用
      */
     void close();
     
-    String beanName();
-    
-    Class<?> beanType();
 }

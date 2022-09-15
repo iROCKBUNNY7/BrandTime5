@@ -46,7 +46,7 @@ public class ListDiResolver implements DiResolver
         injectValue = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if (beanInterface.isAssignableFrom(each.getOriginType()))
+            if (beanInterface.isAssignableFrom(each.getType()))
             {
                 injectValue.add(each);
             }
