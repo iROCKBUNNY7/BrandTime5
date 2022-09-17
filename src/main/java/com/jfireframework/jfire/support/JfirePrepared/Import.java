@@ -6,8 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.kernel.BeanDefinition;
@@ -60,7 +62,18 @@ public @interface Import
                     for (Class<?> each : annotation.value())
                     {
                         logger.debug("traceId:{} 导入类:{}", traceId, each.getName());
-                        BeanDefinition beanDefinition = new BeanDefinition(each.getName(), each, false, new ReflectBeanInstanceResolver(each.getName(), each, false));
+                        BeanDefinition beanDefinition;
+                        if (annotationUtil.isPresent(Resource.class, each))
+                        {
+                            Resource resource = annotationUtil.getAnnotation(Resource.class, each);
+                            String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : each.getName();
+                            boolean prototype = !resource.shareable();
+                            beanDefinition = new BeanDefinition(beanName, each, prototype, new ReflectBeanInstanceResolver(beanName, each, prototype));
+                        }
+                        else
+                        {
+                            beanDefinition = new BeanDefinition(each.getName(), each, false, new ReflectBeanInstanceResolver(each.getName(), each, false));
+                        }
                         environment.registerBeanDefinition(beanDefinition);
                         processImport(each, environment, annotationUtil);
                     }

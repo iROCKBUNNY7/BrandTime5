@@ -85,7 +85,7 @@ public @interface EnableAutoConfiguration
         void registgerAutoConfigor(String className, Environment environment) throws ClassNotFoundException
         {
             String traceId = TRACEID.currentTraceId();
-            logger.debug("traceId:{} 扫描发现并注册类:{}", traceId, className);
+            logger.debug("traceId:{} 发现自动配置类:{}", traceId, className);
             Class<?> configor = environment.getClassLoader().loadClass(className);
             BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(className, configor, false);
             environment.registerBeanDefinition(new BeanDefinition(className, configor, false, resolver));
