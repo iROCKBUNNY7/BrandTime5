@@ -33,4 +33,16 @@ public class OutterBeanInstanceResolver implements BeanInstanceResolver
     {
         ;
     }
+    
+    @Override
+    public boolean isPrototype()
+    {
+        return false;
+    }
+    
+    @Override
+    public String beanName()
+    {
+        return beanName;
+    }
 }

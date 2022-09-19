@@ -4,17 +4,13 @@ import com.jfireframework.baseutil.exception.JustThrowException;
 
 public class BeanDefinition
 {
-    private final String               beanName;
     private final Class<?>             type;
-    private final boolean              prototype;
     private final BeanInstanceResolver beanInstanceResolver;
     private Object                     reflectInstance;
     
-    public BeanDefinition(String beanName, Class<?> type, boolean prototype, BeanInstanceResolver beanInstanceResolver)
+    public BeanDefinition(Class<?> type, BeanInstanceResolver beanInstanceResolver)
     {
-        this.beanName = beanName;
         this.type = type;
-        this.prototype = prototype;
         this.beanInstanceResolver = beanInstanceResolver;
     }
     
@@ -25,7 +21,7 @@ public class BeanDefinition
     
     public String getBeanName()
     {
-        return beanName;
+        return beanInstanceResolver.beanName();
     }
     
     public Class<?> getType()
@@ -35,7 +31,7 @@ public class BeanDefinition
     
     public boolean isPrototype()
     {
-        return prototype;
+        return beanInstanceResolver.isPrototype();
     }
     
     public Object getReflectInstance()

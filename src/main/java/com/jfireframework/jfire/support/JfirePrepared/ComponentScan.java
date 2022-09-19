@@ -79,7 +79,7 @@ public @interface ComponentScan
                     {
                         resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
                     }
-                    environment.registerBeanDefinition(new BeanDefinition(beanName, ckass, prototype, resolver));
+                    environment.registerBeanDefinition(new BeanDefinition(ckass, resolver));
                 }
             }
         }

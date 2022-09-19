@@ -157,10 +157,8 @@ public @interface Configuration
         
         private BeanDefinition generated(Method method, Class<?> type, AnnotationUtil annotationUtil)
         {
-            Bean annotatedBean = annotationUtil.getAnnotation(Bean.class, method);
-            String beanName = "".equals(annotatedBean.name()) ? method.getName() : annotatedBean.name();
             BeanInstanceResolver resolver = new MethodBeanInstanceResolver(method);
-            BeanDefinition beanDefinition = new BeanDefinition(beanName, method.getReturnType(), annotatedBean.prototype(), resolver);
+            BeanDefinition beanDefinition = new BeanDefinition(method.getReturnType(), resolver);
             return beanDefinition;
         }
     }

@@ -31,6 +31,16 @@ public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
         baseInitialize(beanName, type, prototype, annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type));
     }
     
+    public LoadByBeanInstanceResolver(Class<?> type)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        prototype = annotationUtil.isPresent(Resource.class, type) ? annotationUtil.getAnnotation(Resource.class, type).shareable() == false : false;
+        LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, type);
+        factoryBeanName = loadBy.factoryBeanName();
+        beanName = annotationUtil.isPresent(Resource.class, type) ? annotationUtil.getAnnotation(Resource.class, type).name() : type.getName();
+        baseInitialize(beanName, type, prototype, annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type));
+    }
+    
     @Override
     public void initialize(Environment environment)
     {

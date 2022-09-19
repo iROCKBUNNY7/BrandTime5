@@ -111,7 +111,7 @@ public class JfireConfig
     
     public JfireConfig registerSingletonEntity(String beanName, Object entity)
     {
-        BeanDefinition beanDefinition = new BeanDefinition(beanName, entity.getClass(), false, new OutterBeanInstanceResolver(beanName, entity));
+        BeanDefinition beanDefinition = new BeanDefinition(entity.getClass(), new OutterBeanInstanceResolver(beanName, entity));
         environment.registerBeanDefinition(beanDefinition);
         return this;
     }
@@ -123,12 +123,12 @@ public class JfireConfig
         if (annotationUtil.isPresent(LoadBy.class, ckass))
         {
             BeanInstanceResolver resolver = new LoadByBeanInstanceResolver(ckass, beanName, prototype);
-            beanDefinition = new BeanDefinition(beanName, ckass, prototype, resolver);
+            beanDefinition = new BeanDefinition(ckass, resolver);
         }
         else if (ckass.isInterface() == false)
         {
             BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
-            beanDefinition = new BeanDefinition(beanName, ckass, prototype, resolver);
+            beanDefinition = new BeanDefinition(ckass, resolver);
         }
         else
         {
@@ -140,21 +140,10 @@ public class JfireConfig
     
     private BeanDefinition buildBeanDefinition(Class<?> ckass)
     {
-        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-        Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
-        String beanName;
-        boolean prototype;
-        if (resource == null)
-        {
-            prototype = false;
-            beanName = ckass.getName();
-        }
-        else
-        {
-            prototype = resource.shareable() == false;
-            beanName = resource.name().equals("") ? ckass.getName() : resource.name();
-        }
-        return buildBeanDefinition(beanName, prototype, ckass);
+        BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(ckass);
+        BeanDefinition beanDefinition = new BeanDefinition(ckass, resolver);
+        environment.registerBeanDefinition(beanDefinition);
+        return beanDefinition;
     }
     
 }

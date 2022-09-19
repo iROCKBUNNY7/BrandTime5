@@ -13,4 +13,7 @@ public interface BeanInstanceResolver
      */
     void close();
     
+    boolean isPrototype();
+    
+    String beanName();
 }

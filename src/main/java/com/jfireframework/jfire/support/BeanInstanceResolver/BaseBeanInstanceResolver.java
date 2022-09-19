@@ -118,4 +118,15 @@ public abstract class BaseBeanInstanceResolver implements BeanInstanceResolver
         }
     }
     
+    @Override
+    public boolean isPrototype()
+    {
+        return prototype;
+    }
+    
+    @Override
+    public String beanName()
+    {
+        return beanName;
+    }
 }

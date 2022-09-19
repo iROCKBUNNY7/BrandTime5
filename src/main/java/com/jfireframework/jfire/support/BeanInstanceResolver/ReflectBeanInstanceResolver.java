@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.validation.Constraint;
 import javax.validation.Valid;
 import com.jfireframework.baseutil.StringUtil;
@@ -65,6 +66,23 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         lazyInitUntilFirstInvoke = annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type);
         baseInitialize(beanName, type, prototype, lazyInitUntilFirstInvoke);
+    }
+    
+    public ReflectBeanInstanceResolver(Class<?> type)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        lazyInitUntilFirstInvoke = annotationUtil.isPresent(LazyInitUniltFirstInvoke.class, type);
+        if (annotationUtil.isPresent(Resource.class, type))
+        {
+            Resource resource = annotationUtil.getAnnotation(Resource.class, type);
+            String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : type.getName();
+            boolean prototype = !resource.shareable();
+            baseInitialize(beanName, type, prototype, lazyInitUntilFirstInvoke);
+        }
+        else
+        {
+            baseInitialize(type.getName(), type, false, lazyInitUntilFirstInvoke);
+        }
     }
     
     @Override

@@ -88,7 +88,7 @@ public @interface EnableAutoConfiguration
             logger.debug("traceId:{} 发现自动配置类:{}", traceId, className);
             Class<?> configor = environment.getClassLoader().loadClass(className);
             BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(className, configor, false);
-            environment.registerBeanDefinition(new BeanDefinition(className, configor, false, resolver));
+            environment.registerBeanDefinition(new BeanDefinition(configor, resolver));
         }
         
     }
