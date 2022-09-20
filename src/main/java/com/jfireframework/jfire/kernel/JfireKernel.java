@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.time.Timewatch;
 import com.jfireframework.jfire.Utils;
 
@@ -29,7 +28,7 @@ public class JfireKernel
     public void initialize(Environment environment)
     {
         String traceId = TRACEID.newTraceId();
-        Stage[] stages = new Stage[] { //
+        Stage[] stages = new Stage[] {
                 /**
                  * 检查所有的BeanDefinition，如果其实现了JfirePrepared。实例化之后执行。
                  */
@@ -73,13 +72,22 @@ public class JfireKernel
         }
     }
     
+    static class OrderEntry
+    {
+        int                                 order;
+        BeanDefinition                      beanDefinition;
+        static final Comparator<OrderEntry> COMPARATOR = new Comparator<JfireKernel.OrderEntry>() {
+                                                           
+                                                           @Override
+                                                           public int compare(OrderEntry o1, OrderEntry o2)
+                                                           {
+                                                               return o1.order - o2.order;
+                                                           }
+                                                       };
+    }
+    
     class ProcessPreparedStage extends NameableStage
     {
-        class OrderEntry
-        {
-            int            order;
-            BeanDefinition beanDefinition;
-        }
         
         @Override
         public void process(Environment environment)
@@ -118,13 +126,7 @@ public class JfireKernel
                     tmp.add(entry);
                 }
             }
-            Collections.sort(tmp, new Comparator<OrderEntry>() {
-                @Override
-                public int compare(OrderEntry o1, OrderEntry o2)
-                {
-                    return o1.order - o2.order;
-                }
-            });
+            Collections.sort(tmp, OrderEntry.COMPARATOR);
             return tmp.isEmpty() ? null : tmp.get(0).beanDefinition;
         }
     }
@@ -149,14 +151,18 @@ public class JfireKernel
         @Override
         public void process(Environment environment)
         {
-            List<JfireAwareInitializeFinished> list = new ArrayList<JfireAwareInitializeFinished>();
+            AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+            List<OrderEntry> list = new ArrayList<OrderEntry>();
             try
             {
                 for (BeanDefinition beanDefinition : environment.getBeanDefinitions().values())
                 {
                     if (JfireAwareInitializeFinished.class.isAssignableFrom(beanDefinition.getType()))
                     {
-                        list.add((JfireAwareInitializeFinished) beanDefinition.getReflectInstance());
+                        OrderEntry entry = new OrderEntry();
+                        entry.beanDefinition = beanDefinition;
+                        entry.order = annotationUtil.isPresent(Order.class, beanDefinition.getType()) ? annotationUtil.getAnnotation(Order.class, beanDefinition.getType()).value() : 0;
+                        list.add(entry);
                     }
                 }
             }
@@ -164,9 +170,11 @@ public class JfireKernel
             {
                 throw new JustThrowException(e);
             }
-            for (JfireAwareInitializeFinished each : list)
+            Collections.sort(list, OrderEntry.COMPARATOR);
+            Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
+            for (OrderEntry each : list)
             {
-                each.awareInitializeFinished(environment.readOnlyEnvironment());
+                ((JfireAwareInitializeFinished) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareInitializeFinished(environment.readOnlyEnvironment());
             }
         }
         
@@ -178,23 +186,27 @@ public class JfireKernel
         @Override
         public void process(Environment environment)
         {
-            List<JfireAwareContextInited> tmp = new LinkedList<JfireAwareContextInited>();
+            AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+            List<OrderEntry> tmp = new LinkedList<OrderEntry>();
             Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
             for (BeanDefinition each : environment.getBeanDefinitions().values())
             {
                 if (JfireAwareContextInited.class.isAssignableFrom(each.getType()))
                 {
                     beanInstanceMap.clear();
-                    tmp.add((JfireAwareContextInited) each.getBeanInstanceResolver().getInstance(beanInstanceMap));
+                    OrderEntry entry = new OrderEntry();
+                    entry.beanDefinition = each;
+                    entry.order = annotationUtil.isPresent(Order.class, each.getType()) ? annotationUtil.getAnnotation(Order.class, each.getType()).value() : 0;
+                    tmp.add(entry);
                 }
             }
-            Collections.sort(tmp, new AescComparator());
-            for (JfireAwareContextInited each : tmp)
+            Collections.sort(tmp, OrderEntry.COMPARATOR);
+            for (OrderEntry each : tmp)
             {
-                logger.trace("准备执行方法{}.awareContextInited", each.getClass().getName());
+                logger.trace("准备执行方法{}.awareContextInited", each.beanDefinition.getType().getClass().getName());
                 try
                 {
-                    each.awareContextInited();
+                    ((JfireAwareInitializeFinished) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareInitializeFinished(environment.readOnlyEnvironment());
                 }
                 catch (Exception e)
                 {
