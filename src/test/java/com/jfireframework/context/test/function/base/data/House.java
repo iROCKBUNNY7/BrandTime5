@@ -36,10 +36,4 @@ public class House implements JfireAwareContextInited
         name = "林斌的房子";
     }
     
-    @Override
-    public int getOrder()
-    {
-        return 0;
-    }
-    
 }

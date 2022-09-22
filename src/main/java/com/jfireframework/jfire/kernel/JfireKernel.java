@@ -206,7 +206,7 @@ public class JfireKernel
                 logger.trace("准备执行方法{}.awareContextInited", each.beanDefinition.getType().getClass().getName());
                 try
                 {
-                    ((JfireAwareInitializeFinished) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareInitializeFinished(environment.readOnlyEnvironment());
+                    ((JfireAwareContextInited) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareContextInited();
                 }
                 catch (Exception e)
                 {
