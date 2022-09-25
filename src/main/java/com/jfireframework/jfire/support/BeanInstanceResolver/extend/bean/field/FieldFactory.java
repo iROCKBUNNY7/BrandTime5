@@ -21,7 +21,7 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.d
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.impl.InterfaceDiResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.impl.ListDiResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.impl.MapDiResolver;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.CustomParamResolver;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.UserDefinedResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.ParamField;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.ParamFieldImpl;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.ParamResolver;
@@ -160,9 +160,9 @@ public class FieldFactory
     
     private static ParamField buildParamField(Field field, String value, AnnotationUtil annotationUtil)
     {
-        if (annotationUtil.isPresent(CustomParamResolver.class, field))
+        if (annotationUtil.isPresent(UserDefinedResolver.class, field))
         {
-            CustomParamResolver resolver = annotationUtil.getAnnotation(CustomParamResolver.class, field);
+            UserDefinedResolver resolver = annotationUtil.getAnnotation(UserDefinedResolver.class, field);
             try
             {
                 ParamResolver instance = resolver.value().newInstance();
