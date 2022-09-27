@@ -1,6 +1,5 @@
 package com.jfireframework.jfire.kernel;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,10 +36,6 @@ public class JfireKernel
                  * 为所有的BeanInstanceResolver执行其initialize方法
                  */
                 new InitializeBeanInstanceResolverStage(), //
-                /**
-                 * 检查所有的BeanDefinition，如果其实现了JfireAwareInitializeFinished接口，则获取Bean实例，并且执行
-                 */
-                new AwareInitializeFinishedStage(), //
                 /**
                  * 检查所有的BeanDefinition，如果其实现了JfireAwareContextInited接口，则获取Bean实例，并且执行
                  */
@@ -145,41 +140,6 @@ public class JfireKernel
         
     }
     
-    class AwareInitializeFinishedStage extends NameableStage
-    {
-        
-        @Override
-        public void process(Environment environment)
-        {
-            AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-            List<OrderEntry> list = new ArrayList<OrderEntry>();
-            try
-            {
-                for (BeanDefinition beanDefinition : environment.getBeanDefinitions().values())
-                {
-                    if (JfireAwareInitializeFinished.class.isAssignableFrom(beanDefinition.getType()))
-                    {
-                        OrderEntry entry = new OrderEntry();
-                        entry.beanDefinition = beanDefinition;
-                        entry.order = annotationUtil.isPresent(Order.class, beanDefinition.getType()) ? annotationUtil.getAnnotation(Order.class, beanDefinition.getType()).value() : 0;
-                        list.add(entry);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                throw new JustThrowException(e);
-            }
-            Collections.sort(list, OrderEntry.COMPARATOR);
-            Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
-            for (OrderEntry each : list)
-            {
-                ((JfireAwareInitializeFinished) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareInitializeFinished(environment.readOnlyEnvironment());
-            }
-        }
-        
-    }
-    
     class AwareContextInitedStage extends NameableStage
     {
         
@@ -206,7 +166,7 @@ public class JfireKernel
                 logger.trace("准备执行方法{}.awareContextInited", each.beanDefinition.getType().getClass().getName());
                 try
                 {
-                    ((JfireAwareContextInited) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareContextInited();
+                    ((JfireAwareContextInited) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareContextInited(environment.readOnlyEnvironment());
                 }
                 catch (Exception e)
                 {

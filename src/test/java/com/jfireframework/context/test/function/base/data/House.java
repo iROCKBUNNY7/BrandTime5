@@ -1,6 +1,7 @@
 package com.jfireframework.context.test.function.base.data;
 
 import javax.annotation.Resource;
+import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.kernel.JfireAwareContextInited;
 
 @Resource
@@ -31,7 +32,7 @@ public class House implements JfireAwareContextInited
     }
     
     @Override
-    public void awareContextInited()
+    public void awareContextInited(ReadOnlyEnvironment environment)
     {
         name = "林斌的房子";
     }
