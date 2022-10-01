@@ -90,7 +90,7 @@ public class AopTest
         }
         catch (Exception e)
         {
-            assertEquals("aaaa", e.getMessage());
+            assertEquals("aaaa", e.getCause().getMessage());
         }
     }
     
