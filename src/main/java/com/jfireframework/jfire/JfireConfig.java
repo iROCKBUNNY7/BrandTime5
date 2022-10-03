@@ -83,6 +83,7 @@ public class JfireConfig
         registerBeanDefinition(SelectImport.ProcessSelectImport.class);
         registerBeanDefinition(Configuration.ProcessConfiguration.class);
         new JfireKernel().initialize(environment);
+        ReflectBeanInstanceResolver.compilers.remove();
         Utils.clearAnnotationUtil();
         return jfire;
     }

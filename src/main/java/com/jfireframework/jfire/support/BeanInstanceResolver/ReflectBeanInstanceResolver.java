@@ -52,14 +52,15 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.p
 
 public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 {
-    private ClassLoader          classLoader;
-    private ExtraInfoStore       extraInfoStore;
-    private Map<String, String>  properties;
-    private Method               postConstructMethod;
-    private List<DIField>        diFields;
-    private List<ParamField>     paramFields;
-    private Class<?>             enhanceType;
-    private static AtomicInteger enhanceCount = new AtomicInteger(0);
+    private ClassLoader                                 classLoader;
+    private ExtraInfoStore                              extraInfoStore;
+    private Map<String, String>                         properties;
+    private Method                                      postConstructMethod;
+    private List<DIField>                               diFields;
+    private List<ParamField>                            paramFields;
+    private Class<?>                                    enhanceType;
+    private static AtomicInteger                        enhanceCount = new AtomicInteger(0);
+    public static final ThreadLocal<JavaStringCompiler> compilers    = new ThreadLocal<JavaStringCompiler>();
     
     public ReflectBeanInstanceResolver(String beanName, Class<?> type, boolean prototype)
     {
@@ -261,11 +262,16 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
                 }
             }
         }
-        JavaStringCompiler compiler = new JavaStringCompiler();
+        JavaStringCompiler compiler = compilers.get();
+        if (compiler == null)
+        {
+            compiler = new JavaStringCompiler(classLoader);
+            compilers.set(compiler);
+        }
         try
         {
             logger.trace("生成类:{}的源代码:\r\n{}\r\n", compilerModel.className(), compilerModel.toString());
-            return compiler.compile(compilerModel, classLoader);
+            return compiler.compile(compilerModel);
         }
         catch (Exception e)
         {

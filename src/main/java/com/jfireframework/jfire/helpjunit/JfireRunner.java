@@ -53,6 +53,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
         return testRules.isEmpty() ? statement : new RunRules(statement, testRules, describeChild(method));
     }
     
+    @SuppressWarnings("unlikely-arg-type")
     private Statement withMethodRules(FrameworkMethod method, List<TestRule> testRules, Object target, Statement result)
     {
         for (org.junit.rules.MethodRule each : getMethodRules(target))
