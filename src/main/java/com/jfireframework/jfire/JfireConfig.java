@@ -35,7 +35,7 @@ public class JfireConfig
     public JfireConfig(Class<?> configClass)
     {
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-        environment.addConfigClass(configClass);
+        environment.addAnnotationPresentClass(configClass);
         if (annotationUtil.isPresent(Resource.class, configClass))
         {
             registerBeanDefinition(configClass);

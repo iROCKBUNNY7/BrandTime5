@@ -82,7 +82,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
                 jfireConfig.registerBeanDefinition(each.value());
             }
         }
-        jfireConfig.getEnvironment().addConfigMethod(method);
+        jfireConfig.getEnvironment().addAnnotationPresentClass(method);
         Jfire jfire = jfireConfig.build();
         return jfire.getBean(klass);
     }
