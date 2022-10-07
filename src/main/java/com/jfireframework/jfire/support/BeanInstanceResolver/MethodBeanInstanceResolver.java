@@ -11,7 +11,7 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
 
 public class MethodBeanInstanceResolver extends BaseBeanInstanceResolver
 {

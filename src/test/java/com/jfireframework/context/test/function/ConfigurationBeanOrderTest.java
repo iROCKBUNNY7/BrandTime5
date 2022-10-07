@@ -7,11 +7,11 @@ import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.kernel.Order;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration.Bean;
-import com.jfireframework.jfire.support.JfirePrepared.condition.Condition;
-import com.jfireframework.jfire.support.JfirePrepared.condition.Conditional;
-import com.jfireframework.jfire.support.JfirePrepared.condition.provide.ConditionOnBean;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Condition;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.provide.ConditionOnBean;
 
 public class ConfigurationBeanOrderTest
 {

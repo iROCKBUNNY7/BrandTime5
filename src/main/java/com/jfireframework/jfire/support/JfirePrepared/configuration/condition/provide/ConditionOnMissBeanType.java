@@ -1,10 +1,10 @@
-package com.jfireframework.jfire.support.JfirePrepared.condition.provide;
+package com.jfireframework.jfire.support.JfirePrepared.configuration.condition.provide;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
-import com.jfireframework.jfire.support.JfirePrepared.condition.Conditional;
-import com.jfireframework.jfire.support.JfirePrepared.condition.provide.ConditionOnMissBeanType.OnMissBeanType;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.provide.ConditionOnMissBeanType.OnMissBeanType;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(OnMissBeanType.class)

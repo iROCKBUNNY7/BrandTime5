@@ -16,7 +16,7 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.kernel.JfireAwareContextInited;
 import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
 
 public class ContextTest
 {

@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.jfireframework.jfire.JfireConfig;
 import com.jfireframework.jfire.kernel.Jfire;
 import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
 
 public class HolderTest
 {

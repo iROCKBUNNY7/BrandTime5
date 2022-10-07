@@ -14,6 +14,8 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
+import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
 
 /**
@@ -25,50 +27,51 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstance
 @Documented
 public @interface Import
 {
-    Class<?>[] value();
-    
-    class ProcessImport implements JfirePrepared
-    {
-        private static final Logger logger = LoggerFactory.getLogger(ProcessImport.class);
-        
-        @Override
-        public void prepared(Environment environment)
-        {
-            AnnotationUtil annotationUtil = new AnnotationUtil();
-            Map<String, BeanDefinition> beanDefinitions = environment.getBeanDefinitions();
-            List<Class<?>> tmp = new ArrayList<Class<?>>();
-            for (BeanDefinition each : beanDefinitions.values())
-            {
-                if (each.getType() != null && annotationUtil.isPresent(Import.class, each.getType()))
-                {
-                    tmp.add(each.getType());
-                }
-            }
-            for (Class<?> each : tmp)
-            {
-                processImport(each, environment, annotationUtil);
-            }
-        }
-        
-        private void processImport(final Class<?> ckass, Environment environment, AnnotationUtil annotationUtil)
-        {
-            if (annotationUtil.isPresent(Import.class, ckass))
-            {
-                String traceId = TRACEID.currentTraceId();
-                Import[] annotations = annotationUtil.getAnnotations(Import.class, ckass);
-                for (Import annotation : annotations)
-                {
-                    for (Class<?> each : annotation.value())
-                    {
-                        logger.debug("traceId:{} 导入类:{}", traceId, each.getName());
-                        BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(each);
-                        BeanDefinition beanDefinition = new BeanDefinition(each, resolver);
-                        environment.registerBeanDefinition(beanDefinition);
-                        processImport(each, environment, annotationUtil);
-                    }
-                }
-            }
-        }
-        
-    }
+	Class<?>[] value();
+	
+	@Order(SupportConstant.IMPORT_ORDER)
+	class ProcessImport implements JfirePrepared
+	{
+		private static final Logger logger = LoggerFactory.getLogger(ProcessImport.class);
+		
+		@Override
+		public void prepared(Environment environment)
+		{
+			AnnotationUtil annotationUtil = new AnnotationUtil();
+			Map<String, BeanDefinition> beanDefinitions = environment.getBeanDefinitions();
+			List<Class<?>> tmp = new ArrayList<Class<?>>();
+			for (BeanDefinition each : beanDefinitions.values())
+			{
+				if (each.getType() != null && annotationUtil.isPresent(Import.class, each.getType()))
+				{
+					tmp.add(each.getType());
+				}
+			}
+			for (Class<?> each : tmp)
+			{
+				processImport(each, environment, annotationUtil);
+			}
+		}
+		
+		private void processImport(final Class<?> ckass, Environment environment, AnnotationUtil annotationUtil)
+		{
+			if (annotationUtil.isPresent(Import.class, ckass))
+			{
+				String traceId = TRACEID.currentTraceId();
+				Import[] annotations = annotationUtil.getAnnotations(Import.class, ckass);
+				for (Import annotation : annotations)
+				{
+					for (Class<?> each : annotation.value())
+					{
+						logger.debug("traceId:{} 导入类:{}", traceId, each.getName());
+						BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(each);
+						BeanDefinition beanDefinition = new BeanDefinition(each, resolver);
+						environment.registerBeanDefinition(beanDefinition);
+						processImport(each, environment, annotationUtil);
+					}
+				}
+			}
+		}
+		
+	}
 }

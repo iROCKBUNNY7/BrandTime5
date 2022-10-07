@@ -18,130 +18,128 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceR
 import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.LoadBy;
 import com.jfireframework.jfire.support.BeanInstanceResolver.OutterBeanInstanceResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
-import com.jfireframework.jfire.support.JfirePrepared.Configuration;
 import com.jfireframework.jfire.support.JfirePrepared.Import;
-import com.jfireframework.jfire.support.JfirePrepared.SelectImport;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.ProcessConfiguration;
 
 public class JfireConfig
 {
-    protected ClassLoader         classLoader = Jfire.class.getClassLoader();
-    protected Environment         environment = new Environment();
-    protected static final Logger logger      = LoggerFactory.getLogger(JfireConfig.class);
-    
-    public JfireConfig()
-    {
-    }
-    
-    public JfireConfig(Class<?> configClass)
-    {
-        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-        environment.addAnnotationPresentClass(configClass);
-        if (annotationUtil.isPresent(Resource.class, configClass))
-        {
-            registerBeanDefinition(configClass);
-        }
-    }
-    
-    public Environment getEnvironment()
-    {
-        return environment;
-    }
-    
-    public JfireConfig registerBeanDefinition(Class<?>... ckasses)
-    {
-        for (Class<?> ckass : ckasses)
-        {
-            buildBeanDefinition(ckass);
-        }
-        return this;
-    }
-    
-    public JfireConfig registerBeanDefinition(String resourceName, boolean prototype, Class<?> src)
-    {
-        buildBeanDefinition(resourceName, prototype, src);
-        return this;
-    }
-    
-    public JfireConfig registerBeanDefinition(BeanDefinition... definitions)
-    {
-        for (BeanDefinition definition : definitions)
-        {
-            environment.registerBeanDefinition(definition);
-        }
-        return this;
-    }
-    
-    public Jfire build()
-    {
-        Jfire jfire = new Jfire(environment.getBeanDefinitions());
-        environment.setClassLoader(classLoader);
-        registerSingletonEntity(ExtraInfoStore.class.getName(), environment.getExtraInfoStore());
-        registerSingletonEntity(Jfire.class.getName(), jfire);
-        registerSingletonEntity(ClassLoader.class.getName(), classLoader);
-        registerSingletonEntity(Environment.class.getName(), environment);
-        registerBeanDefinition(Import.ProcessImport.class);
-        registerBeanDefinition(SelectImport.ProcessSelectImport.class);
-        registerBeanDefinition(Configuration.ProcessConfiguration.class);
-        new JfireKernel().initialize(environment);
-        ReflectBeanInstanceResolver.compilers.remove();
-        Utils.clearAnnotationUtil();
-        return jfire;
-    }
-    
-    public JfireConfig setClassLoader(ClassLoader classLoader)
-    {
-        this.classLoader = classLoader;
-        Thread.currentThread().setContextClassLoader(classLoader);
-        return this;
-    }
-    
-    public JfireConfig addProperties(Properties... properties)
-    {
-        for (Properties each : properties)
-        {
-            for (Entry<Object, Object> entry : each.entrySet())
-            {
-                environment.putProperty((String) entry.getKey(), (String) entry.getValue());
-            }
-        }
-        return this;
-    }
-    
-    public JfireConfig registerSingletonEntity(String beanName, Object entity)
-    {
-        BeanDefinition beanDefinition = new BeanDefinition(entity.getClass(), new OutterBeanInstanceResolver(beanName, entity));
-        environment.registerBeanDefinition(beanDefinition);
-        return this;
-    }
-    
-    private BeanDefinition buildBeanDefinition(String beanName, boolean prototype, Class<?> ckass)
-    {
-        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-        BeanDefinition beanDefinition;
-        if (annotationUtil.isPresent(LoadBy.class, ckass))
-        {
-            BeanInstanceResolver resolver = new LoadByBeanInstanceResolver(ckass, beanName, prototype);
-            beanDefinition = new BeanDefinition(ckass, resolver);
-        }
-        else if (ckass.isInterface() == false)
-        {
-            BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
-            beanDefinition = new BeanDefinition(ckass, resolver);
-        }
-        else
-        {
-            throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", ckass.getName()));
-        }
-        environment.registerBeanDefinition(beanDefinition);
-        return beanDefinition;
-    }
-    
-    private BeanDefinition buildBeanDefinition(Class<?> ckass)
-    {
-        BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(ckass);
-        BeanDefinition beanDefinition = new BeanDefinition(ckass, resolver);
-        environment.registerBeanDefinition(beanDefinition);
-        return beanDefinition;
-    }
-    
+	protected ClassLoader			classLoader	= Jfire.class.getClassLoader();
+	protected Environment			environment	= new Environment();
+	protected static final Logger	logger		= LoggerFactory.getLogger(JfireConfig.class);
+	
+	public JfireConfig()
+	{
+	}
+	
+	public JfireConfig(Class<?> configClass)
+	{
+		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		environment.addAnnotationPresentClass(configClass);
+		if (annotationUtil.isPresent(Resource.class, configClass))
+		{
+			registerBeanDefinition(configClass);
+		}
+	}
+	
+	public Environment getEnvironment()
+	{
+		return environment;
+	}
+	
+	public JfireConfig registerBeanDefinition(Class<?>... ckasses)
+	{
+		for (Class<?> ckass : ckasses)
+		{
+			buildBeanDefinition(ckass);
+		}
+		return this;
+	}
+	
+	public JfireConfig registerBeanDefinition(String resourceName, boolean prototype, Class<?> src)
+	{
+		buildBeanDefinition(resourceName, prototype, src);
+		return this;
+	}
+	
+	public JfireConfig registerBeanDefinition(BeanDefinition... definitions)
+	{
+		for (BeanDefinition definition : definitions)
+		{
+			environment.registerBeanDefinition(definition);
+		}
+		return this;
+	}
+	
+	public Jfire build()
+	{
+		Jfire jfire = new Jfire(environment.getBeanDefinitions());
+		environment.setClassLoader(classLoader);
+		registerSingletonEntity(ExtraInfoStore.class.getName(), environment.getExtraInfoStore());
+		registerSingletonEntity(Jfire.class.getName(), jfire);
+		registerSingletonEntity(ClassLoader.class.getName(), classLoader);
+		registerSingletonEntity(Environment.class.getName(), environment);
+		registerBeanDefinition(Import.ProcessImport.class);
+		registerBeanDefinition(ProcessConfiguration.class);
+		new JfireKernel().initialize(environment);
+		ReflectBeanInstanceResolver.compilers.remove();
+		Utils.clearAnnotationUtil();
+		return jfire;
+	}
+	
+	public JfireConfig setClassLoader(ClassLoader classLoader)
+	{
+		this.classLoader = classLoader;
+		Thread.currentThread().setContextClassLoader(classLoader);
+		return this;
+	}
+	
+	public JfireConfig addProperties(Properties... properties)
+	{
+		for (Properties each : properties)
+		{
+			for (Entry<Object, Object> entry : each.entrySet())
+			{
+				environment.putProperty((String) entry.getKey(), (String) entry.getValue());
+			}
+		}
+		return this;
+	}
+	
+	public JfireConfig registerSingletonEntity(String beanName, Object entity)
+	{
+		BeanDefinition beanDefinition = new BeanDefinition(entity.getClass(), new OutterBeanInstanceResolver(beanName, entity));
+		environment.registerBeanDefinition(beanDefinition);
+		return this;
+	}
+	
+	private BeanDefinition buildBeanDefinition(String beanName, boolean prototype, Class<?> ckass)
+	{
+		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		BeanDefinition beanDefinition;
+		if (annotationUtil.isPresent(LoadBy.class, ckass))
+		{
+			BeanInstanceResolver resolver = new LoadByBeanInstanceResolver(ckass, beanName, prototype);
+			beanDefinition = new BeanDefinition(ckass, resolver);
+		}
+		else if (ckass.isInterface() == false)
+		{
+			BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
+			beanDefinition = new BeanDefinition(ckass, resolver);
+		}
+		else
+		{
+			throw new UnSupportException(StringUtil.format("在接口上只有Resource注解是无法实例化bean的.请检查{}", ckass.getName()));
+		}
+		environment.registerBeanDefinition(beanDefinition);
+		return beanDefinition;
+	}
+	
+	private BeanDefinition buildBeanDefinition(Class<?> ckass)
+	{
+		BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(ckass);
+		BeanDefinition beanDefinition = new BeanDefinition(ckass, resolver);
+		environment.registerBeanDefinition(beanDefinition);
+		return beanDefinition;
+	}
+	
 }

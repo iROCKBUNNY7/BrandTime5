@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.JfirePrepared.condition;
+package com.jfireframework.jfire.support.JfirePrepared.configuration.condition;
 
 import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;

@@ -1,8 +1,8 @@
-package com.jfireframework.jfire.support.JfirePrepared.condition.provide;
+package com.jfireframework.jfire.support.JfirePrepared.configuration.condition.provide;
 
 import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
-import com.jfireframework.jfire.support.JfirePrepared.condition.Condition;
+import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Condition;
 
 public abstract class BaseCondition<T extends Annotation> implements Condition
 {

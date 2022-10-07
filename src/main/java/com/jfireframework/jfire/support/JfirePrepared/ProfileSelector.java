@@ -2,8 +2,11 @@ package com.jfireframework.jfire.support.JfirePrepared;
 
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.Environment;
+import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.support.SupportConstant;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,55 +14,37 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileSelector
 {
-    
-    Profile[] value();
-    
-     @interface Profile
-    {
-        String name();
-        
-        String[] paths();
-    }
-    
-    @Order(100)
-    class ProfileImporter implements SelectImport
-    {
-        
-        @Override
-        public void selectImport(Environment environment)
-        {
-            if (environment.isAnnotationPresent(ProfileSelector.class))
-            {
-                PropertyPath.PropertyPathImporter util = new PropertyPath.PropertyPathImporter();
-                for (ProfileSelector selector : environment.getAnnotations(ProfileSelector.class))
-                {
-                    String activeAttribute = environment.getProperty("jfire.profile.active");
-                    if (StringUtil.isNotBlank(activeAttribute) == false)
-                    {
-                        return;
-                    }
-                    String[] actives = activeAttribute.split(",");
-                    for (String active : actives)
-                    {
-                        active = active.trim();
-                        for (Profile profile : selector.value())
-                        {
-                            if (active.equals(profile.name()))
-                            {
-                                for (String path : profile.paths())
-                                {
-                                    IniFile iniFile = util.processPath(path);
-                                    for (String each : iniFile.keySet())
-                                    {
-                                        environment.putProperty(each, iniFile.getValue(each));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-    }
+	String protocol() default "file:";
+	
+	String prefix() default "application_";
+	
+	public static final String activePropertyName = "jfire.profile.active";
+	
+	@Order(SupportConstant.PROFILE_SELECTOR_ORDER)
+	class ProfileImporter implements JfirePrepared
+	{
+		
+		@Override
+		public void prepared(Environment environment)
+		{
+			if (environment.isAnnotationPresent(ProfileSelector.class))
+			{
+				for (ProfileSelector selector : environment.getAnnotations(ProfileSelector.class))
+				{
+					String activeAttribute = environment.getProperty(activePropertyName);
+					if (StringUtil.isNotBlank(activeAttribute) == false)
+					{
+						return;
+					}
+					String profileFileName = selector.protocol() + selector.prefix() + activeAttribute;
+					IniFile iniFile = Utils.processPath(profileFileName);
+					for (String key : iniFile.keySet())
+					{
+						environment.putProperty(key, iniFile.getValue(key));
+					}
+				}
+			}
+		}
+		
+	}
 }
