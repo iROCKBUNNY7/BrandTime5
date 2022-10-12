@@ -36,7 +36,7 @@ public @interface ProfileSelector
 					{
 						return;
 					}
-					String profileFileName = selector.protocol() + selector.prefix() + activeAttribute;
+					String profileFileName = selector.protocol() + selector.prefix() + activeAttribute + ".ini";
 					IniFile iniFile = Utils.processPath(profileFileName);
 					for (String key : iniFile.keySet())
 					{
