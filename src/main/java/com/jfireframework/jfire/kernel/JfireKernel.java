@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.baseutil.time.Timewatch;
 import com.jfireframework.jfire.Utils;
 
 public class JfireKernel
@@ -26,45 +25,99 @@ public class JfireKernel
 	 */
 	public void initialize(Environment environment)
 	{
-		String traceId = TRACEID.newTraceId();
-		Stage[] stages = new Stage[] {
-		        /**
-		         * 检查所有的BeanDefinition，如果其实现了JfirePrepared。实例化之后执行。
-		         */
-		        new ProcessPreparedStage(), //
-		        /**
-		         * 为所有的BeanInstanceResolver执行其initialize方法
-		         */
-		        new InitializeBeanInstanceResolverStage(), //
-		        /**
-		         * 检查所有的BeanDefinition，如果其实现了JfireAwareContextInited接口，则获取Bean实例，并且执行
-		         */
-		        new AwareContextInitedStage() };
-		Timewatch timewatch = new Timewatch();
-		for (Stage stage : stages)
+		prepare(environment);
+		initializeBeanInstanceResolver(environment);
+		awareContextInited(environment);
+	}
+	
+	private void awareContextInited(Environment environment)
+	{
+		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		List<OrderEntry> tmp = new LinkedList<OrderEntry>();
+		Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
+		for (BeanDefinition each : environment.getBeanDefinitions().values())
 		{
-			logger.debug("traceId:{} 准备执行步骤:{}", traceId, stage.name());
-			timewatch.start();
-			stage.process(environment);
-			timewatch.end();
-			logger.debug("traceId:{} 步骤:{}耗费时间:{}毫秒", traceId, stage.name(), timewatch.getTotal());
+			if (JfireAwareContextInited.class.isAssignableFrom(each.getType()))
+			{
+				beanInstanceMap.clear();
+				OrderEntry entry = new OrderEntry();
+				entry.beanDefinition = each;
+				entry.order = annotationUtil.isPresent(Order.class, each.getType()) ? annotationUtil.getAnnotation(Order.class, each.getType()).value() : 0;
+				tmp.add(entry);
+			}
+		}
+		Collections.sort(tmp, OrderEntry.COMPARATOR);
+		for (OrderEntry each : tmp)
+		{
+			logger.trace("准备执行方法{}.awareContextInited", each.beanDefinition.getType().getClass().getName());
+			try
+			{
+				((JfireAwareContextInited) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareContextInited(environment.readOnlyEnvironment());
+			}
+			catch (Exception e)
+			{
+				logger.error("执行方法{}.awareContextInited发生异常", each.getClass().getName(), e);
+				throw new JustThrowException(e);
+			}
 		}
 	}
 	
-	interface Stage
+	/**
+	 * 为所有的BeanInstanceResolver执行其initialize方法
+	 * 
+	 * @param environment
+	 */
+	private void initializeBeanInstanceResolver(Environment environment)
 	{
-		void process(Environment environment);
-		
-		String name();
+		for (BeanDefinition each : environment.getBeanDefinitions().values())
+		{
+			each.getBeanInstanceResolver().initialize(environment);
+		}
 	}
 	
-	abstract class NameableStage implements Stage
+	/**
+	 * 检查所有的BeanDefinition，如果其实现了JfirePrepared。实例化之后执行。
+	 * 
+	 * @param environment
+	 */
+	private void prepare(Environment environment)
 	{
-		@Override
-		public String name()
+		String traceId = TRACEID.currentTraceId();
+		IdentityHashMap<BeanDefinition, Object> flags = new IdentityHashMap<BeanDefinition, Object>();
+		BeanDefinition beanDefinition;
+		while ((beanDefinition = getTopPreparedBeanDefinition(flags, environment)) != null)
 		{
-			return this.getClass().getSimpleName();
+			try
+			{
+				flags.put(beanDefinition, "");
+				logger.debug("traceId:{} 当前处理的prepared:{}", traceId, beanDefinition.getType().getName());
+				((JfirePrepared) beanDefinition.getReflectInstance()).prepared(environment);
+			}
+			catch (Exception e)
+			{
+				throw new JustThrowException(e);
+			}
 		}
+	}
+	
+	BeanDefinition getTopPreparedBeanDefinition(IdentityHashMap<BeanDefinition, Object> flags, Environment environment)
+	{
+		List<OrderEntry> tmp = new LinkedList<OrderEntry>();
+		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		for (BeanDefinition each : environment.getBeanDefinitions().values())
+		{
+			Class<?> type = each.getType();
+			if (type != null && JfirePrepared.class.isAssignableFrom(type) && flags.containsKey(each) == false)
+			{
+				int order = annotationUtil.isPresent(Order.class, type) ? annotationUtil.getAnnotation(Order.class, type).value() : 0;
+				OrderEntry entry = new OrderEntry();
+				entry.order = order;
+				entry.beanDefinition = each;
+				tmp.add(entry);
+			}
+		}
+		Collections.sort(tmp, OrderEntry.COMPARATOR);
+		return tmp.isEmpty() ? null : tmp.get(0).beanDefinition;
 	}
 	
 	static class OrderEntry
@@ -79,103 +132,6 @@ public class JfireKernel
 																return o1.order == o2.order ? 0 : o1.order > o2.order ? 1 : -1;
 															}
 														};
-	}
-	
-	class ProcessPreparedStage extends NameableStage
-	{
-		
-		@Override
-		public void process(Environment environment)
-		{
-			String traceId = TRACEID.currentTraceId();
-			IdentityHashMap<BeanDefinition, Object> flags = new IdentityHashMap<BeanDefinition, Object>();
-			BeanDefinition beanDefinition;
-			while ((beanDefinition = getTopPreparedBeanDefinition(flags, environment)) != null)
-			{
-				try
-				{
-					flags.put(beanDefinition, "");
-					logger.debug("traceId:{} 当前处理的prepared:{}", traceId, beanDefinition.getType().getName());
-					((JfirePrepared) beanDefinition.getReflectInstance()).prepared(environment);
-				}
-				catch (Exception e)
-				{
-					throw new JustThrowException(e);
-				}
-			}
-		}
-		
-		BeanDefinition getTopPreparedBeanDefinition(IdentityHashMap<BeanDefinition, Object> flags, Environment environment)
-		{
-			List<OrderEntry> tmp = new LinkedList<OrderEntry>();
-			AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-			for (BeanDefinition each : environment.getBeanDefinitions().values())
-			{
-				Class<?> type = each.getType();
-				if (type != null && JfirePrepared.class.isAssignableFrom(type) && flags.containsKey(each) == false)
-				{
-					int order = annotationUtil.isPresent(Order.class, type) ? annotationUtil.getAnnotation(Order.class, type).value() : 0;
-					OrderEntry entry = new OrderEntry();
-					entry.order = order;
-					entry.beanDefinition = each;
-					tmp.add(entry);
-				}
-			}
-			Collections.sort(tmp, OrderEntry.COMPARATOR);
-			return tmp.isEmpty() ? null : tmp.get(0).beanDefinition;
-		}
-	}
-	
-	class InitializeBeanInstanceResolverStage extends NameableStage
-	{
-		
-		@Override
-		public void process(Environment environment)
-		{
-			for (BeanDefinition each : environment.getBeanDefinitions().values())
-			{
-				each.getBeanInstanceResolver().initialize(environment);
-			}
-		}
-		
-	}
-	
-	class AwareContextInitedStage extends NameableStage
-	{
-		
-		@Override
-		public void process(Environment environment)
-		{
-			AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-			List<OrderEntry> tmp = new LinkedList<OrderEntry>();
-			Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
-			for (BeanDefinition each : environment.getBeanDefinitions().values())
-			{
-				if (JfireAwareContextInited.class.isAssignableFrom(each.getType()))
-				{
-					beanInstanceMap.clear();
-					OrderEntry entry = new OrderEntry();
-					entry.beanDefinition = each;
-					entry.order = annotationUtil.isPresent(Order.class, each.getType()) ? annotationUtil.getAnnotation(Order.class, each.getType()).value() : 0;
-					tmp.add(entry);
-				}
-			}
-			Collections.sort(tmp, OrderEntry.COMPARATOR);
-			for (OrderEntry each : tmp)
-			{
-				logger.trace("准备执行方法{}.awareContextInited", each.beanDefinition.getType().getClass().getName());
-				try
-				{
-					((JfireAwareContextInited) each.beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap)).awareContextInited(environment.readOnlyEnvironment());
-				}
-				catch (Exception e)
-				{
-					logger.error("执行方法{}.awareContextInited发生异常", each.getClass().getName(), e);
-					throw new JustThrowException(e);
-				}
-			}
-		}
-		
 	}
 	
 }
