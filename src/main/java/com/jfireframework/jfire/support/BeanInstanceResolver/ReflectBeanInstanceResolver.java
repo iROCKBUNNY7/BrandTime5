@@ -161,7 +161,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
     
     Class<?> enhance(Map<String, BeanDefinition> definitions)
     {
-        BeanAopDefinition beanAopDefinition = scanForEmbedEnhanceMethods();
+        BeanAopDefinition beanAopDefinition = scanForBuildInEnhanceMethods();
         scanForAspect(definitions, beanAopDefinition);
         if (beanAopDefinition.autoResourceMethods.isEmpty() && //
                 beanAopDefinition.cacheMethods.isEmpty() && //
@@ -363,105 +363,101 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
         throw new RuntimeException("给定的参数" + inject + "不在参数列表中");
     }
     
-    private BeanAopDefinition scanForEmbedEnhanceMethods()
+    private BeanAopDefinition scanForBuildInEnhanceMethods()
     {
-        class Helper
-        {
-            
-            boolean hasValidateEnhance(Method method)
-            {
-                AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-                if (annotationUtil.isPresent(Constraint.class, method))
-                {
-                    return true;
-                }
-                for (Annotation[] annotations : method.getParameterAnnotations())
-                {
-                    for (Annotation each : annotations)
-                    {
-                        if (each.annotationType() == Valid.class)
-                        {
-                            return true;
-                        }
-                    }
-                    if (annotationUtil.isPresent(Constraint.class, annotations))
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            
-            boolean hasTransactionEnhance(Method method)
-            {
-                AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-                if (annotationUtil.isPresent(Transaction.class, method))
-                {
-                    Verify.False(annotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
-                    Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有事务注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            
-            boolean hasAutoresourceEnhance(Method method)
-            {
-                AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-                if (annotationUtil.isPresent(AutoResource.class, method))
-                {
-                    Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有自动关闭注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            
-            boolean hasCacheEnhance(Method method)
-            {
-                AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-                if (annotationUtil.isPresent(CachePut.class, method) || annotationUtil.isPresent(CacheGet.class, method) || annotationUtil.isPresent(CacheDelete.class, method))
-                {
-                    Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有缓存注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-        Helper helper = new Helper();
         BeanAopDefinition beanAopDefinition = new BeanAopDefinition();
         // 由于增强是采用子类来实现的,所以事务注解只对当前的类有效.如果当前类的父类也有事务注解,在本次增强中就无法起作用
         for (Method method : ReflectUtil.getAllMehtods(type))
         {
-            if (helper.hasValidateEnhance(method))
+            if (hasValidateEnhance(method))
             {
                 beanAopDefinition.addValidateMethod(method);
                 logger.trace("发现需要验证增强的方法:{}", method.toString());
             }
-            if (helper.hasTransactionEnhance(method))
+            if (hasTransactionEnhance(method))
             {
                 beanAopDefinition.addTxMethod(method);
                 logger.trace("发现事务增强方法:{}", method.toString());
             }
-            else if (helper.hasAutoresourceEnhance(method))
+            else if (hasAutoresourceEnhance(method))
             {
                 beanAopDefinition.addAutoResourceMethod(method);
                 logger.trace("发现资源关闭增强方法:{}", method.toString());
             }
-            if (helper.hasCacheEnhance(method))
+            if (hasCacheEnhance(method))
             {
                 beanAopDefinition.addCacheMethod(method);
                 logger.trace("发现缓存增强方法:{}", method.toString());
             }
         }
         return beanAopDefinition;
+    }
+    
+    private boolean hasValidateEnhance(Method method)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        if (annotationUtil.isPresent(Constraint.class, method))
+        {
+            return true;
+        }
+        for (Annotation[] annotations : method.getParameterAnnotations())
+        {
+            for (Annotation each : annotations)
+            {
+                if (each.annotationType() == Valid.class)
+                {
+                    return true;
+                }
+            }
+            if (annotationUtil.isPresent(Constraint.class, annotations))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private boolean hasTransactionEnhance(Method method)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        if (annotationUtil.isPresent(Transaction.class, method))
+        {
+            Verify.False(annotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
+            Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有事务注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    private boolean hasAutoresourceEnhance(Method method)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        if (annotationUtil.isPresent(AutoResource.class, method))
+        {
+            Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有自动关闭注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    private boolean hasCacheEnhance(Method method)
+    {
+        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        if (annotationUtil.isPresent(CachePut.class, method) || annotationUtil.isPresent(CacheGet.class, method) || annotationUtil.isPresent(CacheDelete.class, method))
+        {
+            Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有缓存注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     
     private void scanForAspect(Map<String, BeanDefinition> beanDefinitions, BeanAopDefinition beanAopDefinition)

@@ -8,6 +8,7 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.kernel.JfireAwareContextInited;
 import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.JfireAwareContextInited.InstanceSingtonBeanAsap.InstanceSingtonBean;
 import com.jfireframework.jfire.support.JfirePrepared.Import;
 
@@ -15,7 +16,7 @@ import com.jfireframework.jfire.support.JfirePrepared.Import;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InstanceSingtonBeanAsap
 {
-    @Order(-1)
+    @Order(SupportConstant.INSTANCE_SINGTON_BEAN_ORDER)
     class InstanceSingtonBean implements JfireAwareContextInited
     {
         

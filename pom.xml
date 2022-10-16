@@ -8,7 +8,7 @@
 		<artifactId>parent</artifactId>
 		<version>1.0.1</version>
 	</parent>
-	<version>2.0.M6</version>
+	<version>2.0.M7-SNAPSHOT</version>
 	<artifactId>jfire</artifactId>
 	<name>Jfire</name>
 	<description> 
