@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,7 +72,7 @@ public class Environment
 		
 		public Collection<BeanDefinition> beanDefinitions()
 		{
-			return host.beanDefinitions.values();
+			return Collections.unmodifiableCollection(host.beanDefinitions.values());
 		}
 		
 		public boolean isAnnotationPresent(Class<? extends Annotation> annoType)
@@ -97,11 +98,6 @@ public class Environment
 		public boolean isBeanDefinitionExist(String beanName)
 		{
 			return host.getBeanDefinition(beanName) != null;
-		}
-		
-		public boolean isBeanDefinitionExist(Class<?> type)
-		{
-			return host.getBeanDefinition(type) != null;
 		}
 		
 	}
