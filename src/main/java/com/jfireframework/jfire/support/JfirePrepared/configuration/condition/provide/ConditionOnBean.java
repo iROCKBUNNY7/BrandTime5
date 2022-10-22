@@ -36,7 +36,7 @@ public @interface ConditionOnBean
 						break;
 					}
 				}
-				if (miss == false)
+				if (miss)
 				{
 					return false;
 				}
