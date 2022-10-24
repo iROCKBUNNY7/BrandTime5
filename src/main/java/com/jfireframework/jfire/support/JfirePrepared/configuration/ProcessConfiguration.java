@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.jfire.kernel.BeanDefinition;
@@ -32,22 +30,78 @@ public class ProcessConfiguration implements JfirePrepared
 		List<Method>	methods	= new ArrayList<Method>();;
 	}
 	
-	private Map<Class<? extends Condition>, Condition> conditionImplStore = new HashMap<Class<? extends Condition>, Condition>();
+	private Map<Class<? extends Condition>, Condition>	conditionImplStore	= new HashMap<Class<? extends Condition>, Condition>();
+	private AnnotationUtil								annotationUtil		= new AnnotationUtil();
+	private Comparator<Method>							comparator			= new Comparator<Method>() {
+																				
+																				@Override
+																				public int compare(Method o1, Method o2)
+																				{
+																					int order1 = annotationUtil.isPresent(Order.class, o1) ? annotationUtil.getAnnotation(Order.class, o1).value() : 0;
+																					int order2 = annotationUtil.isPresent(Order.class, o2) ? annotationUtil.getAnnotation(Order.class, o2).value() : 0;
+																					return order1 > order2 ? 1 : order1 == order2 ? 0 : -1;
+																				}
+																			};
 	
 	@Override
 	public void prepared(Environment environment)
 	{
-		final AnnotationUtil annotationUtil = new AnnotationUtil();
-		Comparator<Method> comparator = new Comparator<Method>() {
-			
-			@Override
-			public int compare(Method o1, Method o2)
+		List<ConfigurationOrder> configurationOrders = findConfigurationBeanDefinition(environment);
+		processNoConditionMethod(environment, configurationOrders);
+		processConditionMethod(environment, configurationOrders);
+	}
+	
+	private void processConditionMethod(Environment environment, List<ConfigurationOrder> configurationOrders)
+	{
+		for (ConfigurationOrder each : configurationOrders)
+		{
+			Class<?> type = each.type;
+			if (annotationUtil.isPresent(Conditional.class, type) && //
+			        match(annotationUtil.getAnnotations(Conditional.class, type), type.getAnnotations(), environment) == false)
 			{
-				int order1 = annotationUtil.isPresent(Order.class, o1) ? annotationUtil.getAnnotation(Order.class, o1).value() : 0;
-				int order2 = annotationUtil.isPresent(Order.class, o2) ? annotationUtil.getAnnotation(Order.class, o2).value() : 0;
-				return order1 - order2;
+				continue;
 			}
-		};
+			for (Method method : each.methods)
+			{
+				if (annotationUtil.isPresent(Conditional.class, method) && //
+				        match(annotationUtil.getAnnotations(Conditional.class, method), method.getAnnotations(), environment) == false)
+				{
+					continue;
+				}
+				environment.registerBeanDefinition(generated(method, type, annotationUtil));
+			}
+		}
+	}
+	
+	/*
+	 * 处理没有条件相关的方法。 没有条件相关指的是该方法所在的bean没有被@Conditional注解，该方法没有被@Conditional注解.
+	 * 处理完毕后，这些方法会从ConfigurationOrder.methods中被删除
+	 */
+	private void processNoConditionMethod(Environment environment, List<ConfigurationOrder> configurationOrders)
+	{
+		for (ConfigurationOrder each : configurationOrders)
+		{
+			Class<?> type = each.type;
+			if (annotationUtil.isPresent(Conditional.class, type))
+			{
+				continue;
+			}
+			List<Method> needDeletes = new ArrayList<Method>();
+			for (Method method : each.methods)
+			{
+				if (annotationUtil.isPresent(Conditional.class, method))
+				{
+					continue;
+				}
+				environment.registerBeanDefinition(generated(method, type, annotationUtil));
+				needDeletes.add(method);
+			}
+			each.methods.removeAll(needDeletes);
+		}
+	}
+	
+	private List<ConfigurationOrder> findConfigurationBeanDefinition(Environment environment)
+	{
 		List<ConfigurationOrder> configurationOrders = new ArrayList<ProcessConfiguration.ConfigurationOrder>();
 		for (BeanDefinition each : environment.getBeanDefinitions().values())
 		{
@@ -76,48 +130,7 @@ public class ProcessConfiguration implements JfirePrepared
 				return o1.order - o2.order;
 			}
 		});
-		Set<Method> handleds = new HashSet<Method>();
-		/** 先将没有条件的Bean注解处理完成 **/
-		for (ConfigurationOrder each : configurationOrders)
-		{
-			Class<?> type = each.type;
-			if (annotationUtil.isPresent(Conditional.class, type))
-			{
-				continue;
-			}
-			for (Method method : each.methods)
-			{
-				if (annotationUtil.isPresent(Conditional.class, method))
-				{
-					continue;
-				}
-				environment.registerBeanDefinition(generated(method, type, annotationUtil));
-				handleds.add(method);
-			}
-		}
-		/** 先将没有条件的Bean注解处理完成 **/
-		for (ConfigurationOrder each : configurationOrders)
-		{
-			Class<?> type = each.type;
-			if (annotationUtil.isPresent(Conditional.class, type) && //
-			        match(annotationUtil.getAnnotations(Conditional.class, type), type.getAnnotations(), environment) == false)
-			{
-				continue;
-			}
-			for (Method method : each.methods)
-			{
-				if (handleds.contains(method))
-				{
-					continue;
-				}
-				if (annotationUtil.isPresent(Conditional.class, method) && //
-				        match(annotationUtil.getAnnotations(Conditional.class, method), method.getAnnotations(), environment) == false)
-				{
-					continue;
-				}
-				environment.registerBeanDefinition(generated(method, type, annotationUtil));
-			}
-		}
+		return configurationOrders;
 	}
 	
 	boolean match(Conditional[] conditionals, Annotation[] annotations, Environment environment)
