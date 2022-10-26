@@ -33,7 +33,7 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.D
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.EnhanceAnnoInfo;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AfterEnhance;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AroundEnhance;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoResource;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoCloseable;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.BeforeEnhance;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.EnhanceClass;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.ThrowEnhance;
@@ -422,7 +422,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
         if (annotationUtil.isPresent(Transaction.class, method))
         {
-            Verify.False(annotationUtil.isPresent(AutoResource.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
+            Verify.False(annotationUtil.isPresent(AutoCloseable.class, method), "同一个方法上不能同时有事务注解和自动关闭注解，请检查{}.{}", method.getDeclaringClass(), method.getName());
             Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有事务注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
             return true;
         }
@@ -435,7 +435,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
     private boolean hasAutoresourceEnhance(Method method)
     {
         AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
-        if (annotationUtil.isPresent(AutoResource.class, method))
+        if (annotationUtil.isPresent(AutoCloseable.class, method))
         {
             Verify.True(Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers()), "方法{}.{}有自动关闭注解,访问类型必须是public或protected", method.getDeclaringClass(), method.getName());
             return true;

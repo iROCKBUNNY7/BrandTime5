@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface AutoResource
+public @interface AutoCloseable
 {
     /**
      * 识别到该异常进行自动关闭,其余异常不操作

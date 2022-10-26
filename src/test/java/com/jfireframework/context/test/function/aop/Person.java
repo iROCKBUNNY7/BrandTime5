@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.aop;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoResource;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AutoCloseable;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
 
 @Resource
@@ -62,7 +62,7 @@ public class Person
         System.out.println("dsada");
     }
     
-    @AutoResource
+    @AutoCloseable
     public void autoClose()
     {
         String name = "12";
