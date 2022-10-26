@@ -19,15 +19,15 @@ import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(EnableAutoConfiguration.AutoConfig.class)
 public @interface EnableAutoConfiguration
 {
-	@Order(SupportConstant.DEFAULT_ORDER)
+	@Order(JfirePreparedConstant.DEFAULT_ORDER)
 	class AutoConfig implements JfirePrepared
 	{
 		private static final Logger	logger			= LoggerFactory.getLogger(AutoConfig.class);

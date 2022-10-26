@@ -15,8 +15,8 @@ import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 
 /**
  * 用来引入其他的类配置.
@@ -29,7 +29,7 @@ public @interface Import
 {
 	Class<?>[] value();
 	
-	@Order(SupportConstant.IMPORT_ORDER)
+	@Order(JfirePreparedConstant.IMPORT_ORDER)
 	class ProcessImport implements JfirePrepared
 	{
 		private static final Logger logger = LoggerFactory.getLogger(ProcessImport.class);

@@ -8,30 +8,30 @@ import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.kernel.JfireAwareContextInited;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.JfireAwareContextInited.InstanceSingtonBeanAsap.InstanceSingtonBean;
 import com.jfireframework.jfire.support.JfirePrepared.Import;
+import com.jfireframework.jfire.support.constant.JfireAwareContextInitedConstant;
 
 @Import(InstanceSingtonBean.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InstanceSingtonBeanAsap
 {
-    @Order(SupportConstant.INSTANCE_SINGTON_BEAN_ORDER)
-    class InstanceSingtonBean implements JfireAwareContextInited
-    {
-        
-        @Override
-        public void awareContextInited(ReadOnlyEnvironment readOnlyEnvironment)
-        {
-            Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
-            for (BeanDefinition beanDefinition : readOnlyEnvironment.beanDefinitions())
-            {
-                if (beanDefinition.isPrototype() == false)
-                {
-                    beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap);
-                }
-            }
-        }
-        
-    }
+	@Order(JfireAwareContextInitedConstant.INSTANCE_SINGTON_BEAN_ORDER)
+	class InstanceSingtonBean implements JfireAwareContextInited
+	{
+		
+		@Override
+		public void awareContextInited(ReadOnlyEnvironment readOnlyEnvironment)
+		{
+			Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
+			for (BeanDefinition beanDefinition : readOnlyEnvironment.beanDefinitions())
+			{
+				if (beanDefinition.isPrototype() == false)
+				{
+					beanDefinition.getBeanInstanceResolver().getInstance(beanInstanceMap);
+				}
+			}
+		}
+		
+	}
 }

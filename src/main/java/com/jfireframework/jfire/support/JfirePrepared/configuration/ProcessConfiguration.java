@@ -15,12 +15,12 @@ import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.MethodBeanInstanceResolver;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Condition;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 
-@Order(SupportConstant.CONFIGURATION_ORDER)
+@Order(JfirePreparedConstant.CONFIGURATION_ORDER)
 public class ProcessConfiguration implements JfirePrepared
 {
 	class ConfigurationOrder

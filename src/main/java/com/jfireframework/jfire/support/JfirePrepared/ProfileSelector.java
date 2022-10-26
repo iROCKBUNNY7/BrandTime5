@@ -6,7 +6,7 @@ import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -20,7 +20,7 @@ public @interface ProfileSelector
 	
 	public static final String activePropertyName = "jfire.profile.active";
 	
-	@Order(SupportConstant.PROFILE_SELECTOR_ORDER)
+	@Order(JfirePreparedConstant.PROFILE_SELECTOR_ORDER)
 	class ProfileImporter implements JfirePrepared
 	{
 		

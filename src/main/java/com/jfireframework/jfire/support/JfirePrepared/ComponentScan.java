@@ -17,9 +17,9 @@ import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver;
 import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.LoadBy;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
 
 /**
@@ -35,7 +35,7 @@ public @interface ComponentScan
 {
 	String[] value();
 	
-	@Order(SupportConstant.DEFAULT_ORDER)
+	@Order(JfirePreparedConstant.DEFAULT_ORDER)
 	class ComponentScanImporter implements JfirePrepared
 	{
 		

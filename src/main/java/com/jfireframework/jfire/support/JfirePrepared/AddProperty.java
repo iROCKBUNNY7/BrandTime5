@@ -5,7 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 
 @Import(AddProperty.ImportProperty.class)
 @Retention(RetentionPolicy.RUNTIME)
@@ -13,7 +13,7 @@ public @interface AddProperty
 {
 	String[] value();
 	
-	@Order(SupportConstant.DEFAULT_ORDER)
+	@Order(JfirePreparedConstant.DEFAULT_ORDER)
 	class ImportProperty implements JfirePrepared
 	{
 		

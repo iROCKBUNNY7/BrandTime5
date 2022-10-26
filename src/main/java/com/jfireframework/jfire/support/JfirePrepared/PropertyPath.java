@@ -10,7 +10,7 @@ import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.kernel.JfirePrepared;
 import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.SupportConstant;
+import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
@@ -20,7 +20,7 @@ public @interface PropertyPath
 {
 	public String[] value();
 	
-	@Order(SupportConstant.DEFAULT_ORDER)
+	@Order(JfirePreparedConstant.DEFAULT_ORDER)
 	public class PropertyPathImporter implements JfirePrepared
 	{
 		@Override
