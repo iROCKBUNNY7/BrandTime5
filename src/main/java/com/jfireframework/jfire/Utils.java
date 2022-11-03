@@ -13,23 +13,7 @@ import com.jfireframework.baseutil.exception.JustThrowException;
 
 public class Utils
 {
-	private static ThreadLocal<AnnotationUtil> local = new ThreadLocal<AnnotationUtil>() {
-		@Override
-		protected AnnotationUtil initialValue()
-		{
-			return new AnnotationUtil();
-		}
-	};
-	
-	public static AnnotationUtil getAnnotationUtil()
-	{
-		return local.get();
-	}
-	
-	public static void clearAnnotationUtil()
-	{
-		local.remove();
-	}
+	public static final AnnotationUtil ANNOTATION_UTIL = new AnnotationUtil();
 	
 	public static IniFile processPath(String path)
 	{

@@ -1,84 +1,43 @@
 package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate;
 
 import java.util.List;
+import javax.validation.ConstraintViolation;
 import com.jfireframework.baseutil.collection.StringCache;
 
 public class ValidateResult
 {
-    private List<ValidateResultDetail> details;
-    
-    public List<ValidateResultDetail> getDetails()
-    {
-        return details;
-    }
-    
-    public void setDetails(List<ValidateResultDetail> details)
-    {
-        this.details = details;
-    }
-    
-    @Override
-    public String toString()
-    {
-        StringCache cache = new StringCache();
-        for (ValidateResultDetail each : details)
-        {
-            cache.append("{");
-            cache.append(each.getPath()).append(" : ").append(each.getMessage()).append("}").appendComma();
-        }
-        if (cache.isCommaLast())
-        {
-            cache.deleteLast();
-        }
-        return cache.toString();
-    }
-    
-    public static class ValidateResultDetail
-    {
-        private String path;
-        private Object inValidatedValue;
-        private String message;
-        private String messageTemplate;
-        
-        public String getMessageTemplate()
-        {
-            return messageTemplate;
-        }
-        
-        public void setMessageTemplate(String messageTemplate)
-        {
-            this.messageTemplate = messageTemplate;
-        }
-        
-        public String getPath()
-        {
-            return path;
-        }
-        
-        public void setPath(String path)
-        {
-            this.path = path;
-        }
-        
-        public Object getInValidatedValue()
-        {
-            return inValidatedValue;
-        }
-        
-        public void setInValidatedValue(Object inValidatedValue)
-        {
-            this.inValidatedValue = inValidatedValue;
-        }
-        
-        public String getMessage()
-        {
-            return message;
-        }
-        
-        public void setMessage(String message)
-        {
-            this.message = message;
-        }
-        
-    }
+	
+	private final List<ConstraintViolation<?>> violations;
+	
+	public ValidateResult(List<ConstraintViolation<?>> violations)
+	{
+		this.violations = violations;
+	}
+	
+	public boolean isInValid()
+	{
+		return violations.isEmpty() == false;
+	}
+	
+	public List<ConstraintViolation<?>> getViolations()
+	{
+		return violations;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringCache cache = new StringCache();
+		for (ConstraintViolation<?> each : violations)
+		{
+			cache.append("{");
+			cache.append(each.getPropertyPath()).append(" : ").append(each.getMessage()).append("}").appendComma();
+		}
+		if (cache.isCommaLast())
+		{
+			cache.deleteLast();
+		}
+		return cache.toString();
+	}
+	
 }

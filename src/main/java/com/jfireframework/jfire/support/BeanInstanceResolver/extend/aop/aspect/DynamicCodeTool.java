@@ -294,7 +294,7 @@ public class DynamicCodeTool
     
     private static void addValidateResultJudge(StringCache cache, String variableName)
     {
-        cache.append("if(").append(variableName).append(".getDetails().size()>0){\r\n");
+        cache.append("if(").append(variableName).append(".isInValid()){\r\n");
         cache.append("throw new javax.validation.ValidationException(").append(variableName).append(".toString());\r\n");
         cache.append("}\r\n");
     }
