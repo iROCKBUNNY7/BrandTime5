@@ -24,7 +24,7 @@ public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
     
     public LoadByBeanInstanceResolver(Class<?> type, String beanName, boolean prototype)
     {
-        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+        AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         prototype = annotationUtil.isPresent(Resource.class, type) ? annotationUtil.getAnnotation(Resource.class, type).shareable() == false : false;
         LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, type);
         factoryBeanName = loadBy.factoryBeanName();
@@ -33,7 +33,7 @@ public class LoadByBeanInstanceResolver extends BaseBeanInstanceResolver
     
     public LoadByBeanInstanceResolver(Class<?> type)
     {
-        AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         prototype = annotationUtil.isPresent(Resource.class, type) ? annotationUtil.getAnnotation(Resource.class, type).shareable() == false : false;
         LoadBy loadBy = annotationUtil.getAnnotation(LoadBy.class, type);
         factoryBeanName = loadBy.factoryBeanName();

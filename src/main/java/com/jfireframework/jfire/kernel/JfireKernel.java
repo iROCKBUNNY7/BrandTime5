@@ -32,7 +32,7 @@ public class JfireKernel
 	
 	private void awareContextInited(Environment environment)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		List<OrderEntry> tmp = new LinkedList<OrderEntry>();
 		Map<String, Object> beanInstanceMap = new HashMap<String, Object>();
 		for (BeanDefinition each : environment.getBeanDefinitions().values())
@@ -103,7 +103,7 @@ public class JfireKernel
 	BeanDefinition getTopPreparedBeanDefinition(IdentityHashMap<BeanDefinition, Object> flags, Environment environment)
 	{
 		List<OrderEntry> tmp = new LinkedList<OrderEntry>();
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		for (BeanDefinition each : environment.getBeanDefinitions().values())
 		{
 			Class<?> type = each.getType();

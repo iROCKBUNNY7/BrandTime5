@@ -58,8 +58,7 @@ public @interface Import
 			if (annotationUtil.isPresent(Import.class, ckass))
 			{
 				String traceId = TRACEID.currentTraceId();
-				Import[] annotations = annotationUtil.getAnnotations(Import.class, ckass);
-				for (Import annotation : annotations)
+				for (Import annotation : annotationUtil.getAnnotations(Import.class, ckass))
 				{
 					for (Class<?> each : annotation.value())
 					{
