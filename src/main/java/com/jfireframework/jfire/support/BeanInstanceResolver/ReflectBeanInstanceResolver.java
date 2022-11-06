@@ -1,6 +1,5 @@
 package com.jfireframework.jfire.support.BeanInstanceResolver;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -13,8 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.validation.Constraint;
-import javax.validation.Valid;
+import javax.validation.executable.ValidateOnExecution;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
@@ -395,26 +393,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 	
 	private boolean hasValidateEnhance(Method method)
 	{
-		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-		if (annotationUtil.isPresent(Constraint.class, method))
-		{
-			return true;
-		}
-		for (Annotation[] annotations : method.getParameterAnnotations())
-		{
-			for (Annotation each : annotations)
-			{
-				if (each.annotationType() == Valid.class)
-				{
-					return true;
-				}
-			}
-			if (annotationUtil.isPresent(Constraint.class, annotations))
-			{
-				return true;
-			}
-		}
-		return false;
+		return method.isAnnotationPresent(ValidateOnExecution.class);
 	}
 	
 	private boolean hasTransactionEnhance(Method method)
