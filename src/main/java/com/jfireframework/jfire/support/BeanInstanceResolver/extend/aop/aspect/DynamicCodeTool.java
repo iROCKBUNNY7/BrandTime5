@@ -1,13 +1,17 @@
 package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.validation.Constraint;
+import javax.validation.Valid;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.el.SmcEl;
 import com.jfireframework.baseutil.smc.model.CompilerModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
+import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.Cache;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheDelete;
@@ -216,11 +220,6 @@ public class DynamicCodeTool
 	
 	public static void addValidateToMethod(final CompilerModel compilerModel, final String validateFieldName, final String extraInfoStoreFieldName, final Method method, final int methodSequence)
 	{
-		final int length = method.getParameterTypes().length;
-		if (length == 0)
-		{
-			return;
-		}
 		String invokeStr = renameOriginMethod(compilerModel, method);
 		MethodModel validatedMethod = new MethodModel(method);
 		String body = buildBody(invokeStr, validateFieldName, extraInfoStoreFieldName, methodSequence, method);
@@ -240,25 +239,59 @@ public class DynamicCodeTool
 	
 	private static String buildBody(String invokeStr, String validateFieldName, String extraInfoStoreFieldName, Integer methodSequence, Method method)
 	{
-		int length = method.getParameterTypes().length;
 		StringCache cache = new StringCache();
-		cache.append(validateFieldName).append(".validateParameters(").append("this,").append(extraInfoStoreFieldName).append(".getMethod(" + methodSequence + "),new Object[]{");
-		for (int i = 0; i < length; i++)
+		if (hasConstraintBeforeMethodExecute(method))
 		{
-			cache.append("$").append(i).appendComma();
+			int length = method.getParameterTypes().length;
+			cache.append(validateFieldName).append(".validateParameters(").append("this,").append(extraInfoStoreFieldName).append(".getMethod(" + methodSequence + "),new Object[]{");
+			for (int i = 0; i < length; i++)
+			{
+				cache.append("$").append(i).appendComma();
+			}
+			cache.deleteLast().append("});\r\n");
 		}
-		cache.deleteLast().append("});\\r\\n");
-		addEnd(cache, invokeStr, method);
+		if (hasConstraintOnReturnValue(method))
+		{
+			String returnValueField = "returnValue_" + count.incrementAndGet();
+			cache.append("Object ").append(returnValueField).append(" = ").append(invokeStr).append(";\r\n");
+			cache.append(validateFieldName).append(".validateReturnValue(").append("this,").append(extraInfoStoreFieldName).append(".getMethod(" + methodSequence + "),").append(returnValueField).append(");\r\n");
+			cache.append("return ").append(returnValueField).append(";\r\n");
+		}
+		else
+		{
+			if (method.getReturnType() != void.class)
+			{
+				cache.append("return ");
+			}
+			cache.append(invokeStr).append(";\r\n");
+		}
 		return cache.toString();
 	}
 	
-	private static void addEnd(StringCache cache, String invokeStr, Method method)
+	private static boolean hasConstraintBeforeMethodExecute(Method method)
 	{
-		if (method.getReturnType() != void.class)
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
+		if (annotationUtil.isPresent(Constraint.class, method))
 		{
-			cache.append("return ");
+			return true;
 		}
-		cache.append(invokeStr).append(";\r\n");
+		for (Annotation[] parameterAnnotations : method.getParameterAnnotations())
+		{
+			if (annotationUtil.isPresent(Constraint.class, parameterAnnotations))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static boolean hasConstraintOnReturnValue(Method method)
+	{
+		if (method.getReturnType() == void.class || method.isAnnotationPresent(Valid.class) == false)
+		{
+			return false;
+		}
+		return true;
 	}
 	
 	public static void addTxToMethod(CompilerModel compilerModel, String txFieldName, Method method)
