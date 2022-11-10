@@ -24,7 +24,7 @@ public class ValidateTest
         }
         catch (ValidationException e)
         {
-            Assert.assertEquals("{name : may not be null}", e.getMessage());
+            Assert.assertEquals("sayHello.0.name,", e.getMessage());
         }
         try
         {
@@ -33,7 +33,7 @@ public class ValidateTest
         }
         catch (ValidationException e)
         {
-            Assert.assertEquals("{com.jfireframework.context.test.function.validate.Person.sayHello2_0 : may not be null}", e.getMessage());
+            Assert.assertEquals("sayHello2.0,", e.getMessage());
         }
     }
 }

@@ -277,6 +277,13 @@ public class DynamicCodeTool
 		}
 		for (Annotation[] parameterAnnotations : method.getParameterAnnotations())
 		{
+			for (Annotation annotation : parameterAnnotations)
+			{
+				if (annotation.annotationType() == Valid.class)
+				{
+					return true;
+				}
+			}
 			if (annotationUtil.isPresent(Constraint.class, parameterAnnotations))
 			{
 				return true;
