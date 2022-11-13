@@ -15,6 +15,9 @@
 	Jfire is a IOC and AOP container. Provides a transparent object management. And provide a simple and efficient AOP API operation. At the same time also supports transparent transaction management.
 	</description>
 	<properties>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
@@ -44,13 +47,18 @@
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>baseutil</artifactId>
-			<version>1.2.3</version>
+			<version>1.2.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jfireframework</groupId>
 			<artifactId>jfireValidator</artifactId>
 			<version>1.0-SNAPSHOT</version>
-			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -63,11 +71,6 @@
 			<artifactId>jedis</artifactId>
 			<version>2.8.0</version>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>1.0.0.GA</version>
 		</dependency>
 	</dependencies>
 	<build>

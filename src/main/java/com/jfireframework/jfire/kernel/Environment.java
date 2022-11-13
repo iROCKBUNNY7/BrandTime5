@@ -119,7 +119,7 @@ public class Environment
 	
 	public boolean isAnnotationPresent(Class<? extends Annotation> annoType)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		for (Class<?> each : annotationPresentClasses)
 		{
 			if (annotationUtil.isPresent(annoType, each))
@@ -139,7 +139,7 @@ public class Environment
 	
 	public <T extends Annotation> T getAnnotation(Class<T> type)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		for (Class<?> each : annotationPresentClasses)
 		{
 			if (annotationUtil.isPresent(type, each))
@@ -160,7 +160,7 @@ public class Environment
 	@SuppressWarnings("unchecked")
 	public <T extends Annotation> T[] getAnnotations(Class<T> type)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		List<T> list = new ArrayList<T>();
 		for (Class<?> each : annotationPresentClasses)
 		{

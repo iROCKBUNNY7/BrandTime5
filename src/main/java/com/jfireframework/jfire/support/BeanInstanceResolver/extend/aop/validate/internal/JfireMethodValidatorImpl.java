@@ -1,45 +1,58 @@
 package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.internal;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
+import javax.validation.ValidationException;
+import javax.validation.Validator;
+import javax.validation.executable.ExecutableValidator;
+import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.JfireMethodValidator;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.ValidateResult;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.validate.ValidateResult.ValidateResultDetail;
-import com.jfireframework.validator.engine.JfireValidator;
 
 public class JfireMethodValidatorImpl implements JfireMethodValidator
 {
-    private JfireValidator jfireValidator;
-    
-    @PostConstruct
-    public void init()
-    {
-        jfireValidator = (JfireValidator) Validation.buildDefaultValidatorFactory().getValidator();
-    }
-    
-    @Override
-    public ValidateResult validate(Method method, Object[] params, Class<?>... groups)
-    {
-        Set<ConstraintViolation<Method>> constraintViolations = jfireValidator.validateMethod(method, params, groups);
-        ValidateResult result = new ValidateResult();
-        List<ValidateResultDetail> details = new ArrayList<ValidateResult.ValidateResultDetail>();
-        for (ConstraintViolation<Method> each : constraintViolations)
-        {
-            ValidateResultDetail detail = new ValidateResultDetail();
-            detail.setInValidatedValue(each.getInvalidValue());
-            detail.setMessage(each.getMessage());
-            detail.setMessageTemplate(each.getMessageTemplate());
-            detail.setPath(each.getPropertyPath().toString());
-            details.add(detail);
-        }
-        result.setDetails(Collections.unmodifiableList(details));
-        return result;
-    }
-    
+	private Validator validator;
+	
+	@PostConstruct
+	protected void initialize()
+	{
+		validator = Validation.buildDefaultValidatorFactory().getValidator();
+	}
+	
+	@Override
+	public <T> void validateParameters(T object, Method method, Object[] parameterValues, Class<?>... groups)
+	{
+		ExecutableValidator executables = validator.forExecutables();
+		Set<ConstraintViolation<T>> set = executables.validateParameters(object, method, parameterValues, groups);
+		if (set.isEmpty() == false)
+		{
+			StringCache cache = new StringCache();
+			for (ConstraintViolation<T> each : set)
+			{
+				cache.append(each.getPropertyPath().toString()).appendComma();
+			}
+			ValidationException validationException = new ValidationException(cache.toString());
+			throw validationException;
+		}
+	}
+	
+	@Override
+	public <T> void validateReturnValue(T object, Method method, Object returnValue, Class<?>... groups)
+	{
+		ExecutableValidator executables = validator.forExecutables();
+		Set<ConstraintViolation<T>> set = executables.validateReturnValue(object, method, returnValue, groups);
+		if (set.isEmpty() == false)
+		{
+			StringCache cache = new StringCache();
+			for (ConstraintViolation<T> each : set)
+			{
+				cache.append(each.getPropertyPath().toString()).appendComma();
+			}
+			ValidationException validationException = new ValidationException(cache.toString());
+			throw validationException;
+		}
+	}
+	
 }

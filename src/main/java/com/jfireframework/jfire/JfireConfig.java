@@ -33,7 +33,7 @@ public class JfireConfig
 	
 	public JfireConfig(Class<?> configClass)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		environment.addAnnotationPresentClass(configClass);
 		if (annotationUtil.isPresent(Resource.class, configClass))
 		{
@@ -82,7 +82,6 @@ public class JfireConfig
 		registerBeanDefinition(ProcessConfiguration.class);
 		new JfireKernel().initialize(environment);
 		ReflectBeanInstanceResolver.compilers.remove();
-		Utils.clearAnnotationUtil();
 		return jfire;
 	}
 	
@@ -114,7 +113,7 @@ public class JfireConfig
 	
 	private BeanDefinition buildBeanDefinition(String beanName, boolean prototype, Class<?> ckass)
 	{
-		AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		BeanDefinition beanDefinition;
 		if (annotationUtil.isPresent(LoadBy.class, ckass))
 		{

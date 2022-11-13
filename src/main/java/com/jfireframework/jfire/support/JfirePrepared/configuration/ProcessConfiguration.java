@@ -133,7 +133,7 @@ public class ProcessConfiguration implements JfirePrepared
 		return configurationOrders;
 	}
 	
-	boolean match(Conditional[] conditionals, Annotation[] annotations, Environment environment)
+	boolean match(List<Conditional> conditionals, Annotation[] annotations, Environment environment)
 	{
 		for (Conditional conditional : conditionals)
 		{

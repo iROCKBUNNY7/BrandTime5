@@ -54,7 +54,7 @@ public @interface ComponentScan
 					}
 				}
 				ClassLoader classLoader = environment.getClassLoader();
-				AnnotationUtil annotationUtil = Utils.getAnnotationUtil();
+				AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 				for (String each : classNames)
 				{
 					Class<?> ckass;

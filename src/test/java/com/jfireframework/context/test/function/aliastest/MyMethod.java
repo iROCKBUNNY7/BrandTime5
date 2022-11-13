@@ -4,13 +4,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.jfireframework.baseutil.anno.AliasFor;
+import com.jfireframework.baseutil.anno.OverridesAttribute;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @InitMethod(name = "")
 public @interface MyMethod
 {
-    @AliasFor(annotation = InitMethod.class, value = "name")
-    public String load();
+	@OverridesAttribute(annotation = InitMethod.class, name = "name")
+	public String load();
 }
