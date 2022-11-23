@@ -21,4 +21,8 @@ public class Environment
 		return markVersion == version;
 	}
 	
+	private void addVersion()
+	{
+		version += 1;
+	}
 }
