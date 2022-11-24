@@ -11,12 +11,12 @@ public interface BeanInstanceResolver
 	 * @param beanInstanceMap
 	 * @return
 	 */
-	Object buildInstance(Class<?> type, Map<String, Object> beanInstanceMap);
+	Object buildInstance(Map<String, Object> beanInstanceMap);
 	
 	/**
 	 * 初始化
 	 * 
 	 * @param environment
 	 */
-	void initialize(Environment environment);
+	void initialize(Environment environment, Class<?> type);
 }

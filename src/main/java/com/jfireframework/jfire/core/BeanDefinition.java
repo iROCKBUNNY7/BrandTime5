@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class BeanDefinition
 {
@@ -32,6 +33,11 @@ public class BeanDefinition
 	 * @return
 	 */
 	public Object getBeanInstance()
+	{
+		return null;
+	}
+	
+	public Object getBeanInstance(Map<String, Object> beanInstanceMap)
 	{
 		return null;
 	}

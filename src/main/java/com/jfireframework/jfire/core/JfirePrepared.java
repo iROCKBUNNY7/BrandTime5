@@ -15,5 +15,6 @@ public @interface JfirePrepared
 	 * 
 	 * @return
 	 */
-	int value() default JfirePreparedConstant.DEFAULT_ORDER;
+	int order() default JfirePreparedConstant.DEFAULT_ORDER;
+	
 }
