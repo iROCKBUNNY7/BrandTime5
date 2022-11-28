@@ -1,8 +1,5 @@
 package com.jfireframework.jfire.core;
 
-import java.util.Map;
-import com.jfireframework.jfire.kernel.Environment;
-
 public interface BeanInstanceResolver
 {
 	/**
@@ -11,12 +8,13 @@ public interface BeanInstanceResolver
 	 * @param beanInstanceMap
 	 * @return
 	 */
-	Object buildInstance(Map<String, Object> beanInstanceMap);
+	Object buildInstance();
 	
 	/**
-	 * 初始化
+	 * 当环境稳定下来之后，会执行一次初始化。确保所有的实例生产者可以获取到环境参数
 	 * 
 	 * @param environment
 	 */
-	void initialize(Environment environment, Class<?> type);
+	void init(Environment environment);
+	
 }

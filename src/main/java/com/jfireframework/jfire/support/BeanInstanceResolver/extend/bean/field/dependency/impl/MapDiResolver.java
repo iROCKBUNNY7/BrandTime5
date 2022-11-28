@@ -12,7 +12,7 @@ import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.kernel.BeanDefinition;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKey;
+import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKeyMethodName;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.DiResolver;
 
 public class MapDiResolver implements DiResolver
@@ -105,10 +105,10 @@ public class MapDiResolver implements DiResolver
                 injectValue.add(each);
             }
         }
-        if (annotationUtil.isPresent(MapKey.class, field))
+        if (annotationUtil.isPresent(MapKeyMethodName.class, field))
         {
             type = MapKeyType.method;
-            String methodName = annotationUtil.getAnnotation(MapKey.class, field).value();
+            String methodName = annotationUtil.getAnnotation(MapKeyMethodName.class, field).value();
             try
             {
                 method = valueClass.getDeclaredMethod(methodName);

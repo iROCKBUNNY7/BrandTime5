@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Target(value = { ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Inherited
-public @interface MapKey
+public @interface MapKeyMethodName
 {
     public String value();
 }
