@@ -11,11 +11,17 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
-import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ClassModel;
+import com.jfireframework.baseutil.smc.model.FieldModel;
+import com.jfireframework.baseutil.smc.model.MethodModel;
+import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.jfire.Utils;
-import com.jfireframework.jfire.core.AopManager.SetHost;
+import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.AopManager.SetHost;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
 import com.jfireframework.jfire.core.inject.impl.DefaultDependencyInjectHandler;
@@ -29,10 +35,7 @@ public class BeanDefinition
 {
     // 多实例标记
     private static final int                             PROTOTYPE          = 1 << 0;
-    // 增强标记
-    private static final int                             NEED_ENHANCE       = 1 << 1;
-    // 持有@PostConstruct注解标记
-    private static final int                             POST_CONSTRUCT     = 1 << 2;
+    private static final int                             AWARE_CONTEXT_INIT = 1 << 1;
     // 如果是单例的情况，后续只会使用该实例
     private volatile Object                              cachedSingtonInstance;
     /******/
@@ -57,6 +60,17 @@ public class BeanDefinition
                                                                                 };
                                                                             };
     
+    public BeanDefinition(String beanName, Class<?> type, boolean prototype)
+    {
+        this.beanName = beanName;
+        this.type = type;
+        setPrototype(prototype);
+        if (JfireAwareContextInited.class.isAssignableFrom(type))
+        {
+            setAwareContextInit();
+        }
+    }
+    
     public void init(Environment environment)
     {
         initPostConstructMethod();
@@ -67,38 +81,85 @@ public class BeanDefinition
     
     private void initEnhance(Environment environment)
     {
-        if (isNeedEnhance())
+        if (aopManagers.size() == 0)
         {
-            Collections.sort(aopManagers, new Comparator<AopManager>() {
-                
-                @Override
-                public int compare(AopManager o1, AopManager o2)
-                {
-                    return o1.order() - o2.order();
-                }
-            });
-            orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
-            CompilerModel compilerModel = new CompilerModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
-            compilerModel.addInterface(SetHost.class);
+            orderedAopManagers = new AopManager[0];
+            return;
+        }
+        Collections.sort(aopManagers, new Comparator<AopManager>() {
+            
+            @Override
+            public int compare(AopManager o1, AopManager o2)
+            {
+                return o1.order() - o2.order();
+            }
+        });
+        orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
+        ClassModel classModel = new ClassModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
+        String hostFieldName = "host_" + AopManager.fieldNameCounter.getAndIncrement();
+        addHostField(classModel, hostFieldName);
+        addSetAopHostMethod(classModel, hostFieldName);
+        addInvokeHostPublicMethod(classModel, hostFieldName);
+        for (AopManager aopManager : orderedAopManagers)
+        {
+            aopManager.enhance(classModel, type, environment);
+        }
+        JavaStringCompiler compiler = new JavaStringCompiler(environment.getClassLoader());
+        try
+        {
+            enhanceType = compiler.compile(classModel);
             for (AopManager aopManager : orderedAopManagers)
             {
-                aopManager.enhance(compilerModel, environment);
+                aopManager.enhanceFinish(type, enhanceType, environment);
             }
-            JavaStringCompiler compiler = new JavaStringCompiler(environment.getClassLoader());
-            try
-            {
-                enhanceType = compiler.compile(compilerModel);
-            }
-            catch (Throwable e)
-            {
-                throw new EnhanceException(e);
-            }
+        }
+        catch (Throwable e)
+        {
+            throw new EnhanceException(e);
         }
     }
     
-    class demo$Aop$1
+    private void addInvokeHostPublicMethod(ClassModel classModel, String hostFieldName)
     {
-        
+        for (Method each : type.getMethods())
+        {
+            MethodModel methodModel = new MethodModel(each);
+            StringCache cache = new StringCache();
+            if (each.getReturnType() != void.class)
+            {
+                cache.append("return ");
+            }
+            cache.append(hostFieldName).append(".").append(each.getName()).append("(");
+            for (int i = 0; i < methodModel.getParamterTypes().length; i++)
+            {
+                cache.append("$").append(i).appendComma();
+            }
+            if (cache.isCommaLast())
+            {
+                cache.deleteLast();
+            }
+            cache.append(");");
+            methodModel.setBody(cache.toString());
+            classModel.putMethodModel(methodModel);
+        }
+    }
+    
+    private void addSetAopHostMethod(ClassModel compilerModel, String hostFieldName)
+    {
+        MethodModel setAopHost = new MethodModel();
+        setAopHost.setAccessLevel(AccessLevel.PUBLIC);
+        setAopHost.setMethodName("setAopHost");
+        setAopHost.setParamterTypes(Object.class);
+        setAopHost.setReturnType(void.class);
+        setAopHost.setBody("{" + hostFieldName + " = (" + SmcHelper.getTypeName(type) + ")$0;}");
+        compilerModel.putMethodModel(setAopHost);
+    }
+    
+    private void addHostField(ClassModel compilerModel, String hostFieldName)
+    {
+        FieldModel hostField = new FieldModel(hostFieldName, type);
+        compilerModel.addField(hostField);
+        compilerModel.addInterface(SetHost.class);
     }
     
     /**
@@ -242,17 +303,17 @@ public class BeanDefinition
         Map<String, Object> map = tmpBeanInstanceMap.get();
         boolean cleanMark = map.isEmpty();
         Object instance = null;
-        if (isNeedEnhance() && orderedAopManagers.length != 0)
+        if (orderedAopManagers.length != 0)
         {
             try
             {
                 SetHost newInstance = (SetHost) enhanceType.newInstance();
-                newInstance.setHost(resolver.buildInstance());
+                newInstance.setAopHost(resolver.buildInstance());
                 instance = newInstance;
                 map.put(beanName, instance);
                 for (AopManager each : orderedAopManagers)
                 {
-                    each.fillBean(instance);
+                    each.fillBean(instance, type);
                 }
             }
             catch (Throwable e)
@@ -290,19 +351,14 @@ public class BeanDefinition
         return instance;
     }
     
-    private void setNeedEnhance(boolean flag)
-    {
-        state = flag ? state | NEED_ENHANCE : state & (~NEED_ENHANCE);
-    }
-    
     public void setPrototype(boolean flag)
     {
         state = flag ? state | PROTOTYPE : state & (~PROTOTYPE);
     }
     
-    public void setPostConstruct(boolean flag)
+    private void setAwareContextInit()
     {
-        state = flag ? state | POST_CONSTRUCT : state & (~POST_CONSTRUCT);
+        state &= ~AWARE_CONTEXT_INIT;
     }
     
     private boolean isPropertype()
@@ -310,9 +366,9 @@ public class BeanDefinition
         return (state & PROTOTYPE) != 0;
     }
     
-    private boolean isNeedEnhance()
+    public boolean isAwareContextInit()
     {
-        return (state & NEED_ENHANCE) != 0;
+        return (state & AWARE_CONTEXT_INIT) != 0;
     }
     
     public String getBeanName()
@@ -328,6 +384,5 @@ public class BeanDefinition
     public void addAopManager(AopManager aopManager)
     {
         aopManagers.add(aopManager);
-        setNeedEnhance(true);
     }
 }

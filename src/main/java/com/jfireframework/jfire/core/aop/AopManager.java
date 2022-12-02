@@ -1,7 +1,8 @@
-package com.jfireframework.jfire.core;
+package com.jfireframework.jfire.core.aop;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ClassModel;
+import com.jfireframework.jfire.core.Environment;
 
 /**
  * 这里面AOP增强使用了一个新的套路。每一个AOP增强如果需要放入填充的属性。则让增强类多实现一个接口，该接口就可以用于属性填充。
@@ -15,6 +16,7 @@ public interface AopManager
     // 用来作为AOP时增加的属性命名数字后缀，保证一个类中属性名不会出现重复
     AtomicInteger fieldNameCounter = new AtomicInteger(0);
     AtomicInteger classNameCounter = new AtomicInteger(0);
+    int           DEFAULT          = 100;
     
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，设定增强标志
@@ -26,10 +28,12 @@ public interface AopManager
     /**
      * 执行增强操作
      * 
-     * @param compilerModel
+     * @param classModel
      * @param environment
      */
-    void enhance(CompilerModel compilerModel, Environment environment);
+    void enhance(ClassModel classModel, Class<?> type, Environment environment);
+    
+    void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment);
     
     /**
      * 填充Bean当中涉及到的AOP增强属性
@@ -37,7 +41,7 @@ public interface AopManager
      * @param bean
      * @param environment
      */
-    void fillBean(Object bean);
+    void fillBean(Object bean, Class<?> type);
     
     /**
      * 该AOP生效顺序。数字越小生效越快
@@ -53,6 +57,6 @@ public interface AopManager
          * 
          * @param instance
          */
-        void setHost(Object instance);
+        void setAopHost(Object instance);
     }
 }

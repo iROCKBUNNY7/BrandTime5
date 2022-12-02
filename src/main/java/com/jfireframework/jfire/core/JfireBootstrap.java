@@ -5,20 +5,39 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
 
 public class JfireBootstrap
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JfireBootstrap.class);
     
     public void start(Environment environment)
     {
         prepare(environment);
-        // initializeBeanInstanceResolver(environment);
-        // awareContextInited(environment);
+        aopScan(environment);
+        invokeBeanDefinitionInitMethod(environment);
+        awareContextInit(environment);
+    }
+    
+    private void awareContextInit(Environment environment)
+    {
+        for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
+        {
+            if (beanDefinition.isAwareContextInit())
+            {
+                ((JfireAwareContextInited) beanDefinition.getBeanInstance()).awareContextInited(environment.readOnlyEnvironment());
+            }
+        }
+    }
+    
+    private void invokeBeanDefinitionInitMethod(Environment environment)
+    {
+        for (Entry<String, BeanDefinition> entry : environment.beanDefinitions().entrySet())
+        {
+            entry.getValue().init(environment);
+        }
     }
     
     private void prepare(Environment environment)
@@ -63,5 +82,33 @@ public class JfireBootstrap
                 }
             }
         } while (queue.isEmpty() == false || environment.isChanged());
+    }
+    
+    private void aopScan(Environment environment)
+    {
+        List<BeanDefinition> list = new LinkedList<BeanDefinition>();
+        for (Entry<String, BeanDefinition> each : environment.beanDefinitions().entrySet())
+        {
+            if (AopManager.class.isAssignableFrom(each.getValue().getType()) && Utils.ANNOTATION_UTIL.isPresent(AopManagerNotated.class, each.getValue().getType()))
+            {
+                list.add(each.getValue());
+            }
+        }
+        for (BeanDefinition each : list)
+        {
+            environment.removeBeanDefinition(each.getBeanName());
+        }
+        for (BeanDefinition each : list)
+        {
+            try
+            {
+                AopManager instance = (AopManager) each.getType().newInstance();
+                instance.scan(environment);
+            }
+            catch (Exception e)
+            {
+                throw new NewBeanInstanceException(e);
+            }
+        }
     }
 }

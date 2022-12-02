@@ -9,7 +9,7 @@ import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.el.SmcEl;
-import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
@@ -24,12 +24,12 @@ public class DynamicCodeTool
 	
 	private static final AtomicInteger count = new AtomicInteger(0);
 	
-	public static CompilerModel createClientClass(Class<?> type)
+	public static ClassModel createClientClass(Class<?> type)
 	{
 		return SmcHelper.createClientClass(type);
 	}
 	
-	public static void enhanceBefore(CompilerModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
+	public static void enhanceBefore(ClassModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
 	{
 		MethodModel pred = model.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -65,7 +65,7 @@ public class DynamicCodeTool
 		model.putMethod(method, insert);
 	}
 	
-	public static void enhanceAfter(CompilerModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
+	public static void enhanceAfter(ClassModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
 	{
 		MethodModel pred = model.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -110,7 +110,7 @@ public class DynamicCodeTool
 		model.putMethod(method, insert);
 	}
 	
-	public static void enhanceException(CompilerModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
+	public static void enhanceException(ClassModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
 	{
 		MethodModel pred = model.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -156,7 +156,7 @@ public class DynamicCodeTool
 		model.putMethod(method, insert);
 	}
 	
-	public static void enhanceAround(CompilerModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
+	public static void enhanceAround(ClassModel model, Method method, EnhanceAnnoInfo enhanceAnnoInfo)
 	{
 		MethodModel pred = model.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -218,7 +218,7 @@ public class DynamicCodeTool
 		insert.resetArgsInfo(cache.toString());
 	}
 	
-	public static void addValidateToMethod(final CompilerModel compilerModel, final String validateFieldName, final String extraInfoStoreFieldName, final Method method, final int methodSequence)
+	public static void addValidateToMethod(final ClassModel compilerModel, final String validateFieldName, final String extraInfoStoreFieldName, final Method method, final int methodSequence)
 	{
 		String invokeStr = renameOriginMethod(compilerModel, method);
 		MethodModel validatedMethod = new MethodModel(method);
@@ -228,7 +228,7 @@ public class DynamicCodeTool
 		
 	}
 	
-	private static String renameOriginMethod(CompilerModel compilerModel, Method method)
+	private static String renameOriginMethod(ClassModel compilerModel, Method method)
 	{
 		MethodModel pred = compilerModel.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -301,7 +301,7 @@ public class DynamicCodeTool
 		return true;
 	}
 	
-	public static void addTxToMethod(CompilerModel compilerModel, String txFieldName, Method method)
+	public static void addTxToMethod(ClassModel compilerModel, String txFieldName, Method method)
 	{
 		AnnotationUtil annotationUtil = new AnnotationUtil();
 		MethodModel methodModel = compilerModel.getMethodModel(method);
@@ -363,7 +363,7 @@ public class DynamicCodeTool
 		compilerModel.putMethod(method, insert);
 	}
 	
-	public static void addAutoResourceToMethod(CompilerModel compilerModel, String fieldName, Method method)
+	public static void addAutoResourceToMethod(ClassModel compilerModel, String fieldName, Method method)
 	{
 		MethodModel methodModel = compilerModel.getMethodModel(method);
 		String rename = method.getName() + "_" + count.incrementAndGet();
@@ -401,7 +401,7 @@ public class DynamicCodeTool
 		compilerModel.putMethod(method, insert);
 	}
 	
-	public static void addCacheGetToMethod(CompilerModel compilerModel, String fieldName, Method method)
+	public static void addCacheGetToMethod(ClassModel compilerModel, String fieldName, Method method)
 	{
 		AnnotationUtil annotationUtil = new AnnotationUtil();
 		MethodModel methodModel = compilerModel.getMethodModel(method);
@@ -464,7 +464,7 @@ public class DynamicCodeTool
 		}
 	}
 	
-	public static void addCachePutToMethod(CompilerModel compilerModel, String fieldName, Method method)
+	public static void addCachePutToMethod(ClassModel compilerModel, String fieldName, Method method)
 	{
 		AnnotationUtil annotationUtil = new AnnotationUtil();
 		MethodModel methodModel = compilerModel.getMethodModel(method);
@@ -510,7 +510,7 @@ public class DynamicCodeTool
 		}
 	}
 	
-	public static void addCacheDeleteToMethod(CompilerModel compilerModel, String fieldName, Method method)
+	public static void addCacheDeleteToMethod(ClassModel compilerModel, String fieldName, Method method)
 	{
 		AnnotationUtil annotationUtil = new AnnotationUtil();
 		MethodModel methodModel = compilerModel.getMethodModel(method);

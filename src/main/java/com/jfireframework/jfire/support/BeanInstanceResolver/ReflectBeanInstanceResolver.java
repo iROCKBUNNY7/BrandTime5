@@ -20,7 +20,7 @@ import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.order.AescComparator;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
-import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.baseutil.verify.Verify;
 import com.jfireframework.jfire.Utils;
@@ -181,7 +181,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 	
 	private Class<?> enhance(BeanAopDefinition beanAopDefinition) throws ClassNotFoundException
 	{
-		CompilerModel compilerModel = DynamicCodeTool.createClientClass(type);
+		ClassModel compilerModel = DynamicCodeTool.createClientClass(type);
 		if (beanAopDefinition.getTxMethods().size() > 0)
 		{
 			String txFieldName = "tx$smc";
@@ -287,7 +287,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 	 * @throws NotFoundException
 	 * @throws CannotCompileException
 	 */
-	private void addTxToMethod(CompilerModel compilerModel, String txFieldName, List<Method> txMethods)
+	private void addTxToMethod(ClassModel compilerModel, String txFieldName, List<Method> txMethods)
 	{
 		for (Method method : txMethods)
 		{
@@ -295,7 +295,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 		}
 	}
 	
-	private void addValidateToMethod(CompilerModel compilerModel, String validateFieldName, String extraInfoStoreFieldName, Set<Method> validateMethods)
+	private void addValidateToMethod(ClassModel compilerModel, String validateFieldName, String extraInfoStoreFieldName, Set<Method> validateMethods)
 	{
 		for (Method method : validateMethods)
 		{
@@ -313,7 +313,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 	 * @throws NotFoundException
 	 * @throws CannotCompileException
 	 */
-	private void addResToMethod(CompilerModel compilerModel, String resFieldName, List<Method> resMethods)
+	private void addResToMethod(ClassModel compilerModel, String resFieldName, List<Method> resMethods)
 	{
 		for (Method method : resMethods)
 		{
@@ -321,7 +321,7 @@ public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 		}
 	}
 	
-	private void addCacheToMethod(CompilerModel compilerModel, String cacheFieldName, List<Method> cacheMethods)
+	private void addCacheToMethod(ClassModel compilerModel, String cacheFieldName, List<Method> cacheMethods)
 	{
 		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		for (Method each : cacheMethods)

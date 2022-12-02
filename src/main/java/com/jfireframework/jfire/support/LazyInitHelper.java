@@ -12,7 +12,7 @@ import com.jfireframework.baseutil.exception.UnSupportException;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
-import com.jfireframework.baseutil.smc.model.CompilerModel;
+import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 
@@ -104,7 +104,7 @@ public abstract class LazyInitHelper
     
     private Constructor<?> generateLazyInitProxy()
     {
-        CompilerModel compilerModle = new CompilerModel(originType.getSimpleName() + "_LazyInitHelper_" + typeCount.incrementAndGet(), originType);
+        ClassModel compilerModle = new ClassModel(originType.getSimpleName() + "_LazyInitHelper_" + typeCount.incrementAndGet(), originType);
         compilerModle.addField(new FieldModel("proxy", LazyInitHelper.class));
         compilerModle.addConstructor("proxy = $0;", LazyInitHelper.class);
         for (Method method : ReflectUtil.getAllMehtods(originType))
