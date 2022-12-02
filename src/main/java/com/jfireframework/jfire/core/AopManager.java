@@ -12,29 +12,47 @@ import com.jfireframework.baseutil.smc.model.CompilerModel;
  */
 public interface AopManager
 {
-	// 用来作为AOP时增加的属性命名数字后缀，保证一个类中属性名不会出现重复
-	AtomicInteger fieldNameCounter = new AtomicInteger(0);
-	
-	/**
-	 * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，设定增强标志
-	 * 
-	 * @param environment
-	 */
-	void scan(Environment environment);
-	
-	/**
-	 * 执行增强操作
-	 * 
-	 * @param compilerModel
-	 * @param environment
-	 */
-	void enhance(CompilerModel compilerModel, Environment environment);
-	
-	/**
-	 * 填充Bean当中涉及到的AOP增强属性
-	 * 
-	 * @param bean
-	 * @param environment
-	 */
-	void fillBean(Object bean, Environment environment);
+    // 用来作为AOP时增加的属性命名数字后缀，保证一个类中属性名不会出现重复
+    AtomicInteger fieldNameCounter = new AtomicInteger(0);
+    AtomicInteger classNameCounter = new AtomicInteger(0);
+    
+    /**
+     * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，设定增强标志
+     * 
+     * @param environment
+     */
+    void scan(Environment environment);
+    
+    /**
+     * 执行增强操作
+     * 
+     * @param compilerModel
+     * @param environment
+     */
+    void enhance(CompilerModel compilerModel, Environment environment);
+    
+    /**
+     * 填充Bean当中涉及到的AOP增强属性
+     * 
+     * @param bean
+     * @param environment
+     */
+    void fillBean(Object bean);
+    
+    /**
+     * 该AOP生效顺序。数字越小生效越快
+     * 
+     * @return
+     */
+    int order();
+    
+    interface SetHost
+    {
+        /**
+         * 设置被代理的实例
+         * 
+         * @param instance
+         */
+        void setHost(Object instance);
+    }
 }
