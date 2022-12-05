@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation;
+package com.jfireframework.jfire.core.aop.notated;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,12 +12,14 @@ import javax.annotation.Resource;
  * 代表该类是一个aop增强类 通过target字符串来匹配需要增强的目标类
  * 
  */
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE, ElementType.TYPE })
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 @Resource
 public @interface EnhanceClass
 {
-    public String value();
+    String value();
+    
+    int order() default 0;
 }

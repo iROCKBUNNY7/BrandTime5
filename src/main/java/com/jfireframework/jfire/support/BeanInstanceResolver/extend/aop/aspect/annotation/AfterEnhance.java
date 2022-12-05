@@ -15,5 +15,4 @@ public @interface AfterEnhance
 {
     String value() default "";
     
-    int order() default 1;
 }

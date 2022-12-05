@@ -1,4 +1,6 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect;
+package com.jfireframework.jfire.core.aop;
+
+import java.lang.reflect.Method;
 
 /**
  * 用于在AOP增强中对连接点的抽象。
@@ -16,6 +18,7 @@ public class ProceedPointImpl implements ProceedPoint
     protected Throwable e;
     // 目标方法的参数数组
     protected Object[]  params;
+    protected Method    method;
     
     /**
      * 表示对目标方法的调用。在静态代码中作为继承方法被修改以实现对目标方法的调用
@@ -70,6 +73,17 @@ public class ProceedPointImpl implements ProceedPoint
     public void setParams(Object... params)
     {
         this.params = params;
+    }
+    
+    @Override
+    public Method getMethod()
+    {
+        return method;
+    }
+    
+    public void setMethod(Method method)
+    {
+        this.method = method;
     }
     
 }

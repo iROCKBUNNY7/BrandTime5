@@ -2,11 +2,11 @@ package com.jfireframework.context.test.function.aop;
 
 import org.junit.Assert;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.ProceedPoint;
+import com.jfireframework.jfire.core.aop.ProceedPoint;
+import com.jfireframework.jfire.core.aop.notated.EnhanceClass;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AfterEnhance;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.AroundEnhance;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.BeforeEnhance;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.EnhanceClass;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.ThrowEnhance;
 
 @EnhanceClass("com.jfireframework.context.*.aop.Person")

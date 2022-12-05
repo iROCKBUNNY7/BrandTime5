@@ -12,6 +12,7 @@ import com.jfireframework.baseutil.smc.el.SmcEl;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.core.aop.ProceedPointImpl;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation.Transaction;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.Cache;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation.CacheDelete;

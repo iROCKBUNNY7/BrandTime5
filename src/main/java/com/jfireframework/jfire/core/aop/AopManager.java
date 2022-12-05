@@ -31,7 +31,7 @@ public interface AopManager
      * @param classModel
      * @param environment
      */
-    void enhance(ClassModel classModel, Class<?> type, Environment environment);
+    void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName);
     
     void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment);
     
@@ -57,6 +57,6 @@ public interface AopManager
          * 
          * @param instance
          */
-        void setAopHost(Object instance);
+        void setAopHost(Object instance, Environment environment);
     }
 }

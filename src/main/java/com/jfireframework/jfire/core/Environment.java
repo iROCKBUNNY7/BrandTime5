@@ -19,15 +19,34 @@ import com.jfireframework.jfire.exception.DuplicateBeanNameException;
 
 public class Environment
 {
+    public static final String                ENVIRONMENT_FIELD_NAME = "environment_jfire_3";
     // 版本。每当有新的Bean被注册进来，则+1
-    private int                               version             = 0;
+    private int                               version                = 0;
     private int                               markVersion;
-    private final Map<String, BeanDefinition> beanDefinitions     = new HashMap<String, BeanDefinition>();
-    private final Map<String, String>         properties          = new HashMap<String, String>();
-    private final Set<Annotation>             annotationStore     = new HashSet<Annotation>();
-    private final ReadOnlyEnvironment         readOnlyEnvironment = new ReadOnlyEnvironment(this);
-    private final ExtraInfoStore              extraInfoStore      = new ExtraInfoStore();
+    private final Map<String, BeanDefinition> beanDefinitions        = new HashMap<String, BeanDefinition>();
+    private final Map<String, String>         properties             = new HashMap<String, String>();
+    private final Set<Annotation>             annotationStore        = new HashSet<Annotation>();
+    private final ReadOnlyEnvironment         readOnlyEnvironment    = new ReadOnlyEnvironment(this);
     private ClassLoader                       classLoader;
+    private List<Method>                      methods                = new ArrayList<Method>();
+    private int                               methodSequence         = 0;
+    
+    public int registerMethod(Method method)
+    {
+        int index = methods.indexOf(method);
+        if (index != -1)
+        {
+            return index;
+        }
+        methods.add(method);
+        methodSequence += 1;
+        return methodSequence - 1;
+    }
+    
+    public Method getMethod(int sequence)
+    {
+        return methods.get(sequence);
+    }
     
     public void markVersion()
     {
@@ -59,11 +78,6 @@ public class Environment
         {
             return classLoader;
         }
-    }
-    
-    public ExtraInfoStore getExtraInfoStore()
-    {
-        return extraInfoStore;
     }
     
     public Map<String, String> getProperties()

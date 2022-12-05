@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.core.ExtraInfoStore;
 
 public class Environment
 {

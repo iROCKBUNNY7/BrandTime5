@@ -1,4 +1,6 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect;
+package com.jfireframework.jfire.core.aop;
+
+import java.lang.reflect.Method;
 
 /**
  * 方法连接点的抽象表示
@@ -22,6 +24,13 @@ public interface ProceedPoint
      * @return
      */
     public Object getHost();
+    
+    /**
+     * 被拦截的方法
+     * 
+     * @return
+     */
+    public Method getMethod();
     
     /**
      * 在异常增强中，返回原方法抛出的异常

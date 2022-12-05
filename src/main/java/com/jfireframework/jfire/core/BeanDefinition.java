@@ -22,6 +22,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManager.SetHost;
+import com.jfireframework.jfire.core.aop.ProceedPointImpl;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
 import com.jfireframework.jfire.core.inject.impl.DefaultDependencyInjectHandler;
@@ -52,6 +53,7 @@ public class BeanDefinition
     private Method                                       postConstructMethod;
     private BeanInstanceResolver                         resolver;
     private InjectHandler[]                              injectHandlers;
+    private Environment                                  environment;
     public static final ThreadLocal<Map<String, Object>> tmpBeanInstanceMap = new ThreadLocal<Map<String, Object>>() {
                                                                                 @Override
                                                                                 protected java.util.Map<String, Object> initialValue()
@@ -73,6 +75,7 @@ public class BeanDefinition
     
     public void init(Environment environment)
     {
+        this.environment = environment;
         initPostConstructMethod();
         initInjectHandlers(environment);
         initEnvironmentForResolver(environment);
@@ -96,13 +99,15 @@ public class BeanDefinition
         });
         orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
         ClassModel classModel = new ClassModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
+        classModel.addImport(ProceedPointImpl.class);
+        addEnvironmentField(classModel);
         String hostFieldName = "host_" + AopManager.fieldNameCounter.getAndIncrement();
         addHostField(classModel, hostFieldName);
         addSetAopHostMethod(classModel, hostFieldName);
         addInvokeHostPublicMethod(classModel, hostFieldName);
         for (AopManager aopManager : orderedAopManagers)
         {
-            aopManager.enhance(classModel, type, environment);
+            aopManager.enhance(classModel, type, environment, hostFieldName);
         }
         JavaStringCompiler compiler = new JavaStringCompiler(environment.getClassLoader());
         try
@@ -117,6 +122,12 @@ public class BeanDefinition
         {
             throw new EnhanceException(e);
         }
+    }
+    
+    private void addEnvironmentField(ClassModel classModel)
+    {
+        FieldModel fieldModel = new FieldModel(Environment.ENVIRONMENT_FIELD_NAME, Environment.class);
+        classModel.addField(fieldModel);
     }
     
     private void addInvokeHostPublicMethod(ClassModel classModel, String hostFieldName)
@@ -151,7 +162,7 @@ public class BeanDefinition
         setAopHost.setMethodName("setAopHost");
         setAopHost.setParamterTypes(Object.class);
         setAopHost.setReturnType(void.class);
-        setAopHost.setBody("{" + hostFieldName + " = (" + SmcHelper.getTypeName(type) + ")$0;}");
+        setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getTypeName(type) + ")$0;\r\n" + Environment.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
         compilerModel.putMethodModel(setAopHost);
     }
     
@@ -308,7 +319,7 @@ public class BeanDefinition
             try
             {
                 SetHost newInstance = (SetHost) enhanceType.newInstance();
-                newInstance.setAopHost(resolver.buildInstance());
+                newInstance.setAopHost(resolver.buildInstance(), environment);
                 instance = newInstance;
                 map.put(beanName, instance);
                 for (AopManager each : orderedAopManagers)
