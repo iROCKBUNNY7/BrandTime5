@@ -22,6 +22,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManager.SetHost;
+import com.jfireframework.jfire.core.aop.ProceedPoint;
 import com.jfireframework.jfire.core.aop.ProceedPointImpl;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
@@ -100,6 +101,8 @@ public class BeanDefinition
         orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
         ClassModel classModel = new ClassModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
         classModel.addImport(ProceedPointImpl.class);
+        classModel.addImport(ProceedPoint.class);
+        classModel.addImport(Object.class);
         addEnvironmentField(classModel);
         String hostFieldName = "host_" + AopManager.fieldNameCounter.getAndIncrement();
         addHostField(classModel, hostFieldName);

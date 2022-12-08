@@ -5,8 +5,7 @@ import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.jfire.core.Environment;
 
 /**
- * 这里面AOP增强使用了一个新的套路。每一个AOP增强如果需要放入填充的属性。则让增强类多实现一个接口，该接口就可以用于属性填充。
- * 具体就在fillBean方法中执行
+ * 不同的AOP管理类实现不同的增强内容 具体就在fillBean方法中执行
  * 
  * @author linbin
  *
@@ -14,9 +13,10 @@ import com.jfireframework.jfire.core.Environment;
 public interface AopManager
 {
     // 用来作为AOP时增加的属性命名数字后缀，保证一个类中属性名不会出现重复
-    AtomicInteger fieldNameCounter = new AtomicInteger(0);
-    AtomicInteger classNameCounter = new AtomicInteger(0);
-    int           DEFAULT          = 100;
+    AtomicInteger fieldNameCounter  = new AtomicInteger(0);
+    AtomicInteger classNameCounter  = new AtomicInteger(0);
+    AtomicInteger methodNameCounter = new AtomicInteger(0);
+    int           DEFAULT           = 100;
     
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，设定增强标志

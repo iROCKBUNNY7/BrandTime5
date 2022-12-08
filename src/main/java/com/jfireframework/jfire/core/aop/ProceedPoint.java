@@ -16,41 +16,41 @@ public interface ProceedPoint
      * 
      * @return
      */
-    public Object invoke();
+    Object invoke();
     
     /**
      * 返回目标方法的调用对象实例
      * 
      * @return
      */
-    public Object getHost();
+    Object getHost();
     
     /**
      * 被拦截的方法
      * 
      * @return
      */
-    public Method getMethod();
+    Method getMethod();
     
     /**
      * 在异常增强中，返回原方法抛出的异常
      * 
      * @return
      */
-    public Throwable getE();
+    Throwable getE();
     
     /**
      * 在后置增强中，返回原方法的执行结果。其余方法无效。
      * 
      * @return
      */
-    public Object getResult();
+    Object getResult();
     
     /**
      * 获得目标方法的入参数组
      * 
      * @return
      */
-    public Object[] getParams();
+    Object[] getParams();
     
 }

@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.core.aop.impl;
+package com.jfireframework.jfire.exception;
 
 public class CannotFindEnhanceFieldException extends RuntimeException
 {
