@@ -17,6 +17,7 @@ public interface AopManager
     AtomicInteger classNameCounter  = new AtomicInteger(0);
     AtomicInteger methodNameCounter = new AtomicInteger(0);
     int           DEFAULT           = 100;
+    int           TRANSACTION       = 10;
     
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，设定增强标志
