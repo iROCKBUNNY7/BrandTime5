@@ -1,24 +1,43 @@
 package com.jfireframework.jfire.core.aop.impl;
 
+import java.lang.reflect.Method;
+import java.util.List;
 import com.jfireframework.baseutil.smc.model.ClassModel;
+import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.notated.Transaction;
 
 public class TransactionAopManager implements AopManager
 {
+    private BeanDefinition transactionBeandefinition;
     
     @Override
     public void scan(Environment environment)
     {
-        // TODO Auto-generated method stub
-        
+        for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
+        {
+            for (Method method : beanDefinition.getType().getMethods())
+            {
+                if (Utils.ANNOTATION_UTIL.isPresent(Transaction.class, method))
+                {
+                    beanDefinition.addAopManager(this);
+                    break;
+                }
+            }
+        }
     }
     
     @Override
     public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
-        // TODO Auto-generated method stub
-        
+        List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(TransactionManager.class);
+        if (list.size() == 0)
+        {
+            return;
+        }
+        transactionBeandefinition = list.get(0);
     }
     
     @Override

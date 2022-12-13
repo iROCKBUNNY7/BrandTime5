@@ -2,12 +2,14 @@ package com.jfireframework.jfire.core;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
@@ -47,7 +49,7 @@ public class BeanDefinition
     private Class<?>                                     type;
     // 增强后的类，如果没有增强标记，该属性为空
     private Class<?>                                     enhanceType;
-    private List<AopManager>                             aopManagers        = new LinkedList<AopManager>();
+    private Set<AopManager>                              aopManagers        = new HashSet<AopManager>();
     private AopManager[]                                 orderedAopManagers;
     private String                                       beanName;
     // 标注@PostConstruct的方法
@@ -90,7 +92,8 @@ public class BeanDefinition
             orderedAopManagers = new AopManager[0];
             return;
         }
-        Collections.sort(aopManagers, new Comparator<AopManager>() {
+        orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
+        Arrays.sort(orderedAopManagers, new Comparator<AopManager>() {
             
             @Override
             public int compare(AopManager o1, AopManager o2)
@@ -98,7 +101,6 @@ public class BeanDefinition
                 return o1.order() - o2.order();
             }
         });
-        orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
         ClassModel classModel = new ClassModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
         classModel.addImport(ProceedPointImpl.class);
         classModel.addImport(ProceedPoint.class);
