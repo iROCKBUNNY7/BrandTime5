@@ -1,4 +1,6 @@
-package com.jfireframework.jfire.core;
+package com.jfireframework.jfire.core.resolver;
+
+import com.jfireframework.jfire.core.Environment;
 
 public interface BeanInstanceResolver
 {

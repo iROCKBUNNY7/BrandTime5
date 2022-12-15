@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.core;
+package com.jfireframework.jfire.core.prepare;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

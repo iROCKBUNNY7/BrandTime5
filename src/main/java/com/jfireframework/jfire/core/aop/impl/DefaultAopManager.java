@@ -182,24 +182,12 @@ public class DefaultAopManager implements AopManager
             {
                 MethodModelKey key = new MethodModelKey(method);
                 MethodModel origin = classModel.removeMethodModel(key);
-                MethodModel newOne = new MethodModel(origin);
+                MethodModel newOne = new MethodModel(method);
                 origin.setAccessLevel(AccessLevel.PRIVATE);
                 origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
                 classModel.putMethodModel(origin);
                 StringCache cache = new StringCache();
-                cache.append(SmcHelper.getTypeName(method.getReturnType())).append(" result = ").append(origin.getMethodName()).append("(");
-                if (newOne.getParamterTypes().length != 0)
-                {
-                    for (int i = 0; i < newOne.getParamterTypes().length; i++)
-                    {
-                        cache.append("$").append(i).appendComma();
-                    }
-                }
-                if (cache.isCommaLast())
-                {
-                    cache.deleteLast();
-                }
-                cache.append(");\r\n");
+                cache.append(SmcHelper.getTypeName(method.getReturnType())).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
                 String pointName = generatePointName();
                 generateProceedPointImpl(environment, hostFieldName, method, pointName, cache);
                 cache.append(pointName).append(".setResult(result);\r\n");
@@ -453,6 +441,6 @@ public class DefaultAopManager implements AopManager
     public int order()
     {
         return DEFAULT;
-    }
-    
+	}
+	
 }
