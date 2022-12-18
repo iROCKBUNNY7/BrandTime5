@@ -20,6 +20,7 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.OutterBeanInstanceR
 import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
 import com.jfireframework.jfire.support.JfirePrepared.Import;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.ProcessConfiguration;
+import com.jfireframework.jfire.util.Utils;
 
 public class JfireConfig
 {

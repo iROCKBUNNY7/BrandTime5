@@ -23,7 +23,6 @@ import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.ResourceAnnoFieldModel;
 import com.jfireframework.baseutil.verify.Verify;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.ExtraInfoStore;
 import com.jfireframework.jfire.core.aop.notated.EnhanceClass;
 import com.jfireframework.jfire.kernel.BeanDefinition;
@@ -47,6 +46,7 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotat
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.FieldFactory;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.dependency.DIField;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.field.param.ParamField;
+import com.jfireframework.jfire.util.Utils;
 
 public class ReflectBeanInstanceResolver extends BaseBeanInstanceResolver
 {

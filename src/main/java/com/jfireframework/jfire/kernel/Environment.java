@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.ExtraInfoStore;
+import com.jfireframework.jfire.util.Utils;
 
 public class Environment
 {

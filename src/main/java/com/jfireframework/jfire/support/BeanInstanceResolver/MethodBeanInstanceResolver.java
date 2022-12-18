@@ -6,12 +6,12 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
 import com.jfireframework.baseutil.exception.UnSupportException;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.kernel.BeanDefinition;
 import com.jfireframework.jfire.kernel.BeanInstanceResolver;
 import com.jfireframework.jfire.kernel.Environment;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.LazyInitUniltFirstInvoke;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
+import com.jfireframework.jfire.util.Utils;
 
 public class MethodBeanInstanceResolver extends BaseBeanInstanceResolver
 {

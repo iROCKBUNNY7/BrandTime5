@@ -10,12 +10,12 @@ import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.notated.Transaction;
 import com.jfireframework.jfire.exception.TransactionException;
+import com.jfireframework.jfire.util.Utils;
 
 public class TransactionAopManager implements AopManager
 {

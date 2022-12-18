@@ -21,7 +21,6 @@ import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManager.SetHost;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
@@ -36,6 +35,7 @@ import com.jfireframework.jfire.exception.IncompleteBeanDefinitionException;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
 import com.jfireframework.jfire.exception.PostConstructMethodException;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.util.Utils;
 
 public class BeanDefinition
 {

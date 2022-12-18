@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.Utils;
+import com.jfireframework.jfire.util.Utils;
 
 public class JfireKernel
 {

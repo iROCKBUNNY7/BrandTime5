@@ -1,24 +1,24 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 
-@Import(AddProperty.ImportProperty.class)
+@Import(AddProperty.AddPropertyProcessor.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AddProperty
 {
 	String[] value();
 	
-	@Order(JfirePreparedConstant.DEFAULT_ORDER)
-	class ImportProperty implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
+	class AddPropertyProcessor implements JfirePrepare
 	{
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
 			if (environment.isAnnotationPresent(AddProperty.class))
 			{

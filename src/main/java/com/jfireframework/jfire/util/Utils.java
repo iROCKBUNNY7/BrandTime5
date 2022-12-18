@@ -1,4 +1,4 @@
-package com.jfireframework.jfire;
+package com.jfireframework.jfire.util;
 
 import java.io.File;
 import java.io.FileInputStream;

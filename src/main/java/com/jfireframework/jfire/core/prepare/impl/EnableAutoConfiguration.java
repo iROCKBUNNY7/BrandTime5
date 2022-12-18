@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -14,28 +14,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.exception.JustThrowException;
-import com.jfireframework.jfire.kernel.BeanDefinition;
-import com.jfireframework.jfire.kernel.BeanInstanceResolver;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
+import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(EnableAutoConfiguration.AutoConfig.class)
+@Import(EnableAutoConfiguration.EnableAutoConfigurationProcessor.class)
 public @interface EnableAutoConfiguration
 {
-	@Order(JfirePreparedConstant.DEFAULT_ORDER)
-	class AutoConfig implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
+	class EnableAutoConfigurationProcessor implements JfirePrepare
 	{
-		private static final Logger	logger			= LoggerFactory.getLogger(AutoConfig.class);
+		private static final Logger	logger			= LoggerFactory.getLogger(EnableAutoConfigurationProcessor.class);
 		private static final String	directoryName	= "META-INF/autoconfig/";
 		private static final int	offset			= directoryName.length();
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
 			if (environment.isAnnotationPresent(EnableAutoConfiguration.class) == false)
 			{
@@ -91,8 +91,10 @@ public @interface EnableAutoConfiguration
 			String traceId = TRACEID.currentTraceId();
 			logger.debug("traceId:{} 发现自动配置类:{}", traceId, className);
 			Class<?> configor = environment.getClassLoader().loadClass(className);
-			BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(className, configor, false);
-			environment.registerBeanDefinition(new BeanDefinition(configor, resolver));
+			BeanDefinition beanDefinition = new BeanDefinition(configor.getName(), configor, false);
+			BeanInstanceResolver resolver = new DefaultBeanInstanceResolver(configor);
+			beanDefinition.setBeanInstanceResolver(resolver);
+			environment.registerBeanDefinition(beanDefinition);
 		}
 		
 	}

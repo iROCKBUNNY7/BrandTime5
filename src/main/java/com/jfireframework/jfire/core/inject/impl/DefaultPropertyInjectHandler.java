@@ -4,12 +4,12 @@ import java.io.File;
 import java.lang.reflect.Field;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.exception.InjectTypeException;
 import com.jfireframework.jfire.exception.InjectValueException;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.util.Utils;
 
 public class DefaultPropertyInjectHandler implements InjectHandler
 {

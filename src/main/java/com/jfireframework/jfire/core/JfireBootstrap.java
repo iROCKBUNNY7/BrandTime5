@@ -1,31 +1,68 @@
 package com.jfireframework.jfire.core;
 
+import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import javax.annotation.Resource;
 import java.util.PriorityQueue;
-import com.jfireframework.jfire.Utils;
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.prepare.impl.Import.ImportProcessor;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.OutterObjectBeanInstanceResolver;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
+import com.jfireframework.jfire.util.Utils;
 
 public class JfireBootstrap
 {
 	private Environment environment = new Environment();
 	
+	public JfireBootstrap(Class<?> configClass)
+	{
+		environment.addAnnotations(configClass);
+		if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, configClass))
+		{
+			Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, configClass);
+			String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : configClass.getName();
+			boolean prototype = !resource.shareable();
+			BeanDefinition beanDefinition = new BeanDefinition(beanName, configClass, prototype);
+			beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(configClass));
+			register(beanDefinition);
+		}
+	}
+	
+	public void addAnnotations(Class<?> ckass)
+	{
+		environment.addAnnotations(ckass);
+	}
+	
+	public void addAnnotations(Method method)
+	{
+		environment.addAnnotations(method);
+	}
+	
 	public Jfire start()
 	{
 		Jfire jfire = registerJfireInstance();
+		registerImportProcessor();
 		prepare(environment);
 		aopScan(environment);
 		invokeBeanDefinitionInitMethod(environment);
 		awareContextInit(environment);
 		return jfire;
+	}
+	
+	private void registerImportProcessor()
+	{
+		BeanDefinition beanDefinition = new BeanDefinition(ImportProcessor.class.getName(), ImportProcessor.class, false);
+		beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ImportProcessor.class));
+		register(beanDefinition);
 	}
 	
 	private Jfire registerJfireInstance()
@@ -133,5 +170,10 @@ public class JfireBootstrap
 	{
 		beanDefinition.check();
 		environment.registerBeanDefinition(beanDefinition);
+	}
+	
+	public void setClassLoader(ClassLoader classLoader)
+	{
+		environment.setClassLoader(classLoader);
 	}
 }

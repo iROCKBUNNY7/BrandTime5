@@ -1,16 +1,16 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
-import com.jfireframework.baseutil.IniReader.IniFile;
-import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.util.JfirePreparedConstant;
-import com.jfireframework.jfire.util.Utils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import com.jfireframework.baseutil.IniReader.IniFile;
+import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.util.JfirePreparedConstant;
+import com.jfireframework.jfire.util.Utils;
 
-@Import(ProfileSelector.ProfileImporter.class)
+@Import(ProfileSelector.ProfileSelectorProcessor.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileSelector
 {
@@ -20,12 +20,12 @@ public @interface ProfileSelector
 	
 	public static final String activePropertyName = "jfire.profile.active";
 	
-	@Order(JfirePreparedConstant.PROFILE_SELECTOR_ORDER)
-	class ProfileImporter implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.PROFILE_SELECTOR_ORDER)
+	class ProfileSelectorProcessor implements JfirePrepare
 	{
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
 			if (environment.isAnnotationPresent(ProfileSelector.class))
 			{

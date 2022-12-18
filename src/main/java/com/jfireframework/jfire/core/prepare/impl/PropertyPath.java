@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -6,9 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.jfireframework.baseutil.IniReader.IniFile;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 
@@ -20,11 +20,12 @@ public @interface PropertyPath
 {
 	public String[] value();
 	
-	@Order(JfirePreparedConstant.DEFAULT_ORDER)
-	public class PropertyPathImporter implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
+	public class PropertyPathImporter implements JfirePrepare
 	{
+		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
 			if (environment.isAnnotationPresent(PropertyPath.class))
 			{

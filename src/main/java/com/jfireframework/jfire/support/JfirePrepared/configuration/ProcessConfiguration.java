@@ -18,7 +18,7 @@ import com.jfireframework.jfire.kernel.Order;
 import com.jfireframework.jfire.support.BeanInstanceResolver.MethodBeanInstanceResolver;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Condition;
 import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
-import com.jfireframework.jfire.support.constant.JfirePreparedConstant;
+import com.jfireframework.jfire.util.JfirePreparedConstant;
 
 @Order(JfirePreparedConstant.CONFIGURATION_ORDER)
 public class ProcessConfiguration implements JfirePrepared

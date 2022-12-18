@@ -12,7 +12,7 @@ public class Jfire
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T get(Class<T> ckass)
+	public <T> T getBean(Class<T> ckass)
 	{
 		BeanDefinition beanDefinition = environment.getBeanDefinition(ckass);
 		if (beanDefinition == null)
@@ -23,7 +23,7 @@ public class Jfire
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T get(String beanName)
+	public <T> T getBean(String beanName)
 	{
 		BeanDefinition beanDefinition = environment.getBeanDefinition(beanName);
 		if (beanDefinition == null)

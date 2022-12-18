@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -11,16 +11,16 @@ import java.util.List;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.kernel.BeanDefinition;
-import com.jfireframework.jfire.kernel.BeanInstanceResolver;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver;
-import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.LoadBy;
+import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
+import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver;
+import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver.LoadBy;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
-import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
 
 /**
  * 用来填充配置文件中packageNames的值
@@ -30,17 +30,17 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstance
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
 @Documented
-@Import(ComponentScan.ComponentScanImporter.class)
+@Import(ComponentScan.ComponentScanProcessor.class)
 public @interface ComponentScan
 {
 	String[] value();
 	
-	@Order(JfirePreparedConstant.DEFAULT_ORDER)
-	class ComponentScanImporter implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
+	class ComponentScanProcessor implements JfirePrepare
 	{
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
 			if (environment.isAnnotationPresent(ComponentScan.class))
 			{
@@ -77,15 +77,18 @@ public @interface ComponentScan
 					BeanInstanceResolver resolver;
 					if (annotationUtil.isPresent(LoadBy.class, ckass))
 					{
-						resolver = new LoadByBeanInstanceResolver(ckass, beanName, prototype);
+						resolver = new LoadByBeanInstanceResolver(ckass);
 					}
 					else
 					{
-						resolver = new ReflectBeanInstanceResolver(beanName, ckass, prototype);
+						resolver = new DefaultBeanInstanceResolver(ckass);
 					}
-					environment.registerBeanDefinition(new BeanDefinition(ckass, resolver));
+					BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype);
+					beanDefinition.setBeanInstanceResolver(resolver);
+					environment.registerBeanDefinition(beanDefinition);
 				}
 			}
+			
 		}
 		
 	}

@@ -15,7 +15,6 @@ import java.util.Set;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.Utils;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
@@ -25,6 +24,7 @@ import com.jfireframework.jfire.exception.InjectValueException;
 import com.jfireframework.jfire.exception.MapKeyMethodCanNotFindException;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.CanBeNull;
 import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKeyMethodName;
+import com.jfireframework.jfire.util.Utils;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {

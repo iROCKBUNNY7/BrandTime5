@@ -1,48 +1,49 @@
-package com.jfireframework.jfire.support.JfirePrepared;
+package com.jfireframework.jfire.core.prepare.impl;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.jfire.kernel.BeanDefinition;
-import com.jfireframework.jfire.kernel.BeanInstanceResolver;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.kernel.Order;
-import com.jfireframework.jfire.support.BeanInstanceResolver.ReflectBeanInstanceResolver;
+import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
+import com.jfireframework.jfire.util.Utils;
 
 /**
  * 用来引入其他的类配置.
  *
  * @author linbin
  */
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Import
 {
 	Class<?>[] value();
 	
-	@Order(JfirePreparedConstant.IMPORT_ORDER)
-	class ProcessImport implements JfirePrepared
+	@JfirePreparedNotated(order = JfirePreparedConstant.IMPORT_ORDER)
+	class ImportProcessor implements JfirePrepare
 	{
-		private static final Logger logger = LoggerFactory.getLogger(ProcessImport.class);
+		private static final Logger logger = LoggerFactory.getLogger(ImportProcessor.class);
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(Environment environment)
 		{
-			AnnotationUtil annotationUtil = new AnnotationUtil();
-			Map<String, BeanDefinition> beanDefinitions = environment.getBeanDefinitions();
+			AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 			List<Class<?>> tmp = new ArrayList<Class<?>>();
-			for (BeanDefinition each : beanDefinitions.values())
+			for (BeanDefinition each : environment.beanDefinitions().values())
 			{
-				if (each.getType() != null && annotationUtil.isPresent(Import.class, each.getType()))
+				if (annotationUtil.isPresent(Import.class, each.getType()))
 				{
 					tmp.add(each.getType());
 				}
@@ -63,8 +64,8 @@ public @interface Import
 					for (Class<?> each : annotation.value())
 					{
 						logger.debug("traceId:{} 导入类:{}", traceId, each.getName());
-						BeanInstanceResolver resolver = new ReflectBeanInstanceResolver(each);
-						BeanDefinition beanDefinition = new BeanDefinition(each, resolver);
+						BeanDefinition beanDefinition = new BeanDefinition(each.getName(), each, false);
+						beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(each));
 						environment.registerBeanDefinition(beanDefinition);
 						processImport(each, environment, annotationUtil);
 					}

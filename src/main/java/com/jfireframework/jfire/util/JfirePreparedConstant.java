@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.constant;
+package com.jfireframework.jfire.util;
 
 public class JfirePreparedConstant
 {
