@@ -23,18 +23,14 @@ public class JfireBootstrap
 {
 	private Environment environment = new Environment();
 	
+	public JfireBootstrap()
+	{
+	}
+	
 	public JfireBootstrap(Class<?> configClass)
 	{
 		environment.addAnnotations(configClass);
-		if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, configClass))
-		{
-			Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, configClass);
-			String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : configClass.getName();
-			boolean prototype = !resource.shareable();
-			BeanDefinition beanDefinition = new BeanDefinition(beanName, configClass, prototype);
-			beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(configClass));
-			register(beanDefinition);
-		}
+		register(configClass);
 	}
 	
 	public void addAnnotations(Class<?> ckass)
@@ -116,6 +112,7 @@ public class JfireBootstrap
 				if (Utils.ANNOTATION_UTIL.isPresent(JfirePreparedNotated.class, entry.getValue().getType()) && JfirePrepare.class.isAssignableFrom(entry.getValue().getType()))
 				{
 					queue.add(entry.getValue());
+					deleteBeanNames.add(entry.getKey());
 				}
 			}
 			for (String each : deleteBeanNames)
@@ -170,6 +167,19 @@ public class JfireBootstrap
 	{
 		beanDefinition.check();
 		environment.registerBeanDefinition(beanDefinition);
+	}
+	
+	public void register(Class<?> ckass)
+	{
+		if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, ckass))
+		{
+			Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, ckass);
+			String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : ckass.getName();
+			boolean prototype = !resource.shareable();
+			BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype);
+			beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
+			environment.registerBeanDefinition(beanDefinition);
+		}
 	}
 	
 	public void setClassLoader(ClassLoader classLoader)

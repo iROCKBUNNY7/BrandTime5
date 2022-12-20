@@ -85,6 +85,15 @@ public class BeanDefinition
 		initInjectHandlers(environment);
 		initEnvironmentForResolver(environment);
 		initEnhance(environment);
+		initAwareContextInit();
+	}
+	
+	private void initAwareContextInit()
+	{
+		if (JfireAwareContextInited.class.isAssignableFrom(type))
+		{
+			setAwareContextInit();
+		}
 	}
 	
 	private void initEnhance(Environment environment)
@@ -320,7 +329,11 @@ public class BeanDefinition
 	{
 		Map<String, Object> map = tmpBeanInstanceMap.get();
 		boolean cleanMark = map.isEmpty();
-		Object instance = null;
+		Object instance = map.get(beanName);
+		if (instance != null)
+		{
+			return instance;
+		}
 		if (orderedAopManagers.length != 0)
 		{
 			try
@@ -376,7 +389,7 @@ public class BeanDefinition
 	
 	private void setAwareContextInit()
 	{
-		state &= ~AWARE_CONTEXT_INIT;
+		state |= AWARE_CONTEXT_INIT;
 	}
 	
 	private boolean isPropertype()

@@ -60,7 +60,7 @@ public class Environment
 	 */
 	public boolean isChanged()
 	{
-		return markVersion == version;
+		return markVersion != version;
 	}
 	
 	public Map<String, String> getProperties()

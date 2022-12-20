@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation;
+package com.jfireframework.jfire.core.aop.notated.cache;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

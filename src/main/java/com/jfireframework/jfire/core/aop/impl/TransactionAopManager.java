@@ -51,9 +51,7 @@ public class TransactionAopManager implements AopManager
 			return;
 		}
 		classModel.addImport(TransactionException.class);
-		String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
-		FieldModel fieldModel = new FieldModel(transFieldName, TransactionManager.class);
-		classModel.addField(fieldModel);
+		String transFieldName = generateTransactionManagerField(classModel);
 		generateSetTransactionManagerMethod(classModel, transFieldName);
 		for (Method method : type.getMethods())
 		{
@@ -97,6 +95,14 @@ public class TransactionAopManager implements AopManager
 		}
 	}
 
+	private String generateTransactionManagerField(ClassModel classModel)
+	{
+		String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
+		FieldModel fieldModel = new FieldModel(transFieldName, TransactionManager.class);
+		classModel.addField(fieldModel);
+		return transFieldName;
+	}
+	
 	private void generateSetTransactionManagerMethod(ClassModel classModel, String transFieldName)
 	{
 		classModel.addInterface(SetTransactionManager.class);
@@ -105,7 +111,7 @@ public class TransactionAopManager implements AopManager
 		methodModel.setMethodName("setTransactionManager");
 		methodModel.setParamterTypes(TransactionManager.class);
 		methodModel.setReturnType(void.class);
-		methodModel.setBody(transFieldName+" = $0;");
+		methodModel.setBody(transFieldName + " = $0;");
 		classModel.putMethodModel(methodModel);
 	}
 	
@@ -118,8 +124,7 @@ public class TransactionAopManager implements AopManager
 	@Override
 	public void fillBean(Object bean, Class<?> type)
 	{
-		// TODO Auto-generated method stub
-		
+		((SetTransactionManager) bean).setTransactionManager((TransactionManager) transactionBeandefinition.getBeanInstance());
 	}
 	
 	@Override

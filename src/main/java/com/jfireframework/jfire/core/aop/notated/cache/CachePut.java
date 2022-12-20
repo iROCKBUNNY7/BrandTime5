@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.cache.annotation;
+package com.jfireframework.jfire.core.aop.notated.cache;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,17 +7,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * 这个注解表示会使用方法的入参作为key的规则参数，方法的返回值值作为缓存值存入
- * 
- * @author linbin
- *
- */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface CacheGet
+public @interface CachePut 
 {
     /**
      * key的规则
@@ -46,5 +40,4 @@ public @interface CacheGet
      * @return
      */
     public int timeToLive() default -1;
-    
 }
