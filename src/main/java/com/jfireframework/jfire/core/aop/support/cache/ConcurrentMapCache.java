@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.core.aop.support;
+package com.jfireframework.jfire.core.aop.support.cache;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

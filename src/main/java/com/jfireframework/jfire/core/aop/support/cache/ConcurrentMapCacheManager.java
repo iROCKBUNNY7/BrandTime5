@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.core.aop.support;
+package com.jfireframework.jfire.core.aop.support.cache;
 
 import javax.annotation.PostConstruct;
 
