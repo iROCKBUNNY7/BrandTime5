@@ -73,7 +73,7 @@ public @interface ComponentScan
                     // 如果本身是一个注解或者没有使用resource注解，则忽略
                     if (ckass.isAnnotation() || annotationUtil.isPresent(Resource.class, ckass) == false)
                     {
-                        logger.debug("traceId:{} 发现类:{},但不符合要求", ckass.getName(), TRACEID.currentTraceId());
+                        logger.debug("traceId:{} 扫描发现类:{},但不符合要求", TRACEID.currentTraceId(), ckass.getName());
                         continue;
                     }
                     Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
