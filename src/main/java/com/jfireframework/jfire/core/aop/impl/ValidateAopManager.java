@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import javax.validation.Constraint;
 import javax.validation.Valid;
@@ -16,9 +17,10 @@ import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
+import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.util.Utils;
 
+@AopManagerNotated
 public class ValidateAopManager implements AopManager
 {
 	private BeanDefinition validatorBeandefinition;
@@ -39,11 +41,10 @@ public class ValidateAopManager implements AopManager
 			}
 		}
 		List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(JfireMethodValidator.class);
-		if (list.isEmpty())
+		if (list.isEmpty()==false)
 		{
-			throw new BeanDefinitionCanNotFindException(list, JfireMethodValidator.class);
+			validatorBeandefinition = list.get(0);
 		}
-		validatorBeandefinition = list.get(0);
 	}
 	
 	@Override
@@ -55,6 +56,10 @@ public class ValidateAopManager implements AopManager
 		generateSetJfireMethodValidatorMethod(classModel, validateFieldName);
 		for (Method method : type.getMethods())
 		{
+			if (Modifier.isFinal(method.getModifiers()))
+			{
+				continue;
+			}
 			if (annotationUtil.isPresent(ValidateOnExecution.class, method))
 			{
 				if (hasConstraintBeforeMethodExecute(method))

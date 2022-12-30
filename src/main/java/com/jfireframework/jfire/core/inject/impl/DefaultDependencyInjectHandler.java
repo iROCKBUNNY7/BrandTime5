@@ -18,12 +18,12 @@ import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
+import com.jfireframework.jfire.core.inject.notated.CanBeNull;
+import com.jfireframework.jfire.core.inject.notated.MapKeyMethodName;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import com.jfireframework.jfire.exception.InjectTypeException;
 import com.jfireframework.jfire.exception.InjectValueException;
 import com.jfireframework.jfire.exception.MapKeyMethodCanNotFindException;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.CanBeNull;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKeyMethodName;
 import com.jfireframework.jfire.util.Utils;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
@@ -43,16 +43,17 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 		this.field = field;
 		field.setAccessible(true);
 		Class<?> fieldType = field.getType();
-		if (fieldType.isInterface() || Modifier.isAbstract(fieldType.getModifiers()))
+		if (Map.class.isAssignableFrom(fieldType))
 		{
-			inject = new AbstractInject();
+			inject = new MapInject();
 		}
 		else if (Collection.class.isAssignableFrom(fieldType))
 		{
 			inject = new CollectionInject();
 		}
-		else if (Map.class.isAssignableFrom(fieldType))
+		else if (fieldType.isInterface() || Modifier.isAbstract(fieldType.getModifiers()))
 		{
+			inject = new AbstractInject();
 		}
 		else
 		{
@@ -83,7 +84,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 			beanDefinition = environment.getBeanDefinition(beanName);
 			if (beanDefinition == null)
 			{
-				throw new BeanDefinitionCanNotFindException(beanName);
+				throw new InjectValueException("无法找到属性:" + field.getDeclaringClass().getSimpleName() + "." + field.getName() + "可以注入的bean，需要的bean名称:" + beanName);
 			}
 		}
 		

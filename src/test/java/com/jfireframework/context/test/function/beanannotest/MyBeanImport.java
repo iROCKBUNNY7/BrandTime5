@@ -1,38 +1,23 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
+import com.jfireframework.jfire.core.Jfire;
+import com.jfireframework.jfire.core.prepare.impl.Configuration;
+import com.jfireframework.jfire.core.prepare.impl.Configuration.Bean;
 
 @Configuration
-public class MyBeanImport implements JfirePrepared
+public class MyBeanImport
 {
 	@Resource
-	private Environment environment;
+	private Jfire jfire;
 	
 	@Bean(name = "person6")
 	public Object importBean()
 	{
-		MyImport import1 = environment.getAnnotation(MyImport.class);
+		MyImport import1 = jfire.getAnnotation(MyImport.class);
 		Person person = new Person();
 		person.setName(import1.name());
 		return person;
-	}
-	
-	@Bean
-	public Person person8()
-	{
-		Person person = new Person();
-		person.setName(environment.getProperty("person8"));
-		return person;
-	}
-	
-	@Override
-	public void prepared(Environment environment)
-	{
-		environment.putProperty("person8", "insertPerson8");
 	}
 	
 }

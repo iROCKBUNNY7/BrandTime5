@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation;
+package com.jfireframework.jfire.core.inject.notated;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,13 +7,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
+@Target(value = { ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Inherited
-public @interface AroundEnhance
+public @interface PropertyRead
 {
-    public String value() default "";
-    
-    public int order() default 1;
+	/**
+	 * 表示要读取的属性的名称
+	 * 
+	 * @return
+	 */
+	public String value() default "";
+	
 }

@@ -27,6 +27,7 @@ public class LoadByBeanInstanceResolver implements BeanInstanceResolver
 			throw new IllegalArgumentException();
 		}
 		this.ckass = ckass;
+		factoryBeanName = annotationUtil.getAnnotation(LoadBy.class, ckass).factoryBeanName();
 	}
 	
 	@Override

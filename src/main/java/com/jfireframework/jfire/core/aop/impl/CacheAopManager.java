@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core.aop.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +17,15 @@ import com.jfireframework.extrautil.MethodParamNamesScanner;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
-import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import com.jfireframework.jfire.exception.MethodParamterNameCanNotFetchException;
 import com.jfireframework.jfire.util.Utils;
 import com.jfireframework.jfireel.Lexer;
 
+@AopManagerNotated
 public class CacheAopManager implements AopManager
 {
 	private BeanDefinition cacheBeanDefinition;
@@ -46,11 +48,10 @@ public class CacheAopManager implements AopManager
 			}
 		}
 		List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(CacheManager.class);
-		if (list.isEmpty())
+		if (list.isEmpty() == false)
 		{
-			throw new BeanDefinitionCanNotFindException(list, CacheManager.class);
+			cacheBeanDefinition = list.get(0);
 		}
-		cacheBeanDefinition = list.get(0);
 	}
 	
 	@Override
@@ -62,6 +63,10 @@ public class CacheAopManager implements AopManager
 		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
 		for (Method method : type.getMethods())
 		{
+			if (Modifier.isFinal(method.getModifiers()))
+			{
+				continue;
+			}
 			if (method.getReturnType().isPrimitive() == false //
 			        && method.getReturnType() != Void.class //
 			        && annotationUtil.isPresent(CacheGet.class, method))
@@ -76,12 +81,12 @@ public class CacheAopManager implements AopManager
 			        && method.getReturnType() != Void.class //
 			        && annotationUtil.isPresent(CachePut.class, method))
 			{
-				processCachePut(classModel, annotationUtil, method);
+				processCachePut(classModel, cacheManagerFieldName, annotationUtil, method);
 			}
 		}
 	}
 	
-	private void processCachePut(ClassModel classModel, AnnotationUtil annotationUtil, Method method)
+	private void processCachePut(ClassModel classModel, String cacheManagerFieldName, AnnotationUtil annotationUtil, Method method)
 	{
 		CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, method);
 		if (StringUtil.isNotBlank(cachePut.condition()))
@@ -102,6 +107,7 @@ public class CacheAopManager implements AopManager
 			cache.append("else\r\n{\r\n");
 			cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
 			generateKeyNameDeclarationPart(cache, lexerKeyFieldName, hasParams);
+			generateCacheDeclarationPart(cacheManagerFieldName, lexerKeyFieldName, cache);
 			cache.append("cache.put(name,result,").append(cachePut.timeToLive()).append(");\r\n");
 			cache.append("return result;\r\n");
 			cache.append("}\r\n");
@@ -118,6 +124,7 @@ public class CacheAopManager implements AopManager
 				generateConditionMapDeclarationPart(method, cache);
 			}
 			cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
+			generateCacheDeclarationPart(cacheManagerFieldName, lexerKeyFieldName, cache);
 			generateKeyNameDeclarationPart(cache, lexerKeyFieldName, hasParams);
 			cache.append("cache.put(name,result,").append(cachePut.timeToLive()).append(");\r\n");
 			cache.append("return result;\r\n");
@@ -235,7 +242,7 @@ public class CacheAopManager implements AopManager
 	{
 		generateCacheDeclarationPart(cacheManagerFieldName, cacheGet.cacheName(), cache);
 		generateKeyNameDeclarationPart(cache, keyFieldName, hasParams);
-		cache.append(method.getReturnType().getSimpleName()).append(" result = (").append(method.getReturnType().getSimpleName()).append(")cache.get(name);\r\b");
+		cache.append(method.getReturnType().getSimpleName()).append(" result = (").append(method.getReturnType().getSimpleName()).append(")cache.get(name);\r\n");
 		cache.append("if(result!=null)\r\n{");
 		cache.append("return result;\r\n}\r\n");
 		cache.append("else\r\n{");

@@ -24,7 +24,6 @@ import com.jfireframework.jfire.util.JfirePreparedConstant;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(EnableAutoConfiguration.EnableAutoConfigurationProcessor.class)
 public @interface EnableAutoConfiguration
 {
 	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)

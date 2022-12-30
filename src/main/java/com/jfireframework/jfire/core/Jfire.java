@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.core;
 
+import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 
 public class Jfire
@@ -31,5 +32,15 @@ public class Jfire
 			throw new BeanDefinitionCanNotFindException(beanName);
 		}
 		return (T) beanDefinition.getBeanInstance();
+	}
+	
+	public <T extends Annotation> T getAnnotation(Class<T> type)
+	{
+		return environment.getAnnotation(type);
+	}
+	
+	public String getProperty(String name)
+	{
+		return environment.getProperty(name);
 	}
 }

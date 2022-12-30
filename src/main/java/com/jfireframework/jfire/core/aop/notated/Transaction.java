@@ -6,7 +6,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.tx.TransactionIsolate;
 
 /**
  * 使用该注解表明该类的公共方法或者注解方法是一个事务方法
@@ -14,11 +13,10 @@ import com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.tx.Trans
  * @author linbin
  * 
  */
-@Target({ ElementType.ANNOTATION_TYPE })
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 public @interface Transaction
 {
-    TransactionIsolate isolate() default TransactionIsolate.USE_DB_SETING;
 }

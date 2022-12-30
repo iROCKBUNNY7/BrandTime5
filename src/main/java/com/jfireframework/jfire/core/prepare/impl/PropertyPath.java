@@ -15,13 +15,12 @@ import com.jfireframework.jfire.util.Utils;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
 @Documented
-@Import(PropertyPath.PropertyPathImporter.class)
 public @interface PropertyPath
 {
 	public String[] value();
 	
 	@JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
-	public class PropertyPathImporter implements JfirePrepare
+	public class PropertyPathProcessor implements JfirePrepare
 	{
 		
 		@Override

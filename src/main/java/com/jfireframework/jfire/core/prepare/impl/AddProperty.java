@@ -7,7 +7,6 @@ import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 
-@Import(AddProperty.AddPropertyProcessor.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AddProperty
 {

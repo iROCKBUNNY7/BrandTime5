@@ -2,10 +2,10 @@ package com.jfireframework.context.test.function.map;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.kernel.Jfire;
-import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
+import com.jfireframework.jfire.core.Jfire;
+import com.jfireframework.jfire.core.JfireBootstrap;
+import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
+import com.jfireframework.jfire.core.prepare.impl.Configuration;
 
 public class MapTest
 {
@@ -19,8 +19,8 @@ public class MapTest
     @Test
     public void test()
     {
-        JfireConfig config = new JfireConfig(MapTestScan.class);
-        Jfire jfire = config.build();
+        JfireBootstrap config = new JfireBootstrap(MapTestScan.class);
+        Jfire jfire = config.start();
         assertEquals(jfire.getBean(Host.class).getMap().get(1).getClass(), Order1.class);
         assertEquals(2, jfire.getBean(Host.class).getMap().size());
         assertEquals(2, jfire.getBean(Host.class).getMap2().size());

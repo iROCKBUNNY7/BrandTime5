@@ -19,7 +19,12 @@ import javax.annotation.Resource;
 @Resource
 public @interface EnhanceClass
 {
-    String value();
-    
-    int order() default 0;
+	String value();
+	
+	/**
+	 * AOP执行的顺序。数字越大的越先执行。越先执行的越晚结束
+	 * 
+	 * @return
+	 */
+	int order() default 0;
 }

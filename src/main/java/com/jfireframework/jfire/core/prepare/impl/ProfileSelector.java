@@ -10,7 +10,6 @@ import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 
-@Import(ProfileSelector.ProfileSelectorProcessor.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileSelector
 {

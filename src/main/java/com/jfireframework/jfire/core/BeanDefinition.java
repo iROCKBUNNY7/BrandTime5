@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,12 +30,12 @@ import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
 import com.jfireframework.jfire.core.inject.impl.DefaultDependencyInjectHandler;
 import com.jfireframework.jfire.core.inject.impl.DefaultPropertyInjectHandler;
+import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.exception.EnhanceException;
 import com.jfireframework.jfire.exception.IncompleteBeanDefinitionException;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
 import com.jfireframework.jfire.exception.PostConstructMethodException;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.util.Utils;
 
 public class BeanDefinition
@@ -112,7 +113,7 @@ public class BeanDefinition
 				return o1.order() - o2.order();
 			}
 		});
-		ClassModel classModel = new ClassModel(type.getName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
+		ClassModel classModel = new ClassModel(type.getSimpleName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
 		classModel.addImport(ProceedPointImpl.class);
 		classModel.addImport(ProceedPoint.class);
 		classModel.addImport(Object.class);
@@ -150,6 +151,10 @@ public class BeanDefinition
 	{
 		for (Method each : type.getMethods())
 		{
+			if (Modifier.isFinal(each.getModifiers()))
+			{
+				continue;
+			}
 			MethodModel methodModel = new MethodModel(each);
 			StringCache cache = new StringCache();
 			if (each.getReturnType() != void.class)
@@ -176,7 +181,7 @@ public class BeanDefinition
 		MethodModel setAopHost = new MethodModel();
 		setAopHost.setAccessLevel(AccessLevel.PUBLIC);
 		setAopHost.setMethodName("setAopHost");
-		setAopHost.setParamterTypes(Object.class);
+		setAopHost.setParamterTypes(Object.class, Environment.class);
 		setAopHost.setReturnType(void.class);
 		setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getTypeName(type) + ")$0;\r\n" + Environment.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
 		compilerModel.putMethodModel(setAopHost);

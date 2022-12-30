@@ -2,29 +2,31 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import javax.annotation.Resource;
 import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
-import com.jfireframework.jfire.support.JfirePrepared.ComponentScan;
-import com.jfireframework.jfire.support.JfirePrepared.Import;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
+import com.jfireframework.jfire.core.inject.notated.PropertyRead;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.prepare.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
+import com.jfireframework.jfire.core.prepare.impl.Configuration;
+import com.jfireframework.jfire.core.prepare.impl.Configuration.Bean;
+import com.jfireframework.jfire.core.prepare.impl.Import;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
 @MyImport(name = "myimport")
 @Import({ HouseProvider.class, NameProperty.class })
+@Resource
 public class Data
 {
-	
-	public static class NameProperty implements JfirePrepared
+	@JfirePreparedNotated
+	public static class NameProperty implements JfirePrepare
 	{
 		
 		@Override
-		public void prepared(Environment environment)
+		public void prepare(com.jfireframework.jfire.core.Environment environment)
 		{
 			environment.putProperty("name", "linbin");
+//			environment.putProperty("person2", "pass");
 		}
 		
 	}

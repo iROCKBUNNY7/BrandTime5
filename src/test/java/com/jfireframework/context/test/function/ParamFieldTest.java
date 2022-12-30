@@ -2,15 +2,20 @@ package com.jfireframework.context.test.function;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-import com.jfireframework.jfire.JfireConfig;
-import com.jfireframework.jfire.kernel.Environment;
-import com.jfireframework.jfire.kernel.Jfire;
-import com.jfireframework.jfire.kernel.JfirePrepared;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
+import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.Jfire;
+import com.jfireframework.jfire.core.JfireBootstrap;
+import com.jfireframework.jfire.core.inject.notated.PropertyRead;
+import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 
-public class ParamFieldTest implements JfirePrepared
+@Resource
+public class ParamFieldTest
 {
 	public static enum name
 	{
@@ -49,9 +54,12 @@ public class ParamFieldTest implements JfirePrepared
 	@Test
 	public void test()
 	{
-		JfireConfig jfireConfig = new JfireConfig();
-		jfireConfig.registerBeanDefinition(ParamFieldTest.class);
-		Jfire jfire = jfireConfig.build();
+		JfireBootstrap jfireConfig = new JfireBootstrap();
+		jfireConfig.register(ParamFieldTest.class);
+		BeanDefinition beanDefinition = new BeanDefinition("xx", ForProperty.class, false);
+		beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForProperty.class));
+		jfireConfig.register(beanDefinition);
+		Jfire jfire = jfireConfig.start();
 		ParamFieldTest data = jfire.getBean(ParamFieldTest.class);
 		Assert.assertArrayEquals(new int[] { 1, 2 }, data.f1);
 		Assert.assertEquals("aaa", data.f2);
@@ -72,23 +80,28 @@ public class ParamFieldTest implements JfirePrepared
 		Assert.assertEquals(name.test1, data.f14);
 	}
 	
-	@Override
-	public void prepared(Environment environment)
+	@JfirePreparedNotated
+	public static class ForProperty implements JfirePrepare
 	{
-		environment.putProperty("f1", "1,2");
-		environment.putProperty("f2", "aaa");
-		environment.putProperty("f3", "1");
-		environment.putProperty("f4", "2");
-		environment.putProperty("f5", "3");
-		environment.putProperty("f6", "4");
-		environment.putProperty("f7", "true");
-		environment.putProperty("f8", "false");
-		environment.putProperty("f9", "2.65");
-		environment.putProperty("f10", "2.35");
-		environment.putProperty("f11", "ni,sx");
-		environment.putProperty("f12", "xx,rr");
-		environment.putProperty("f13", ParamFieldTest.class.getName());
-		environment.putProperty("f14", "test1");
+		
+		@Override
+		public void prepare(Environment environment)
+		{
+			environment.putProperty("f1", "1,2");
+			environment.putProperty("f2", "aaa");
+			environment.putProperty("f3", "1");
+			environment.putProperty("f4", "2");
+			environment.putProperty("f5", "3");
+			environment.putProperty("f6", "4");
+			environment.putProperty("f7", "true");
+			environment.putProperty("f8", "false");
+			environment.putProperty("f9", "2.65");
+			environment.putProperty("f10", "2.35");
+			environment.putProperty("f11", "ni,sx");
+			environment.putProperty("f12", "xx,rr");
+			environment.putProperty("f13", ParamFieldTest.class.getName());
+			environment.putProperty("f14", "test1");
+		}
+		
 	}
-	
 }

@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.aop.aspect.annotation;
+package com.jfireframework.jfire.core.inject.notated;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,12 +7,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+/**
+ * 使用该注解表明该属性的注入可以允许为空
+ * 
+ * @author linbin
+ *
+ */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(value = { ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Inherited
-public @interface AfterEnhance
+public @interface CanBeNull
 {
-    String value() default "";
     
 }

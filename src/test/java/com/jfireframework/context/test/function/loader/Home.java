@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.loader;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.support.BeanInstanceResolver.LoadByBeanInstanceResolver.LoadBy;
+import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver.LoadBy;
 
 @Resource
 @LoadBy(factoryBeanName = "allLoader")

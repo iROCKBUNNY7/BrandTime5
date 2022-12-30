@@ -2,13 +2,15 @@ package com.jfireframework.jfire.core.inject.impl;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
+import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.exception.InjectTypeException;
 import com.jfireframework.jfire.exception.InjectValueException;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.PropertyRead;
 import com.jfireframework.jfire.util.Utils;
 
 public class DefaultPropertyInjectHandler implements InjectHandler
@@ -23,7 +25,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 		this.field = field;
 		field.setAccessible(true);
 		PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);
-		String propertyName = propertyRead.value();
+		String propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
 		if (StringUtil.isNotBlank(System.getProperty(propertyName)))
 		{
 			propertyValue = System.getProperty(propertyName);
@@ -82,6 +84,18 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 			else if (type == String.class)
 			{
 				inject = new StringInject();
+			}
+			else if (type == String[].class)
+			{
+				inject = new StringArrayInject();
+			}
+			else if (type == Set.class)
+			{
+				inject = new SetStringInject();
+			}
+			else if (type.isEnum())
+			{
+				inject = new EnumInject();
 			}
 			else
 			{
@@ -230,6 +244,37 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 		public StringInject()
 		{
 			value = propertyValue;
+		}
+	}
+	
+	class StringArrayInject extends AbstractInject
+	{
+		public StringArrayInject()
+		{
+			value = propertyValue.split(",");
+		}
+	}
+	
+	class SetStringInject extends AbstractInject
+	{
+		public SetStringInject()
+		{
+			Set<String> set = new HashSet<String>();
+			for (String each : propertyValue.split(","))
+			{
+				set.add(each);
+			}
+			value = set;
+		}
+	}
+	
+	class EnumInject extends AbstractInject
+	{
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public EnumInject()
+		{
+			field.getType();
+			value = Enum.valueOf((Class<Enum>) field.getType(), propertyValue);
 		}
 	}
 }

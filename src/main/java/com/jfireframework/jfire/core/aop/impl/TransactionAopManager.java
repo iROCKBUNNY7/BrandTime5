@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core.aop.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import com.jfireframework.baseutil.collection.StringCache;
@@ -13,10 +14,12 @@ import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.notated.Transaction;
 import com.jfireframework.jfire.exception.TransactionException;
 import com.jfireframework.jfire.util.Utils;
 
+@AopManagerNotated()
 public class TransactionAopManager implements AopManager
 {
 	private BeanDefinition transactionBeandefinition;
@@ -36,11 +39,10 @@ public class TransactionAopManager implements AopManager
 			}
 		}
 		List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(TransactionManager.class);
-		if (list.size() == 0)
+		if (list.isEmpty() == false)
 		{
-			return;
+			transactionBeandefinition = list.get(0);
 		}
-		transactionBeandefinition = list.get(0);
 	}
 	
 	@Override
@@ -55,6 +57,10 @@ public class TransactionAopManager implements AopManager
 		generateSetTransactionManagerMethod(classModel, transFieldName);
 		for (Method method : type.getMethods())
 		{
+			if (Modifier.isFinal(method.getModifiers()))
+			{
+				continue;
+			}
 			if (Utils.ANNOTATION_UTIL.isPresent(Transaction.class, method) == false)
 			{
 				continue;
@@ -94,7 +100,7 @@ public class TransactionAopManager implements AopManager
 			classModel.putMethodModel(newOne);
 		}
 	}
-
+	
 	private String generateTransactionManagerField(ClassModel classModel)
 	{
 		String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();

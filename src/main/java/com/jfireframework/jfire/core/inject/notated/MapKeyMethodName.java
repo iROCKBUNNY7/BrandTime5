@@ -1,4 +1,4 @@
-package com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field;
+package com.jfireframework.jfire.core.inject.notated;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

@@ -3,10 +3,10 @@ package com.jfireframework.jfire.core.prepare.condition.provide;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import com.jfireframework.jfire.kernel.Environment.ReadOnlyEnvironment;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.Conditional;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.condition.provide.ConditionOnAnnotation.OnAnnotation;
-
+import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.prepare.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.condition.provide.ConditionOnAnnotation.OnAnnotation;
+	
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(OnAnnotation.class)
 public @interface ConditionOnAnnotation

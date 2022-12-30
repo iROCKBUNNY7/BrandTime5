@@ -8,7 +8,6 @@ import com.jfireframework.context.test.function.base.ContextTest;
 import com.jfireframework.context.test.function.beanannotest.BeanAnnoTest;
 import com.jfireframework.context.test.function.cachetest.CacheTest;
 import com.jfireframework.context.test.function.initmethod.InitMethodTest;
-import com.jfireframework.context.test.function.lazyinit.LazyInitTest;
 import com.jfireframework.context.test.function.loader.HolderTest;
 import com.jfireframework.context.test.function.map.MapTest;
 import com.jfireframework.context.test.function.validate.ValidateTest;
@@ -22,19 +21,15 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
         ParamFieldTest.class, //
         CacheTest.class, //
         InitMethodTest.class, //
-        LazyInitTest.class, //
         HolderTest.class, //
         MapTest.class, //
         ValidateTest.class, //
         ConfigBeanTest.class, //
-        ConfigurationBeanOrderTest.class, //
         DiTest.class, //
-        ImportOrderTest.class, //
         ParamFieldTest.class, //
         PropertyPathImporterTest.class, //
         StarterTest.class, //
 })
-
 public class Suit
 {
     
