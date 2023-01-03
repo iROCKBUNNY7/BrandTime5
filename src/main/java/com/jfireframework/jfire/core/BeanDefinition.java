@@ -126,7 +126,7 @@ public class BeanDefinition
 		{
 			aopManager.enhance(classModel, type, environment, hostFieldName);
 		}
-		JavaStringCompiler compiler = new JavaStringCompiler(environment.getClassLoader());
+		JavaStringCompiler compiler = environment.getCompiler();
 		try
 		{
 			enhanceType = compiler.compile(classModel);

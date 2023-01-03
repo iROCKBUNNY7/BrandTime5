@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
 import com.jfireframework.jfire.exception.DuplicateBeanNameException;
 import com.jfireframework.jfire.util.Utils;
 
@@ -28,6 +29,7 @@ public class Environment
 	private final Set<Annotation>				annotationStore			= new HashSet<Annotation>();
 	private final ReadOnlyEnvironment			readOnlyEnvironment		= new ReadOnlyEnvironment(this);
 	private ClassLoader							classLoader				= Environment.class.getClassLoader();
+	private JavaStringCompiler					compiler				= new JavaStringCompiler(classLoader);
 	private List<Method>						methods					= new ArrayList<Method>();
 	private int									methodSequence			= 0;
 	
@@ -205,11 +207,17 @@ public class Environment
 	public void setClassLoader(ClassLoader classLoader)
 	{
 		this.classLoader = classLoader;
+		compiler = new JavaStringCompiler(classLoader);
 	}
 	
 	public ClassLoader getClassLoader()
 	{
 		return classLoader;
+	}
+	
+	public JavaStringCompiler getCompiler()
+	{
+		return compiler;
 	}
 	
 	public static class ReadOnlyEnvironment
