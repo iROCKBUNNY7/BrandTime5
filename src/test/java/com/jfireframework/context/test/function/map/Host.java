@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.order.Order;
-import com.jfireframework.jfire.support.BeanInstanceResolver.extend.bean.annotation.field.MapKey;
+import com.jfireframework.jfire.core.inject.notated.MapKeyMethodName;
 
 @Resource
 public class Host
 {
     @Resource
-    @MapKey("getOrder")
+    @MapKeyMethodName("getOrder")
     private Map<Integer, Order> map  = new HashMap<Integer, Order>();
     
     @Resource

@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.beanannotest;
 
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Bean;
-import com.jfireframework.jfire.support.JfirePrepared.configuration.Configuration;
+import com.jfireframework.jfire.core.prepare.impl.Configuration;
+import com.jfireframework.jfire.core.prepare.impl.Configuration.Bean;
 
 @Configuration
 public class HouseProvider
