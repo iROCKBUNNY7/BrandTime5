@@ -23,7 +23,7 @@ import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
 import com.jfireframework.jfire.exception.MethodParamterNameCanNotFetchException;
 import com.jfireframework.jfire.util.Utils;
-import com.jfireframework.jfireel.Lexer;
+import com.jfireframework.jfireel.lexer.Expression;
 
 @AopManagerNotated
 public class CacheAopManager implements AopManager
@@ -57,7 +57,7 @@ public class CacheAopManager implements AopManager
 	@Override
 	public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
 	{
-		classModel.addImport(Lexer.class, HashMap.class, Map.class, String.class, Boolean.class);
+		classModel.addImport(Expression.class, HashMap.class, Map.class, String.class, Boolean.class);
 		String cacheManagerFieldName = generateCacheManagerField(classModel);
 		generateSetCacheManagerMethod(classModel, cacheManagerFieldName);
 		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
@@ -301,16 +301,16 @@ public class CacheAopManager implements AopManager
 	
 	private String generateKeyField(ClassModel classModel, String key)
 	{
-		String lexerKeyFieldName = "lex_" + fieldNameCounter.getAndIncrement();
-		FieldModel keyField = new FieldModel(lexerKeyFieldName, Lexer.class, "Lexer.parse(\"" + key + "\")");
+		String lexerKeyFieldName = "expression_" + fieldNameCounter.getAndIncrement();
+		FieldModel keyField = new FieldModel(lexerKeyFieldName, Expression.class, "Expression.parse(\"" + key + "\")");
 		classModel.addField(keyField);
 		return lexerKeyFieldName;
 	}
 	
 	private String generateConditionField(ClassModel classModel, String condition)
 	{
-		String lexerConditionFieldName = "lex_" + fieldNameCounter.getAndIncrement();
-		FieldModel conditionField = new FieldModel(lexerConditionFieldName, Lexer.class, "Lexer.parse(\"" + condition + "\")");
+		String lexerConditionFieldName = "expression_" + fieldNameCounter.getAndIncrement();
+		FieldModel conditionField = new FieldModel(lexerConditionFieldName, Expression.class, "Expression.parse(\"" + condition + "\")");
 		classModel.addField(conditionField);
 		return lexerConditionFieldName;
 	}
