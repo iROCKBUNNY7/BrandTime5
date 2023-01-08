@@ -41,7 +41,7 @@ public class ValidateAopManager implements AopManager
 			}
 		}
 		List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(JfireMethodValidator.class);
-		if (list.isEmpty()==false)
+		if (list.isEmpty() == false)
 		{
 			validatorBeandefinition = list.get(0);
 		}
@@ -93,7 +93,7 @@ public class ValidateAopManager implements AopManager
 		cache.append(validateFieldName).append(".validateReturnValue(").append(hostFieldName).append(",")//
 		        .append(Environment.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),result);\r\n")//
 		        .append("return result;\r\n");
-		MethodModel methodModel = new MethodModel(method);
+		MethodModel methodModel = new MethodModel(method, classModel);
 		methodModel.setBody(cache.toString());
 		classModel.putMethodModel(methodModel);
 	}
@@ -134,7 +134,7 @@ public class ValidateAopManager implements AopManager
 	private String generateValidatorField(ClassModel classModel)
 	{
 		String fieldName = "validator_" + fieldNameCounter.getAndIncrement();
-		FieldModel fieldModel = new FieldModel(fieldName, JfireMethodValidator.class);
+		FieldModel fieldModel = new FieldModel(fieldName, JfireMethodValidator.class, classModel);
 		classModel.addField(fieldModel);
 		return fieldName;
 	}
@@ -145,7 +145,7 @@ public class ValidateAopManager implements AopManager
 	 */
 	private void generateSetJfireMethodValidatorMethod(ClassModel classModel, String fieldName)
 	{
-		MethodModel methodModel = new MethodModel();
+		MethodModel methodModel = new MethodModel(classModel);
 		methodModel.setAccessLevel(AccessLevel.PUBLIC);
 		methodModel.setMethodName("setJfireMethodValidator");
 		methodModel.setParamterTypes(JfireMethodValidator.class);

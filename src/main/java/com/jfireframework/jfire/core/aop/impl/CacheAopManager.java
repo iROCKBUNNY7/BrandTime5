@@ -8,6 +8,7 @@ import java.util.Map;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
+import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
@@ -57,7 +58,12 @@ public class CacheAopManager implements AopManager
 	@Override
 	public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
 	{
-		classModel.addImport(Expression.class, HashMap.class, Map.class, String.class, Boolean.class);
+		classModel.addImport(Expression.class);
+		classModel.addImport(HashMap.class);
+		classModel.addImport(Map.class);
+		classModel.addImport(String.class);
+		classModel.addImport(Boolean.class);
+		classModel.addImport(Cache.class);
 		String cacheManagerFieldName = generateCacheManagerField(classModel);
 		generateSetCacheManagerMethod(classModel, cacheManagerFieldName);
 		AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
@@ -105,7 +111,7 @@ public class CacheAopManager implements AopManager
 			cache.append("return ").append(origin.generateInvoke()).append(";\r\n");
 			cache.append("}\r\n");
 			cache.append("else\r\n{\r\n");
-			cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
+			cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
 			generateKeyNameDeclarationPart(cache, lexerKeyFieldName, hasParams);
 			generateCacheDeclarationPart(cacheManagerFieldName, lexerKeyFieldName, cache);
 			cache.append("cache.put(name,result,").append(cachePut.timeToLive()).append(");\r\n");
@@ -123,7 +129,7 @@ public class CacheAopManager implements AopManager
 			{
 				generateConditionMapDeclarationPart(method, cache);
 			}
-			cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
+			cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
 			generateCacheDeclarationPart(cacheManagerFieldName, lexerKeyFieldName, cache);
 			generateKeyNameDeclarationPart(cache, lexerKeyFieldName, hasParams);
 			cache.append("cache.put(name,result,").append(cachePut.timeToLive()).append(");\r\n");
@@ -182,7 +188,7 @@ public class CacheAopManager implements AopManager
 			String lexerKeyFieldName = generateKeyField(classModel, cacheGet.value());
 			MethodModel origin = changeOriginMethodName(classModel, method);
 			StringCache cache = new StringCache();
-			genetateCacheGetBodyWithCondition(cacheManagerFieldName, method, cacheGet, lexerConditionFieldName, lexerKeyFieldName, origin, cache, method.getParameterTypes().length != 0);
+			genetateCacheGetBodyWithCondition(cacheManagerFieldName, method, cacheGet, lexerConditionFieldName, lexerKeyFieldName, origin, cache, method.getParameterTypes().length != 0, classModel);
 			generateMethod(classModel, method, cache.toString());
 		}
 		else
@@ -195,7 +201,7 @@ public class CacheAopManager implements AopManager
 			{
 				generateConditionMapDeclarationPart(method, cache);
 			}
-			generateGetValuePart(method, cacheGet, origin, cache, cacheManagerFieldName, keyFieldName, hasParams);
+			generateGetValuePart(method, cacheGet, origin, cache, cacheManagerFieldName, keyFieldName, hasParams, classModel);
 			generateMethod(classModel, method, cache.toString());
 		}
 	}
@@ -221,7 +227,7 @@ public class CacheAopManager implements AopManager
 	
 	private void generateMethod(ClassModel classModel, Method method, String body)
 	{
-		MethodModel methodModel = new MethodModel(method);
+		MethodModel methodModel = new MethodModel(method, classModel);
 		methodModel.setBody(body);
 		classModel.putMethodModel(methodModel);
 	}
@@ -238,15 +244,15 @@ public class CacheAopManager implements AopManager
 		cache.append("Cache cache = ").append(cacheManagerFieldName).append(".get(\"").append(cacheName).append("\");\r\n");
 	}
 	
-	private void generateGetValuePart(Method method, CacheGet cacheGet, MethodModel origin, StringCache cache, String cacheManagerFieldName, String keyFieldName, boolean hasParams)
+	private void generateGetValuePart(Method method, CacheGet cacheGet, MethodModel origin, StringCache cache, String cacheManagerFieldName, String keyFieldName, boolean hasParams, ClassModel classModel)
 	{
 		generateCacheDeclarationPart(cacheManagerFieldName, cacheGet.cacheName(), cache);
 		generateKeyNameDeclarationPart(cache, keyFieldName, hasParams);
-		cache.append(method.getReturnType().getSimpleName()).append(" result = (").append(method.getReturnType().getSimpleName()).append(")cache.get(name);\r\n");
+		cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = (").append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(")cache.get(name);\r\n");
 		cache.append("if(result!=null)\r\n{");
 		cache.append("return result;\r\n}\r\n");
 		cache.append("else\r\n{");
-		cache.append("result = (").append(method.getReturnType().getSimpleName()).append(")").append(origin.generateInvoke()).append(";\r\n");
+		cache.append("result = (").append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(")").append(origin.generateInvoke()).append(";\r\n");
 		cache.append("cache.put(name,result,").append(cacheGet.timeToLive()).append(");\r\n");
 		cache.append("return result;\r\n}\r\n");
 	}
@@ -302,7 +308,7 @@ public class CacheAopManager implements AopManager
 	private String generateKeyField(ClassModel classModel, String key)
 	{
 		String lexerKeyFieldName = "expression_" + fieldNameCounter.getAndIncrement();
-		FieldModel keyField = new FieldModel(lexerKeyFieldName, Expression.class, "Expression.parse(\"" + key + "\")");
+		FieldModel keyField = new FieldModel(lexerKeyFieldName, Expression.class, "Expression.parse(\"" + key + "\")", classModel);
 		classModel.addField(keyField);
 		return lexerKeyFieldName;
 	}
@@ -310,12 +316,12 @@ public class CacheAopManager implements AopManager
 	private String generateConditionField(ClassModel classModel, String condition)
 	{
 		String lexerConditionFieldName = "expression_" + fieldNameCounter.getAndIncrement();
-		FieldModel conditionField = new FieldModel(lexerConditionFieldName, Expression.class, "Expression.parse(\"" + condition + "\")");
+		FieldModel conditionField = new FieldModel(lexerConditionFieldName, Expression.class, "Expression.parse(\"" + condition + "\")", classModel);
 		classModel.addField(conditionField);
 		return lexerConditionFieldName;
 	}
 	
-	private void genetateCacheGetBodyWithCondition(String cacheManagerFieldName, Method method, CacheGet cacheGet, String lexerConditionFieldName, String lexerKeyFieldName, MethodModel origin, StringCache cache, boolean hasParams)
+	private void genetateCacheGetBodyWithCondition(String cacheManagerFieldName, Method method, CacheGet cacheGet, String lexerConditionFieldName, String lexerKeyFieldName, MethodModel origin, StringCache cache, boolean hasParams, ClassModel classModel)
 	{
 		if (hasParams)
 		{
@@ -325,14 +331,14 @@ public class CacheAopManager implements AopManager
 		cache.append("if(condition == false)\r\n{\r\n");
 		cache.append("return ").append(origin.generateInvoke()).append(";\r\n}\r\n");
 		cache.append("else\r\n{\r\n");
-		generateGetValuePart(method, cacheGet, origin, cache, cacheManagerFieldName, lexerKeyFieldName, hasParams);
+		generateGetValuePart(method, cacheGet, origin, cache, cacheManagerFieldName, lexerKeyFieldName, hasParams, classModel);
 		cache.append("}\r\n");
 	}
 	
 	private String generateCacheManagerField(ClassModel classModel)
 	{
 		String cacheManagerFieldName = "cacheManager_" + fieldNameCounter.getAndIncrement();
-		FieldModel fieldModel = new FieldModel(cacheManagerFieldName, CacheManager.class);
+		FieldModel fieldModel = new FieldModel(cacheManagerFieldName, CacheManager.class, classModel);
 		classModel.addField(fieldModel);
 		return cacheManagerFieldName;
 	}
@@ -340,7 +346,7 @@ public class CacheAopManager implements AopManager
 	private void generateSetCacheManagerMethod(ClassModel classModel, String cacheManagerFieldName)
 	{
 		classModel.addInterface(SetCacheManager.class);
-		MethodModel methodModel = new MethodModel();
+		MethodModel methodModel = new MethodModel(classModel);
 		methodModel.setAccessLevel(AccessLevel.PUBLIC);
 		methodModel.setMethodName("setCacheManager");
 		methodModel.setReturnType(void.class);

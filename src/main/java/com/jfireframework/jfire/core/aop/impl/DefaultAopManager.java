@@ -81,7 +81,7 @@ public class DefaultAopManager implements AopManager
 			String fieldName = "enhance_" + fieldNameCounter.getAndIncrement();
 			fieldNames.add(fieldName);
 			injects.add(each);
-			FieldModel fieldModel = new FieldModel(fieldName, each.getType());
+			FieldModel fieldModel = new FieldModel(fieldName, each.getType(), classModel);
 			classModel.addField(fieldModel);
 			for (Method enhanceMethod : each.getType().getMethods())
 			{
@@ -194,12 +194,12 @@ public class DefaultAopManager implements AopManager
 				logger.debug("traceId:{} 规则匹配成功，规则:{},方法:{},通知方法:{}", traceId, rule, method.getDeclaringClass().getSimpleName() + "." + method.getName(), enhanceMethod.getDeclaringClass().getSimpleName() + "." + enhanceMethod.getName());
 				MethodModelKey key = new MethodModelKey(method);
 				MethodModel origin = classModel.removeMethodModel(key);
-				MethodModel newOne = new MethodModel(method);
+				MethodModel newOne = new MethodModel(method, classModel);
 				origin.setAccessLevel(AccessLevel.PRIVATE);
 				origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
 				classModel.putMethodModel(origin);
 				StringCache cache = new StringCache();
-				cache.append(SmcHelper.getTypeName(method.getReturnType())).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
+				cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
 				String pointName = generatePointName();
 				generateProceedPointImpl(environment, hostFieldName, method, pointName, cache);
 				cache.append(pointName).append(".setResult(result);\r\n");

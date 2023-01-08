@@ -73,7 +73,7 @@ public class AutoResourceAopManager implements AopManager
 	
 	private void generateSetAutoResourceMethod(ClassModel classModel, String autoResourceFieldName)
 	{
-		MethodModel methodModel = new MethodModel();
+		MethodModel methodModel = new MethodModel(classModel);
 		methodModel.setAccessLevel(AccessLevel.PUBLIC);
 		methodModel.setMethodName("setAutoResource");
 		methodModel.setParamterTypes(AutoResource.class);
@@ -86,7 +86,7 @@ public class AutoResourceAopManager implements AopManager
 	private String generateAutoResourceField(ClassModel classModel)
 	{
 		String autoResourceFieldName = "autoResource_" + fieldNameCounter.getAndIncrement();
-		FieldModel fieldModel = new FieldModel(autoResourceFieldName, AutoResource.class);
+		FieldModel fieldModel = new FieldModel(autoResourceFieldName, AutoResource.class, classModel);
 		classModel.addField(fieldModel);
 		return autoResourceFieldName;
 	}

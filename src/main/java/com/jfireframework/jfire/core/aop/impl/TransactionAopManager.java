@@ -70,13 +70,13 @@ public class TransactionAopManager implements AopManager
 			origin.setAccessLevel(AccessLevel.PRIVATE);
 			origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
 			classModel.putMethodModel(origin);
-			MethodModel newOne = new MethodModel(method);
+			MethodModel newOne = new MethodModel(method, classModel);
 			StringCache cache = new StringCache();
 			cache.append("try\r\n{\r\n");
 			cache.append(transFieldName).append(".beginTransAction();\r\n");
 			if (method.getReturnType() != void.class)
 			{
-				cache.append(SmcHelper.getTypeName(method.getReturnType())).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
+				cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
 				cache.append(transFieldName).append(".commit();\r\n");
 				cache.append("return result;\r\n");
 			}
@@ -104,7 +104,7 @@ public class TransactionAopManager implements AopManager
 	private String generateTransactionManagerField(ClassModel classModel)
 	{
 		String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
-		FieldModel fieldModel = new FieldModel(transFieldName, TransactionManager.class);
+		FieldModel fieldModel = new FieldModel(transFieldName, TransactionManager.class, classModel);
 		classModel.addField(fieldModel);
 		return transFieldName;
 	}
@@ -112,7 +112,7 @@ public class TransactionAopManager implements AopManager
 	private void generateSetTransactionManagerMethod(ClassModel classModel, String transFieldName)
 	{
 		classModel.addInterface(SetTransactionManager.class);
-		MethodModel methodModel = new MethodModel();
+		MethodModel methodModel = new MethodModel(classModel);
 		methodModel.setAccessLevel(AccessLevel.PUBLIC);
 		methodModel.setMethodName("setTransactionManager");
 		methodModel.setParamterTypes(TransactionManager.class);

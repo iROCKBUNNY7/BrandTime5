@@ -143,7 +143,7 @@ public class BeanDefinition
 	
 	private void addEnvironmentField(ClassModel classModel)
 	{
-		FieldModel fieldModel = new FieldModel(Environment.ENVIRONMENT_FIELD_NAME, Environment.class);
+		FieldModel fieldModel = new FieldModel(Environment.ENVIRONMENT_FIELD_NAME, Environment.class, classModel);
 		classModel.addField(fieldModel);
 	}
 	
@@ -155,7 +155,7 @@ public class BeanDefinition
 			{
 				continue;
 			}
-			MethodModel methodModel = new MethodModel(each);
+			MethodModel methodModel = new MethodModel(each, classModel);
 			StringCache cache = new StringCache();
 			if (each.getReturnType() != void.class)
 			{
@@ -176,22 +176,22 @@ public class BeanDefinition
 		}
 	}
 	
-	private void addSetAopHostMethod(ClassModel compilerModel, String hostFieldName)
+	private void addSetAopHostMethod(ClassModel classModel, String hostFieldName)
 	{
-		MethodModel setAopHost = new MethodModel();
+		MethodModel setAopHost = new MethodModel(classModel);
 		setAopHost.setAccessLevel(AccessLevel.PUBLIC);
 		setAopHost.setMethodName("setAopHost");
 		setAopHost.setParamterTypes(Object.class, Environment.class);
 		setAopHost.setReturnType(void.class);
-		setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getTypeName(type) + ")$0;\r\n" + Environment.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
-		compilerModel.putMethodModel(setAopHost);
+		setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getReferenceName(type, classModel) + ")$0;\r\n" + Environment.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
+		classModel.putMethodModel(setAopHost);
 	}
 	
-	private void addHostField(ClassModel compilerModel, String hostFieldName)
+	private void addHostField(ClassModel classModel, String hostFieldName)
 	{
-		FieldModel hostField = new FieldModel(hostFieldName, type);
-		compilerModel.addField(hostField);
-		compilerModel.addInterface(SetHost.class);
+		FieldModel hostField = new FieldModel(hostFieldName, type, classModel);
+		classModel.addField(hostField);
+		classModel.addInterface(SetHost.class);
 	}
 	
 	/**
