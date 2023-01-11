@@ -24,7 +24,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.jfireframework</groupId>
-			<artifactId>jfireel</artifactId>
+			<artifactId>jfireEl</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
