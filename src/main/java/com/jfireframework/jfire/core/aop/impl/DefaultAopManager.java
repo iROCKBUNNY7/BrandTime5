@@ -63,7 +63,6 @@ public class DefaultAopManager implements AopManager
 					if (StringUtil.match(beanDefinition.getType().getName(), rule))
 					{
 						beanDefinition.addAopManager(this);
-						break;
 					}
 				}
 			}

@@ -66,7 +66,6 @@ public class AutoResourceAopManager implements AopManager
 				cache.append(methodModel.getBody());
 				cache.append("}\r\nfinally\r\n{\r\n").append(autoResourceFieldName).append(".close();\r\n}");
 				methodModel.setBody(cache.toString());
-				classModel.putMethodModel(methodModel);
 			}
 		}
 	}

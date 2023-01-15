@@ -30,7 +30,7 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
         PropertyPathImporterTest.class, //
         StarterTest.class, //
 })
-public class Suit
+public class Coverage
 {
     
 }
