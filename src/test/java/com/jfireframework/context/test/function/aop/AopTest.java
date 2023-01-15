@@ -39,6 +39,7 @@ public class AopTest
 		Jfire jfire = jfireConfig.start();
 		Person person = jfire.getBean(Person.class);
 		assertEquals(0, person.testInts(new int[] { 1, 2, 3 }).length);
+		assertEquals(1, person.invokeCount());
 	}
 	
 	/**

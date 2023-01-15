@@ -290,7 +290,6 @@ public class DefaultAopManager implements AopManager
 					cache.deleteLast();
 					cache.append(");\r\n");
 				}
-				generateEnhanceMethodInvoke(fieldName, enhanceMethod, pointName, cache);
 				Class<?> returnType = method.getReturnType();
 				if (returnType == void.class)
 				{
