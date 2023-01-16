@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import com.jfireframework.baseutil.collection.StringCache;
+import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
@@ -16,7 +17,6 @@ import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.notated.Transaction;
-import com.jfireframework.jfire.exception.TransactionException;
 import com.jfireframework.jfire.util.Utils;
 
 @AopManagerNotated()
@@ -52,7 +52,7 @@ public class TransactionAopManager implements AopManager
 		{
 			return;
 		}
-		classModel.addImport(TransactionException.class);
+		classModel.addImport(ReflectUtil.class);
 		String transFieldName = generateTransactionManagerField(classModel);
 		generateSetTransactionManagerMethod(classModel, transFieldName);
 		for (Method method : type.getMethods())
@@ -88,7 +88,26 @@ public class TransactionAopManager implements AopManager
 			cache.append("}\r\n");
 			cache.append("catch(java.lang.Throwable e)\r\n{\r\n");
 			cache.append(transFieldName).append(".rollback(e);\r\n");
-			cache.append("throw new TransactionException(e);\r\n");
+			cache.append("ReflectUtil.throwException(e);\r\n");
+			if (method.getReturnType() != void.class)
+			{
+				if (method.getReturnType().isPrimitive())
+				{
+					Class<?> returnType = method.getReturnType();
+					if (returnType == boolean.class)
+					{
+						cache.append("return false;\r\n");
+					}
+					else
+					{
+						cache.append("return 0;\r\n");
+					}
+				}
+				else
+				{
+					cache.append("return null;\r\n");
+				}
+			}
 			cache.append("}\r\n");
 			newOne.setBody(cache.toString());
 			if (method.getGenericParameterTypes().length != 0)

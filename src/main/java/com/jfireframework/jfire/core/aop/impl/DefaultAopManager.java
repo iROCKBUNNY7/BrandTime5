@@ -14,6 +14,7 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
+import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
@@ -220,6 +221,7 @@ public class DefaultAopManager implements AopManager
 	{
 		String traceId = TRACEID.currentTraceId();
 		String rule = Utils.ANNOTATION_UTIL.getAnnotation(AfterThrowable.class, enhanceMethod).value();
+		classModel.addImport(ReflectUtil.class);
 		for (Method method : type.getMethods())
 		{
 			if (match(rule, method))
@@ -234,6 +236,7 @@ public class DefaultAopManager implements AopManager
 				generateProceedPointImpl(environment, hostFieldName, method, pointName, cache);
 				cache.append(pointName).append(".setE(e);\r\n");
 				generateEnhanceMethodInvoke(fieldName, enhanceMethod, pointName, cache);
+				cache.append("ReflectUtil.throwException(e);\r\n");
 				if (method.getReturnType().isPrimitive())
 				{
 					if (method.getReturnType() == boolean.class)

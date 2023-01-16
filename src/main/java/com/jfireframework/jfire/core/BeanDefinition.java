@@ -11,11 +11,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
-import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
 import com.jfireframework.baseutil.smc.model.ClassModel;
@@ -241,7 +241,7 @@ public class BeanDefinition
 		{
 			List<InjectHandler> list = new LinkedList<InjectHandler>();
 			AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-			for (Field each : ReflectUtil.getAllFields(type))
+			for (Field each : getAllFields(type))
 			{
 				if (annotationUtil.isPresent(CustomInjectHanlder.class, each))
 				{
@@ -385,6 +385,41 @@ public class BeanDefinition
 			map.clear();
 		}
 		return instance;
+	}
+	
+	/**
+	 * 获取该类的所有field对象，如果子类重写了父类的field，则只包含子类的field
+	 * 
+	 * @param entityClass
+	 * @return
+	 */
+	Field[] getAllFields(Class<?> entityClass)
+	{
+		Set<Field> set = new TreeSet<Field>(new Comparator<Field>() {
+			// 只需要去重，并且希望父类的field在返回数组中排在后面，所以比较全部返回1
+			@Override
+			public int compare(Field o1, Field o2)
+			{
+				if (o1.getName().equals(o2.getName()))
+				{
+					return 0;
+				}
+				else
+				{
+					return 1;
+				}
+			}
+		});
+		while (entityClass != Object.class && entityClass != null)
+		{
+			for (Field each : entityClass.getDeclaredFields())
+			{
+				set.add(each);
+			}
+			entityClass = entityClass.getSuperclass();
+		}
+		return set.toArray(new Field[set.size()]);
+		
 	}
 	
 	public void setPrototype(boolean flag)

@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import com.jfireframework.baseutil.IniReader;
-import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.IniReader.IniFile;
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.baseutil.exception.JustThrowException;
+import com.jfireframework.baseutil.reflect.ReflectUtil;
 
 public class Utils
 {
@@ -46,7 +46,8 @@ public class Utils
 		}
 		catch (Exception e)
 		{
-			throw new JustThrowException(e);
+			ReflectUtil.throwException(e);
+			return null;
 		}
 		finally
 		{

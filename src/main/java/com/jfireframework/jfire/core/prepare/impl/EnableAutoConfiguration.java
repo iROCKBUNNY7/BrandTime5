@@ -13,7 +13,7 @@ import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.TRACEID;
-import com.jfireframework.baseutil.exception.JustThrowException;
+import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
@@ -81,7 +81,7 @@ public @interface EnableAutoConfiguration
 			}
 			catch (Exception e)
 			{
-				throw new JustThrowException(e);
+				ReflectUtil.throwException(e);
 			}
 		}
 		
