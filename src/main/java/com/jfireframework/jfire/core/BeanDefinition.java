@@ -113,7 +113,15 @@ public class BeanDefinition
 				return o1.order() - o2.order();
 			}
 		});
-		ClassModel classModel = new ClassModel(type.getSimpleName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement(), type);
+		ClassModel classModel = new ClassModel(type.getSimpleName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement());
+		if (type.isInterface())
+		{
+			classModel.addInterface(type);
+		}
+		else
+		{
+			classModel.setParentClass(type);
+		}
 		classModel.addImport(ProceedPointImpl.class);
 		classModel.addImport(ProceedPoint.class);
 		classModel.addImport(Object.class);
