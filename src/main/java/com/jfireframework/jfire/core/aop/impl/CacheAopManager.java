@@ -24,7 +24,7 @@ import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
 import com.jfireframework.jfire.exception.MethodParamterNameCanNotFetchException;
 import com.jfireframework.jfire.util.Utils;
-import com.jfireframework.jfireel.lexer.Expression;
+import com.jfireframework.jfireel.expression.Expression;
 
 @AopManagerNotated
 public class CacheAopManager implements AopManager

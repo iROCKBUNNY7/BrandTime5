@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.aop;
 
 import org.junit.Assert;
-import com.jfireframework.baseutil.verify.Verify;
+import com.jfireframework.baseutil.Verify;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
 import com.jfireframework.jfire.core.aop.notated.AfterReturning;
 import com.jfireframework.jfire.core.aop.notated.AfterThrowable;
