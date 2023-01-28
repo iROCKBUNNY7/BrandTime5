@@ -6,6 +6,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import com.jfireframework.jfire.core.aop.impl.transaction.Propagation;
 
 /**
  * 使用该注解表明该类的公共方法或者注解方法是一个事务方法
@@ -17,6 +18,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface Transaction
+public @interface Transactional
 {
+    int propagation() default Propagation.REQUIRED;
 }

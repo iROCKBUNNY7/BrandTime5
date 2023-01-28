@@ -16,9 +16,10 @@ public interface AopManager
     AtomicInteger fieldNameCounter  = new AtomicInteger(0);
     AtomicInteger classNameCounter  = new AtomicInteger(0);
     AtomicInteger methodNameCounter = new AtomicInteger(0);
+    AtomicInteger varNameCounter    = new AtomicInteger(0);
     int           DEFAULT           = 100;
     int           TRANSACTION       = 10;
-    int           AUTORESOURCE        = 20;
+    int           AUTORESOURCE      = 20;
     int           CACHE             = 30;
     int           VALIDATE          = 50;
     

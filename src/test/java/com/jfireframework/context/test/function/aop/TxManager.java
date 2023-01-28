@@ -1,42 +1,122 @@
 package com.jfireframework.context.test.function.aop;
 
 import javax.annotation.Resource;
-import com.jfireframework.jfire.core.aop.impl.TransactionAopManager.TransactionManager;
+import com.jfireframework.jfire.core.aop.impl.transaction.ConnectionHolder;
+import com.jfireframework.jfire.core.aop.impl.transaction.JdbcTransactionManager;
+import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
 
 @Resource
-public class TxManager implements TransactionManager
+public class TxManager extends JdbcTransactionManager
 {
-	private boolean	beginTransAction;
-	private boolean	commit;
-	
-	public boolean isBeginTransAction()
-	{
-		return beginTransAction;
-	}
-	
-	public boolean isCommit()
-	{
-		return commit;
-	}
-	
-	@Override
-	public void beginTransAction()
-	{
-		System.out.println("事务开启");
-		beginTransAction = true;
-	}
-	
-	@Override
-	public void commit()
-	{
-		System.out.println("事务结束");
-		commit = true;
-	}
-	
-	@Override
-	public void rollback(Throwable e)
-	{
-		System.out.println("事务回滚");
-	}
-	
+    private boolean beginTransAction;
+    private boolean commit;
+    
+    public boolean isBeginTransAction()
+    {
+        return beginTransAction;
+    }
+    
+    public boolean isCommit()
+    {
+        return commit;
+    }
+    
+    TransactionState transaction = new TransactionState() {
+        
+        @Override
+        public void rollback(Throwable e)
+        {
+            // TODO Auto-generated method stub
+            
+        }
+        
+        @Override
+        public void commit()
+        {
+            // TODO Auto-generated method stub
+            
+        }
+    };
+    
+    @Override
+    public TransactionState beginTransAction(int propagation)
+    {
+        beginTransAction = true;
+        return super.beginTransAction(propagation);
+    }
+    
+    @Override
+    public void commit(TransactionState transaction)
+    {
+        commit = true;
+        super.commit(transaction);
+    }
+    
+    @Override
+    public void rollback(TransactionState transaction, Throwable e)
+    {
+        System.out.println("事务回滚");
+        super.rollback(transaction, e);
+    }
+    
+    @Override
+    protected ConnectionHolder getConnection(boolean forceNew)
+    {
+        return new ConnectionHolder() {
+            private boolean transactionActive;
+            private boolean closed = false;
+            
+            @Override
+            public void setPrev(ConnectionHolder connectionHolder)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void rollback()
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public boolean isTransactionActive()
+            {
+                return transactionActive;
+            }
+            
+            @Override
+            public boolean isClosed()
+            {
+                return closed;
+            }
+            
+            @Override
+            public ConnectionHolder getPrev()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+            @Override
+            public void commit()
+            {
+                
+            }
+            
+            @Override
+            public void close()
+            {
+                closed = true;
+            }
+            
+            @Override
+            public void beginTransaction()
+            {
+                transactionActive = true;
+            }
+        };
+    }
+    
 }
