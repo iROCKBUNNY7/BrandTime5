@@ -15,21 +15,21 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 ConnectionHolder connection = CONTEXT.get();
                 if (connection == null)
                 {
-                    connection = getConnection(false);
+                    connection = openConnection();
                     CONTEXT.set(connection);
                     connection.beginTransaction();
-                    JdbcTransactionState transactionState = new JdbcTransactionState(connection, true, true);
+                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, true, true);
                     return transactionState;
                 }
                 if (connection.isTransactionActive())
                 {
-                    JdbcTransactionState transactionState = new JdbcTransactionState(connection, false, false);
+                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, false, false);
                     return transactionState;
                 }
                 else
                 {
                     connection.beginTransaction();
-                    JdbcTransactionState transactionState = new JdbcTransactionState(connection, true, false);
+                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, false, true);
                     return transactionState;
                 }
             }
@@ -38,12 +38,12 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 ConnectionHolder connection = CONTEXT.get();
                 if (connection == null)
                 {
-                    connection = getConnection(false);
+                    connection = openConnection();
                     CONTEXT.set(connection);
-                    JdbcTransactionState jdbcTransactionState = new JdbcTransactionState(connection, false, true);
+                    JdbcTransactionState jdbcTransactionState = new JdbcTransactionState(Propagation.SUPPORTS, true, false);
                     return jdbcTransactionState;
                 }
-                return new JdbcTransactionState(connection, false, false);
+                return new JdbcTransactionState(Propagation.SUPPORTS, false, false);
             }
             case Propagation.MANDATORY:
             {
@@ -52,14 +52,14 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 {
                     throw new IllegalStateException("当前上下文内没有事务");
                 }
-                return new JdbcTransactionState(connection, false, false);
+                return new JdbcTransactionState(Propagation.MANDATORY, false, false);
             }
             case Propagation.REQUIRES_NEW:
                 ConnectionHolder prev = CONTEXT.get();
-                ConnectionHolder newConnection = getConnection(true);
+                ConnectionHolder newConnection = openConnection();
                 CONTEXT.set(newConnection);
                 newConnection.setPrev(prev);
-                return new JdbcTransactionState(newConnection, true, true);
+                return new JdbcTransactionState(Propagation.REQUIRES_NEW, true, true);
             default:
                 throw new IllegalArgumentException();
         }
@@ -71,36 +71,45 @@ public abstract class JdbcTransactionManager implements TransactionManager
      * @param forceNew
      * @return
      */
-    protected abstract ConnectionHolder getConnection(boolean forceNew);
+    protected abstract ConnectionHolder openConnection();
     
     @Override
-    public void commit(TransactionState transaction)
+    public void commit(TransactionState state)
     {
-        transaction.commit();
-        closeCurrentConnectionIfNeed();
+        if (state.isCompleted())
+        {
+            ConnectionHolder connectionHolder = CONTEXT.get();
+            connectionHolder.commit();
+        }
+        if (state.isBeginWithNewConnection())
+        {
+            closeCurrentConnection(state);
+        }
     }
     
     @Override
-    public void rollback(TransactionState transaction, Throwable e)
+    public void rollback(TransactionState state, Throwable e)
     {
-        transaction.rollback(e);
-        closeCurrentConnectionIfNeed();
+        if (state.isCompleted())
+        {
+            ConnectionHolder connectionHolder = CONTEXT.get();
+            connectionHolder.rollback();
+        }
+        if (state.isBeginWithNewConnection())
+        {
+            closeCurrentConnection(state);
+        }
+        
     }
     
-    private void closeCurrentConnectionIfNeed()
+    private void closeCurrentConnection(TransactionState state)
     {
         ConnectionHolder connectionHolder = CONTEXT.get();
-        if (connectionHolder.isClosed())
+        connectionHolder.close();
+        if (state.propagation() == Propagation.REQUIRES_NEW)
         {
             ConnectionHolder prev = connectionHolder.getPrev();
-            if (prev == null)
-            {
-                CONTEXT.remove();
-            }
-            else
-            {
-                CONTEXT.set(prev);
-            }
+            CONTEXT.set(prev);
         }
     }
     

@@ -21,23 +21,6 @@ public class TxManager extends JdbcTransactionManager
         return commit;
     }
     
-    TransactionState transaction = new TransactionState() {
-        
-        @Override
-        public void rollback(Throwable e)
-        {
-            // TODO Auto-generated method stub
-            
-        }
-        
-        @Override
-        public void commit()
-        {
-            // TODO Auto-generated method stub
-            
-        }
-    };
-    
     @Override
     public TransactionState beginTransAction(int propagation)
     {
@@ -60,7 +43,7 @@ public class TxManager extends JdbcTransactionManager
     }
     
     @Override
-    protected ConnectionHolder getConnection(boolean forceNew)
+    protected ConnectionHolder openConnection()
     {
         return new ConnectionHolder() {
             private boolean transactionActive;

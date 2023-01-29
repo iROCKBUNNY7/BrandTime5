@@ -2,41 +2,33 @@ package com.jfireframework.jfire.core.aop.impl.transaction;
 
 public class JdbcTransactionState implements TransactionState
 {
-    private final ConnectionHolder connection;
-    private final boolean          needCommit;
-    private final boolean          needClose;
+    private int     propagation;
+    private boolean beginWithNewConnection;
+    private boolean rootTransaction;
     
-    public JdbcTransactionState(ConnectionHolder connection, boolean needCommit, boolean needClose)
+    public JdbcTransactionState(int propagation, boolean beginWithNewConnection, boolean rootTransaction)
     {
-        this.connection = connection;
-        this.needCommit = needCommit;
-        this.needClose = needClose;
+        this.propagation = propagation;
+        this.beginWithNewConnection = beginWithNewConnection;
+        this.rootTransaction = rootTransaction;
     }
     
     @Override
-    public void commit()
+    public int propagation()
     {
-        if (needCommit)
-        {
-            connection.commit();
-        }
-        if (needClose)
-        {
-            connection.close();
-        }
+        return propagation;
     }
     
     @Override
-    public void rollback(Throwable e)
+    public boolean isCompleted()
     {
-        if (needCommit)
-        {
-            connection.rollback();
-        }
-        if (needClose)
-        {
-            connection.close();
-        }
+        return rootTransaction;
+    }
+    
+    @Override
+    public boolean isBeginWithNewConnection()
+    {
+        return beginWithNewConnection;
     }
     
 }
