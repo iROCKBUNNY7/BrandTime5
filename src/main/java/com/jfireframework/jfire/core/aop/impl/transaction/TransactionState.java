@@ -11,11 +11,11 @@ public interface TransactionState
     int propagation();
     
     /**
-     * 当前事务是否完成
+     * 当前事务上下文是否已经完成
      * 
      * @return
      */
-    boolean isCompleted();
+    boolean isContextCompleted();
     
     /**
      * 开启当前事务状态时是否打开了一个新的连接

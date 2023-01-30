@@ -18,8 +18,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
                     connection = openConnection();
                     CONTEXT.set(connection);
                     connection.beginTransaction();
-                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, true, true);
-                    return transactionState;
+                    return new JdbcTransactionState(Propagation.REQUIRED, true, true);
                 }
                 if (connection.isTransactionActive())
                 {
@@ -29,8 +28,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 else
                 {
                     connection.beginTransaction();
-                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, false, true);
-                    return transactionState;
+                    return new JdbcTransactionState(Propagation.REQUIRED, false, true);
                 }
             }
             case Propagation.SUPPORTS:
@@ -40,8 +38,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 {
                     connection = openConnection();
                     CONTEXT.set(connection);
-                    JdbcTransactionState jdbcTransactionState = new JdbcTransactionState(Propagation.SUPPORTS, true, false);
-                    return jdbcTransactionState;
+                    return new JdbcTransactionState(Propagation.SUPPORTS, true, false);
                 }
                 return new JdbcTransactionState(Propagation.SUPPORTS, false, false);
             }
@@ -66,9 +63,8 @@ public abstract class JdbcTransactionManager implements TransactionManager
     }
     
     /**
-     * 获取一个连接。如果强制新连接为真，则必须开启一个新连接，否则可以重用当前上下文的连接
-     * 
-     * @param forceNew
+     * 开启一个新的链接
+     *
      * @return
      */
     protected abstract ConnectionHolder openConnection();
@@ -76,7 +72,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
     @Override
     public void commit(TransactionState state)
     {
-        if (state.isCompleted())
+        if (state.isContextCompleted())
         {
             ConnectionHolder connectionHolder = CONTEXT.get();
             connectionHolder.commit();
@@ -90,7 +86,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
     @Override
     public void rollback(TransactionState state, Throwable e)
     {
-        if (state.isCompleted())
+        if (state.isContextCompleted())
         {
             ConnectionHolder connectionHolder = CONTEXT.get();
             connectionHolder.rollback();

@@ -20,7 +20,7 @@ public class JdbcTransactionState implements TransactionState
     }
     
     @Override
-    public boolean isCompleted()
+    public boolean isContextCompleted()
     {
         return rootTransaction;
     }
