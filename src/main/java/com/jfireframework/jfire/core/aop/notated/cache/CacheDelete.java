@@ -1,13 +1,8 @@
 package com.jfireframework.jfire.core.aop.notated.cache;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
@@ -15,22 +10,22 @@ public @interface CacheDelete
 {
     /**
      * key的规则
-     * 
+     *
      * @return
      */
-    public String value();
-    
+    String value();
+
     /**
      * 缓存名称
-     * 
+     *
      * @return
      */
-    public String cacheName() default "default";
-    
+    String cacheName() default "default";
+
     /**
      * 进行缓存操作的条件
-     * 
+     *
      * @return
      */
-    public String condition() default "";
+    String condition() default "";
 }

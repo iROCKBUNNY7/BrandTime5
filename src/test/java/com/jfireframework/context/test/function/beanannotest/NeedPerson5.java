@@ -7,7 +7,7 @@ public class NeedPerson5
 {
     @Resource(name = "person5")
     private Person person;
-    
+
     public Person getPerson()
     {
         return person;

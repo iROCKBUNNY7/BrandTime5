@@ -1,7 +1,5 @@
 package com.jfireframework.context.test.function;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 import com.jfireframework.context.test.function.aliastest.AliasTest;
 import com.jfireframework.context.test.function.aop.AopTest;
 import com.jfireframework.context.test.function.base.ContextTest;
@@ -11,6 +9,8 @@ import com.jfireframework.context.test.function.initmethod.InitMethodTest;
 import com.jfireframework.context.test.function.loader.HolderTest;
 import com.jfireframework.context.test.function.map.MapTest;
 import com.jfireframework.context.test.function.validate.ValidateTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ //
@@ -32,5 +32,5 @@ import com.jfireframework.context.test.function.validate.ValidateTest;
 })
 public class Coverage
 {
-    
+
 }

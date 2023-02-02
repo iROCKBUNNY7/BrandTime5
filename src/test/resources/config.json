@@ -1,15 +1,15 @@
 {
-    "scanPackageNames": [
-        "com.jfireframework.context.test.function.base"
-    ],
-    "beanDefinitions": [
-        {
-            "beanName": "com.jfireframework.context.test.function.base.data.ImmutablePerson",
-            "params": {
-                "name": "林斌",
-                "age": "${age}||25",
-                "boy": "true"
-            }
-        }
-    ]
+  "scanPackageNames": [
+    "com.jfireframework.context.test.function.base"
+  ],
+  "beanDefinitions": [
+    {
+      "beanName": "com.jfireframework.context.test.function.base.data.ImmutablePerson",
+      "params": {
+        "name": "林斌",
+        "age": "${age}||25",
+        "boy": "true"
+      }
+    }
+  ]
 }

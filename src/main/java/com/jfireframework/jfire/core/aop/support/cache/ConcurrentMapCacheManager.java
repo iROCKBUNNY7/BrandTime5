@@ -4,7 +4,7 @@ import javax.annotation.PostConstruct;
 
 public class ConcurrentMapCacheManager extends AbstractCacheManager
 {
-    
+
     @PostConstruct
     public void init()
     {
@@ -14,5 +14,5 @@ public class ConcurrentMapCacheManager extends AbstractCacheManager
             cacheMap.put(name, cache);
         }
     }
-    
+
 }

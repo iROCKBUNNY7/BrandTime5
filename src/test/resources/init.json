@@ -1,8 +1,8 @@
 {
-    "beanDefinitions": [
-        {
-            "beanName": "p2",
-            "postConstructMethod": "initage"
-        }
-    ]
+  "beanDefinitions": [
+    {
+      "beanName": "p2",
+      "postConstructMethod": "initage"
+    }
+  ]
 }

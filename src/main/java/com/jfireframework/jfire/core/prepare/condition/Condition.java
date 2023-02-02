@@ -1,9 +1,10 @@
 package com.jfireframework.jfire.core.prepare.condition;
 
-import java.lang.annotation.Annotation;
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+
+import java.lang.annotation.Annotation;
 
 public interface Condition
 {
-	boolean match(ReadOnlyEnvironment readOnlyEnvironment, Annotation[] annotations);
+    boolean match(ReadOnlyEnvironment readOnlyEnvironment, Annotation[] annotations);
 }

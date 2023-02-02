@@ -8,13 +8,13 @@ import javax.validation.executable.ValidateOnExecution;
 @Resource
 public class Person
 {
-	@ValidateOnExecution
+    @ValidateOnExecution
     public String sayHello(@Valid User user)
     {
         return "hello " + user.getName();
     }
-    
-	@ValidateOnExecution
+
+    @ValidateOnExecution
     public String sayHello2(@NotNull String name)
     {
         return "hello";

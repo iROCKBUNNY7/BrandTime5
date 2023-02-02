@@ -1,9 +1,5 @@
 package com.jfireframework.jfire.core.aop.impl;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
@@ -21,11 +17,16 @@ import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
 import com.jfireframework.jfire.core.aop.notated.Transactional;
 import com.jfireframework.jfire.util.Utils;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
+
 @AopManagerNotated()
 public class TransactionAopManager implements AopManager
 {
     private BeanDefinition transactionBeandefinition;
-    
+
     @Override
     public void scan(Environment environment)
     {
@@ -33,7 +34,7 @@ public class TransactionAopManager implements AopManager
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
-                if (Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method))
+                if ( Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) )
                 {
                     beanDefinition.addAopManager(this);
                     break;
@@ -41,16 +42,16 @@ public class TransactionAopManager implements AopManager
             }
         }
         List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(TransactionManager.class);
-        if (list.isEmpty() == false)
+        if ( list.isEmpty() == false )
         {
             transactionBeandefinition = list.get(0);
         }
     }
-    
+
     @Override
     public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
-        if (transactionBeandefinition == null)
+        if ( transactionBeandefinition == null )
         {
             return;
         }
@@ -59,11 +60,11 @@ public class TransactionAopManager implements AopManager
         generateSetTransactionManagerMethod(classModel, transFieldName);
         for (Method method : type.getMethods())
         {
-            if (Modifier.isFinal(method.getModifiers()))
+            if ( Modifier.isFinal(method.getModifiers()) )
             {
                 continue;
             }
-            if (Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) == false)
+            if ( Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) == false )
             {
                 continue;
             }
@@ -80,7 +81,7 @@ public class TransactionAopManager implements AopManager
             cache.append(SmcHelper.getReferenceName(TransactionState.class, classModel)).append(" ").append(transactionStateName)//
                     .append(" = ").append(transFieldName).append(".beginTransAction(").append(propagation).append(");\r\n");
             cache.append("try\r\n{\r\n");
-            if (method.getReturnType() != void.class)
+            if ( method.getReturnType() != void.class )
             {
                 cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
                 cache.append(transFieldName).append(".commit();\r\n");
@@ -95,12 +96,12 @@ public class TransactionAopManager implements AopManager
             cache.append("catch(java.lang.Throwable e)\r\n{\r\n");
             cache.append(transFieldName).append(".rollback(").append(transactionStateName).append(",e);\r\n");
             cache.append("ReflectUtil.throwException(e);\r\n");
-            if (method.getReturnType() != void.class)
+            if ( method.getReturnType() != void.class )
             {
-                if (method.getReturnType().isPrimitive())
+                if ( method.getReturnType().isPrimitive() )
                 {
                     Class<?> returnType = method.getReturnType();
-                    if (returnType == boolean.class)
+                    if ( returnType == boolean.class )
                     {
                         cache.append("return false;\r\n");
                     }
@@ -116,7 +117,7 @@ public class TransactionAopManager implements AopManager
             }
             cache.append("}\r\n");
             newOne.setBody(cache.toString());
-            if (method.getGenericParameterTypes().length != 0)
+            if ( method.getGenericParameterTypes().length != 0 )
             {
                 boolean[] flags = new boolean[method.getParameterTypes().length];
                 Arrays.fill(flags, true);
@@ -125,7 +126,7 @@ public class TransactionAopManager implements AopManager
             classModel.putMethodModel(newOne);
         }
     }
-    
+
     private String generateTransactionManagerField(ClassModel classModel)
     {
         String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
@@ -133,7 +134,7 @@ public class TransactionAopManager implements AopManager
         classModel.addField(fieldModel);
         return transFieldName;
     }
-    
+
     private void generateSetTransactionManagerMethod(ClassModel classModel, String transFieldName)
     {
         classModel.addInterface(SetTransactionManager.class);
@@ -145,26 +146,25 @@ public class TransactionAopManager implements AopManager
         methodModel.setBody(transFieldName + " = $0;");
         classModel.putMethodModel(methodModel);
     }
-    
+
     @Override
     public void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment)
     {
-        
     }
-    
+
     @Override
     public void fillBean(Object bean, Class<?> type)
     {
         ((SetTransactionManager) bean).setTransactionManager((TransactionManager) transactionBeandefinition.getBeanInstance());
     }
-    
+
     @Override
     public int order()
     {
         return TRANSACTION;
     }
-    
-    public static interface SetTransactionManager
+
+    public interface SetTransactionManager
     {
         void setTransactionManager(TransactionManager transactionManager);
     }
