@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.inject.impl;
 
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
+import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
@@ -17,6 +18,7 @@ import java.util.Set;
 public class DefaultPropertyInjectHandler implements InjectHandler
 {
     private Field field;
+    private ValueAccessor valueAccessor;
     private String propertyValue;
     private Inject inject;
 
@@ -24,7 +26,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     public void init(Field field, Environment environment)
     {
         this.field = field;
-        field.setAccessible(true);
+        valueAccessor = new ValueAccessor(field);
         PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);
         String propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
         if ( StringUtil.isNotBlank(System.getProperty(propertyName)) )
@@ -45,9 +47,9 @@ public class DefaultPropertyInjectHandler implements InjectHandler
             {
                 inject = new IntInject();
             }
-            else if ( type == short.class || type == Boolean.class )
+            else if ( type == short.class || type == Short.class )
             {
-                inject = new BooleanInject();
+                inject = new ShortInject();
             }
             else if ( type == long.class || type == Long.class )
             {
@@ -129,7 +131,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
         {
             try
             {
-                field.set(instance, value);
+                valueAccessor.setObject(instance, value);
             } catch (Exception e)
             {
                 throw new InjectValueException(e);

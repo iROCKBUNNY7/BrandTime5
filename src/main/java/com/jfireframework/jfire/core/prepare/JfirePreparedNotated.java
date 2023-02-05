@@ -1,5 +1,7 @@
 package com.jfireframework.jfire.core.prepare;
 
+import com.jfireframework.jfire.util.JfirePreparedConstant;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,6 +16,6 @@ public @interface JfirePreparedNotated
      *
      * @return
      */
-    int order();
+    int order() default JfirePreparedConstant.DEFAULT_ORDER;
 
 }
