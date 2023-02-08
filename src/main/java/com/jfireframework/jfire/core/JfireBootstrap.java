@@ -24,6 +24,7 @@ import com.jfireframework.jfire.exception.NewBeanInstanceException;
 import com.jfireframework.jfire.util.Utils;
 
 import javax.annotation.Resource;
+import javax.tools.JavaCompiler;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
@@ -209,6 +210,11 @@ public class JfireBootstrap
     public void setClassLoader(ClassLoader classLoader)
     {
         environment.setClassLoader(classLoader);
+    }
+
+    public void setJavaCompiler(JavaCompiler javaCompiler)
+    {
+        environment.setJavaCompiler(javaCompiler);
     }
 
     public void addProperties(Properties properties)
