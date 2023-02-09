@@ -12,12 +12,12 @@ import com.jfireframework.jfire.util.Utils;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultPropertyInjectHandler implements InjectHandler
 {
-    private Field field;
     private ValueAccessor valueAccessor;
     private String propertyValue;
     private Inject inject;
@@ -25,7 +25,6 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     @Override
     public void init(Field field, Environment environment)
     {
-        this.field = field;
         valueAccessor = new ValueAccessor(field);
         PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);
         String propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
@@ -97,7 +96,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
             }
             else if ( type.isEnum() )
             {
-                inject = new EnumInject();
+                inject = new EnumInject(field);
             }
             else
             {
@@ -142,7 +141,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class BooleanInject extends AbstractInject
     {
-        public BooleanInject()
+        BooleanInject()
         {
             value = Boolean.valueOf(propertyValue);
         }
@@ -150,7 +149,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class IntInject extends AbstractInject
     {
-        public IntInject()
+        IntInject()
         {
             value = Integer.valueOf(propertyValue);
         }
@@ -158,7 +157,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class LongInject extends AbstractInject
     {
-        public LongInject()
+        LongInject()
         {
             value = Long.valueOf(propertyValue);
         }
@@ -166,7 +165,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class ShortInject extends AbstractInject
     {
-        public ShortInject()
+        ShortInject()
         {
             value = Short.valueOf(propertyValue);
         }
@@ -174,7 +173,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class FloatInject extends AbstractInject
     {
-        public FloatInject()
+        FloatInject()
         {
             value = Float.valueOf(propertyValue);
         }
@@ -182,7 +181,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class DoubleInject extends AbstractInject
     {
-        public DoubleInject()
+        DoubleInject()
         {
             value = Double.valueOf(propertyValue);
         }
@@ -190,7 +189,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class ByteArrayInject extends AbstractInject
     {
-        public ByteArrayInject()
+        ByteArrayInject()
         {
             if ( propertyValue.startsWith("0x") )
             {
@@ -205,7 +204,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class ClassInject extends AbstractInject
     {
-        public ClassInject()
+        ClassInject()
         {
             try
             {
@@ -219,7 +218,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class FileInject extends AbstractInject
     {
-        public FileInject()
+        FileInject()
         {
             value = new File(propertyValue);
         }
@@ -227,7 +226,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class IntArrayInject extends AbstractInject
     {
-        public IntArrayInject()
+        IntArrayInject()
         {
             String[] tmp = propertyValue.split(",");
             int[] array = new int[tmp.length];
@@ -241,7 +240,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class StringInject extends AbstractInject
     {
-        public StringInject()
+        StringInject()
         {
             value = propertyValue;
         }
@@ -249,7 +248,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class StringArrayInject extends AbstractInject
     {
-        public StringArrayInject()
+        StringArrayInject()
         {
             value = propertyValue.split(",");
         }
@@ -257,23 +256,20 @@ public class DefaultPropertyInjectHandler implements InjectHandler
 
     class SetStringInject extends AbstractInject
     {
-        public SetStringInject()
+        SetStringInject()
         {
             Set<String> set = new HashSet<String>();
-            for (String each : propertyValue.split(","))
-            {
-                set.add(each);
-            }
+            Collections.addAll(set, propertyValue.split(","));
             value = set;
         }
     }
 
     class EnumInject extends AbstractInject
     {
+
         @SuppressWarnings({"unchecked", "rawtypes"})
-        public EnumInject()
+        EnumInject(Field field)
         {
-            field.getType();
             value = Enum.valueOf((Class<Enum>) field.getType(), propertyValue);
         }
     }

@@ -67,7 +67,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
     {
         private BeanDefinition beanDefinition;
 
-        public InstacenInject()
+        InstacenInject()
         {
             AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
             Resource resource = annotationUtil.getAnnotation(Resource.class, field);
@@ -96,7 +96,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
     {
         BeanDefinition beanDefinition;
 
-        public AbstractInject()
+        AbstractInject()
         {
             Class<?> fieldType = field.getType();
             Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, field);
@@ -157,7 +157,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         private static final int LIST = 1;
         private static final int SET = 2;
 
-        public CollectionInject()
+        CollectionInject()
         {
             Type genericType = field.getGenericType();
             if ( genericType instanceof ParameterizedType == false )
@@ -226,7 +226,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         BeanDefinition[] beanDefinitions;
         Method method;
 
-        public MapInject()
+        MapInject()
         {
             Type genericType = field.getGenericType();
             if ( genericType instanceof ParameterizedType == false )
