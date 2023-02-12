@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.inject.impl;
 
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.inject.InjectHandler;
@@ -20,8 +21,9 @@ import java.util.*;
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
     private Environment environment;
-    private Field field;
     private Inject inject;
+    private ValueAccessor valueAccessor;
+    private Field field;
 
     @Override
     public void init(Field field, Environment environment)
@@ -32,7 +34,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         }
         this.environment = environment;
         this.field = field;
-        field.setAccessible(true);
+        valueAccessor = new ValueAccessor(field);
         Class<?> fieldType = field.getType();
         if ( Map.class.isAssignableFrom(fieldType) )
         {
@@ -84,7 +86,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             Object value = beanDefinition.getBeanInstance();
             try
             {
-                field.set(instance, value);
+                valueAccessor.setObject(instance, value);
             } catch (Exception e)
             {
                 throw new InjectValueException(e);
@@ -140,7 +142,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 Object value = beanDefinition.getBeanInstance();
                 try
                 {
-                    field.set(instance, value);
+                    valueAccessor.setObject(instance, value);
                 } catch (Exception e)
                 {
                     throw new InjectValueException(e);
@@ -189,12 +191,12 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                     if ( listOrSet == LIST )
                     {
                         value = new LinkedList<Object>();
-                        field.set(instance, value);
+                        valueAccessor.setObject(instance, value);
                     }
                     else if ( listOrSet == SET )
                     {
                         value = new HashSet<Object>();
-                        field.set(instance, value);
+                        valueAccessor.setObject(instance, value);
                     }
                     else
                     {
@@ -264,7 +266,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 if ( value == null )
                 {
                     value = new HashMap<Object, Object>();
-                    field.set(instance, value);
+                    valueAccessor.setObject(instance, value);
                 }
                 switch (mapKeyType)
                 {
