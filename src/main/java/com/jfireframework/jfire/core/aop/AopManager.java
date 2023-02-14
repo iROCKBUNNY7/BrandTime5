@@ -19,7 +19,6 @@ public interface AopManager
     AtomicInteger varNameCounter = new AtomicInteger(0);
     int DEFAULT = 100;
     int TRANSACTION = 10;
-    int AUTORESOURCE = 20;
     int CACHE = 30;
     int VALIDATE = 50;
 
@@ -53,7 +52,6 @@ public interface AopManager
      * 填充Bean当中涉及到的AOP增强属性
      *
      * @param bean
-     * @param environment
      */
     void fillBean(Object bean, Class<?> type);
 

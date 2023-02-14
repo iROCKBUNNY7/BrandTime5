@@ -1,9 +1,7 @@
 package com.jfireframework.context.test.function.beanannotest;
 
-import com.jfireframework.context.test.function.beanannotest.Data.NameProperty;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.prepare.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
 import com.jfireframework.jfire.core.prepare.impl.Configuration;
@@ -15,11 +13,10 @@ import javax.annotation.Resource;
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
 @MyImport(name = "myimport")
-@Import({HouseProvider.class, NameProperty.class})
+@Import({HouseProvider.class})
 @Resource
 public class Data
 {
-    @JfirePreparedNotated
     public static class NameProperty implements JfirePrepare
     {
 
@@ -28,6 +25,12 @@ public class Data
         {
             environment.putProperty("name", "linbin");
 //			environment.putProperty("person2", "pass");
+        }
+
+        @Override
+        public int order()
+        {
+            return 0;
         }
 
     }

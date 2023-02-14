@@ -3,13 +3,11 @@ package com.jfireframework.jfire.core;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
 import com.jfireframework.jfire.core.aop.impl.DefaultAopManager;
 import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
 import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.prepare.impl.AddProperty.AddPropertyProcessor;
 import com.jfireframework.jfire.core.prepare.impl.ComponentScan.ComponentScanProcessor;
 import com.jfireframework.jfire.core.prepare.impl.Configuration.ConfigurationProcessor;
@@ -20,7 +18,6 @@ import com.jfireframework.jfire.core.prepare.impl.PropertyPath.PropertyPathProce
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.OutterObjectBeanInstanceResolver;
-import com.jfireframework.jfire.exception.NewBeanInstanceException;
 import com.jfireframework.jfire.util.Utils;
 
 import javax.annotation.Resource;
@@ -32,6 +29,8 @@ import java.util.Map.Entry;
 public class JfireBootstrap
 {
     private Environment environment = new Environment();
+    private Set<JfirePrepare> jfirePrepares = new HashSet<JfirePrepare>();
+    private Set<AopManager> aopManagers = new HashSet<AopManager>();
 
     public JfireBootstrap()
     {
@@ -66,18 +65,18 @@ public class JfireBootstrap
 
     private void registerDefault()
     {
-        registerDirect(ImportProcessor.class);
-        registerDirect(DefaultAopManager.class);
-        registerDirect(TransactionAopManager.class);
-        registerDirect(CacheAopManager.class);
-        registerDirect(ValidateAopManager.class);
+        registerAopManager(new DefaultAopManager());
+        registerAopManager(new TransactionAopManager());
+        registerAopManager(new CacheAopManager());
+        registerAopManager(new ValidateAopManager());
         /**/
-        registerDirect(AddPropertyProcessor.class);
-        registerDirect(ComponentScanProcessor.class);
-        registerDirect(ConfigurationProcessor.class);
-        registerDirect(EnableAutoConfigurationProcessor.class);
-        registerDirect(ProfileSelectorProcessor.class);
-        registerDirect(PropertyPathProcessor.class);
+        registerJfirePrepare(new ImportProcessor());
+        registerJfirePrepare(new AddPropertyProcessor());
+        registerJfirePrepare(new ComponentScanProcessor());
+        registerJfirePrepare(new ConfigurationProcessor());
+        registerJfirePrepare(new EnableAutoConfigurationProcessor());
+        registerJfirePrepare(new ProfileSelectorProcessor());
+        registerJfirePrepare(new PropertyPathProcessor());
     }
 
     private Jfire registerJfireInstance()
@@ -111,73 +110,35 @@ public class JfireBootstrap
 
     private void prepare(Environment environment)
     {
-        PriorityQueue<BeanDefinition> queue = new PriorityQueue<BeanDefinition>(environment.beanDefinitions().size(), new Comparator<BeanDefinition>()
+        LinkedList<JfirePrepare> list = new LinkedList<JfirePrepare>(this.jfirePrepares);
+        Collections.sort(list, new Comparator<JfirePrepare>()
         {
-
             @Override
-            public int compare(BeanDefinition o1, BeanDefinition o2)
+            public int compare(JfirePrepare o1, JfirePrepare o2)
             {
-                int order1 = Utils.ANNOTATION_UTIL.getAnnotation(JfirePreparedNotated.class, o1.getType()).order();
-                int order2 = Utils.ANNOTATION_UTIL.getAnnotation(JfirePreparedNotated.class, o2.getType()).order();
-                return order1 - order2;
+                return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
-        List<String> deleteBeanNames = new LinkedList<String>();
-        do
+        for (JfirePrepare jfirePrepare : list)
         {
-            deleteBeanNames.clear();
-            environment.markVersion();
-            for (Entry<String, BeanDefinition> entry : environment.beanDefinitions().entrySet())
-            {
-                if ( Utils.ANNOTATION_UTIL.isPresent(JfirePreparedNotated.class, entry.getValue().getType()) && JfirePrepare.class.isAssignableFrom(entry.getValue().getType()) )
-                {
-                    queue.add(entry.getValue());
-                    deleteBeanNames.add(entry.getKey());
-                }
-            }
-            for (String each : deleteBeanNames)
-            {
-                environment.removeBeanDefinition(each);
-            }
-            BeanDefinition minOrderedJfirePrepare = queue.poll();
-            if ( minOrderedJfirePrepare != null )
-            {
-                try
-                {
-                    JfirePrepare jfirePrepareInstance = (JfirePrepare) minOrderedJfirePrepare.getType().newInstance();
-                    jfirePrepareInstance.prepare(environment);
-                } catch (Throwable e)
-                {
-                    throw new NewBeanInstanceException(e);
-                }
-            }
-        } while (queue.isEmpty() == false || environment.isChanged());
+            jfirePrepare.prepare(environment);
+        }
     }
 
     private void aopScan(Environment environment)
     {
-        List<BeanDefinition> list = new LinkedList<BeanDefinition>();
-        for (Entry<String, BeanDefinition> each : environment.beanDefinitions().entrySet())
+        LinkedList<AopManager> list = new LinkedList<AopManager>(this.aopManagers);
+        Collections.sort(list, new Comparator<AopManager>()
         {
-            if ( AopManager.class.isAssignableFrom(each.getValue().getType()) && Utils.ANNOTATION_UTIL.isPresent(AopManagerNotated.class, each.getValue().getType()) )
+            @Override
+            public int compare(AopManager o1, AopManager o2)
             {
-                list.add(each.getValue());
+                return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
-        }
-        for (BeanDefinition each : list)
+        });
+        for (AopManager aopManager : list)
         {
-            environment.removeBeanDefinition(each.getBeanName());
-        }
-        for (BeanDefinition each : list)
-        {
-            try
-            {
-                AopManager instance = (AopManager) each.getType().newInstance();
-                instance.scan(environment);
-            } catch (Exception e)
-            {
-                throw new NewBeanInstanceException(e);
-            }
+            aopManager.scan(environment);
         }
     }
 
@@ -200,13 +161,6 @@ public class JfireBootstrap
         }
     }
 
-    private void registerDirect(Class<?> ckass)
-    {
-        BeanDefinition beanDefinition = new BeanDefinition(ckass.getName(), ckass, false);
-        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
-        environment.registerBeanDefinition(beanDefinition);
-    }
-
     public void setClassLoader(ClassLoader classLoader)
     {
         environment.setClassLoader(classLoader);
@@ -223,5 +177,15 @@ public class JfireBootstrap
         {
             environment.putProperty((String) entry.getKey(), (String) entry.getValue());
         }
+    }
+
+    public void registerJfirePrepare(JfirePrepare jfirePrepare)
+    {
+        jfirePrepares.add(jfirePrepare);
+    }
+
+    public void registerAopManager(AopManager aopManager)
+    {
+        aopManagers.add(aopManager);
     }
 }

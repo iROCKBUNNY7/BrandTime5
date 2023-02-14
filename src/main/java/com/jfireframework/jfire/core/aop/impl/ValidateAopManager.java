@@ -10,7 +10,6 @@ import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.util.Utils;
 
 import javax.validation.Constraint;
@@ -21,7 +20,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-@AopManagerNotated
 public class ValidateAopManager implements AopManager
 {
     private BeanDefinition validatorBeandefinition;

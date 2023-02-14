@@ -13,7 +13,6 @@ import com.jfireframework.extrautil.MethodParamNamesScanner;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
@@ -27,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@AopManagerNotated
 public class CacheAopManager implements AopManager
 {
     private BeanDefinition cacheBeanDefinition;

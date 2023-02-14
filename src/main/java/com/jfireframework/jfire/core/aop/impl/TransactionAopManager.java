@@ -11,7 +11,6 @@ import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
 import com.jfireframework.jfire.core.aop.notated.Transactional;
@@ -22,7 +21,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
-@AopManagerNotated()
 public class TransactionAopManager implements AopManager
 {
     private BeanDefinition transactionBeandefinition;

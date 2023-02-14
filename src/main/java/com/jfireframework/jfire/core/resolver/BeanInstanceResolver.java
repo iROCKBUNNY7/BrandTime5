@@ -7,7 +7,6 @@ public interface BeanInstanceResolver
     /**
      * 生成Bean的实例
      *
-     * @param beanInstanceMap
      * @return
      */
     Object buildInstance();

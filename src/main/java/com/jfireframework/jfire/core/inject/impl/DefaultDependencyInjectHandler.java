@@ -23,7 +23,6 @@ public class DefaultDependencyInjectHandler implements InjectHandler
     private Environment environment;
     private Inject inject;
     private ValueAccessor valueAccessor;
-    private Field field;
 
     @Override
     public void init(Field field, Environment environment)
@@ -33,7 +32,6 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             throw new UnsupportedOperationException("基础类型无法执行注入操作");
         }
         this.environment = environment;
-        this.field = field;
         valueAccessor = new ValueAccessor(field);
         Class<?> fieldType = field.getType();
         if ( Map.class.isAssignableFrom(fieldType) )
@@ -71,6 +69,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         InstacenInject()
         {
+            Field field = valueAccessor.getField();
             AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
             Resource resource = annotationUtil.getAnnotation(Resource.class, field);
             String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
@@ -100,6 +99,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         AbstractInject()
         {
+            Field field = valueAccessor.getField();
             Class<?> fieldType = field.getType();
             Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, field);
             // 如果定义了名称，就寻找特定名称的Bean
@@ -161,6 +161,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         CollectionInject()
         {
+            Field field = valueAccessor.getField();
             Type genericType = field.getGenericType();
             if ( genericType instanceof ParameterizedType == false )
             {
@@ -185,7 +186,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         {
             try
             {
-                Collection<Object> value = (Collection<Object>) field.get(instance);
+                Collection<Object> value = (Collection<Object>) valueAccessor.get(instance);
                 if ( value == null )
                 {
                     if ( listOrSet == LIST )
@@ -200,7 +201,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                     }
                     else
                     {
-                        throw new InjectValueException("无法识别类型:" + field.getType().getName() + "，无法生成其对应的实例");
+                        throw new InjectValueException("无法识别类型:" + valueAccessor.getField().getType().getName() + "，无法生成其对应的实例");
                     }
                 }
                 for (BeanDefinition each : beanDefinitions)
@@ -230,6 +231,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         MapInject()
         {
+            Field field = valueAccessor.getField();
             Type genericType = field.getGenericType();
             if ( genericType instanceof ParameterizedType == false )
             {
@@ -262,7 +264,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         {
             try
             {
-                Map<Object, Object> value = (Map<Object, Object>) field.get(instance);
+                Map<Object, Object> value = (Map<Object, Object>) valueAccessor.get(instance);
                 if ( value == null )
                 {
                     value = new HashMap<Object, Object>();

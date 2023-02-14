@@ -2,7 +2,6 @@ package com.jfireframework.jfire.core.prepare.impl;
 
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 
 import java.lang.annotation.Retention;
@@ -13,7 +12,6 @@ public @interface AddProperty
 {
     String[] value();
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
     class AddPropertyProcessor implements JfirePrepare
     {
 
@@ -37,6 +35,11 @@ public @interface AddProperty
                     }
                 }
             }
+        }
+
+        public int order()
+        {
+            return JfirePreparedConstant.DEFAULT_ORDER;
         }
 
     }

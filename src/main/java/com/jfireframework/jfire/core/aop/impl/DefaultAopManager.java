@@ -14,7 +14,6 @@ import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
-import com.jfireframework.jfire.core.aop.AopManagerNotated;
 import com.jfireframework.jfire.core.aop.notated.*;
 import com.jfireframework.jfire.exception.CannotFindEnhanceFieldException;
 import com.jfireframework.jfire.util.Utils;
@@ -25,7 +24,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
-@AopManagerNotated
 public class DefaultAopManager implements AopManager
 {
 

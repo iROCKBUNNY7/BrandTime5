@@ -5,7 +5,6 @@ import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.prepare.condition.Condition;
 import com.jfireframework.jfire.core.prepare.condition.Conditional;
 import com.jfireframework.jfire.core.resolver.impl.MethodBeanInstanceResolver;
@@ -39,7 +38,6 @@ public @interface Configuration
 
     }
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.CONFIGURATION_ORDER)
     class ConfigurationProcessor implements JfirePrepare
     {
         private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
@@ -95,6 +93,12 @@ public @interface Configuration
             }
         }
 
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.CONFIGURATION_ORDER;
+        }
+
         /**
          * @param environment
          * @return
@@ -117,7 +121,6 @@ public @interface Configuration
 
         /**
          * @param environment
-         * @param beanDefinition
          * @return
          */
         private boolean matchCondition(Environment environment, Conditional conditional, Annotation[] annotations)

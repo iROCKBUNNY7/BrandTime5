@@ -6,7 +6,6 @@ import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,6 +55,7 @@ public class ParamFieldTest
     public void test()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap();
+        jfireConfig.registerJfirePrepare(new ForProperty());
         jfireConfig.register(ParamFieldTest.class);
         BeanDefinition beanDefinition = new BeanDefinition("xx", ForProperty.class, false);
         beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForProperty.class));
@@ -81,7 +81,6 @@ public class ParamFieldTest
         Assert.assertEquals(name.test1, data.f14);
     }
 
-    @JfirePreparedNotated
     public static class ForProperty implements JfirePrepare
     {
 
@@ -102,6 +101,12 @@ public class ParamFieldTest
             environment.putProperty("f12", "xx,rr");
             environment.putProperty("f13", ParamFieldTest.class.getName());
             environment.putProperty("f14", "test1");
+        }
+
+        @Override
+        public int order()
+        {
+            return 0;
         }
 
     }

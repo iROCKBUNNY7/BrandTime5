@@ -4,7 +4,6 @@ import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ public @interface Import
 {
     Class<?>[] value();
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.IMPORT_ORDER)
     class ImportProcessor implements JfirePrepare
     {
         private static final Logger logger = LoggerFactory.getLogger(ImportProcessor.class);
@@ -51,6 +49,12 @@ public @interface Import
                 beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(each));
                 environment.registerBeanDefinition(beanDefinition);
             }
+        }
+
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.IMPORT_ORDER;
         }
 
     }

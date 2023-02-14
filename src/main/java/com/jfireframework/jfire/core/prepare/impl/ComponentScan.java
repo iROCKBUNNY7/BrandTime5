@@ -6,7 +6,6 @@ import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver;
@@ -34,7 +33,6 @@ public @interface ComponentScan
 {
     String[] value();
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
     class ComponentScanProcessor implements JfirePrepare
     {
         private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
@@ -90,6 +88,12 @@ public @interface ComponentScan
                 }
             }
 
+        }
+
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.DEFAULT_ORDER;
         }
 
     }

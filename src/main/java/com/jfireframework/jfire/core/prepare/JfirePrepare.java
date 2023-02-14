@@ -5,4 +5,6 @@ import com.jfireframework.jfire.core.Environment;
 public interface JfirePrepare
 {
     void prepare(Environment environment);
+
+    int order();
 }

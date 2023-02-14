@@ -4,7 +4,6 @@ import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 
@@ -20,7 +19,6 @@ public @interface ProfileSelector
 
     String activePropertyName = "jfire.profile.active";
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.PROFILE_SELECTOR_ORDER)
     class ProfileSelectorProcessor implements JfirePrepare
     {
 
@@ -44,6 +42,12 @@ public @interface ProfileSelector
                     }
                 }
             }
+        }
+
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.PROFILE_SELECTOR_ORDER;
         }
 
     }

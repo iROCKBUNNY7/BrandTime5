@@ -3,7 +3,6 @@ package com.jfireframework.jfire.core.prepare.impl;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 
@@ -16,7 +15,6 @@ public @interface PropertyPath
 {
     String[] value();
 
-    @JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
     class PropertyPathProcessor implements JfirePrepare
     {
 
@@ -37,6 +35,12 @@ public @interface PropertyPath
                     }
                 }
             }
+        }
+
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.DEFAULT_ORDER;
         }
 
     }

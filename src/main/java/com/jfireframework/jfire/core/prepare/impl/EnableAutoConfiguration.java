@@ -5,7 +5,6 @@ import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.JfirePreparedNotated;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
@@ -27,7 +26,6 @@ import java.util.jar.JarFile;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EnableAutoConfiguration
 {
-    @JfirePreparedNotated(order = JfirePreparedConstant.DEFAULT_ORDER)
     class EnableAutoConfigurationProcessor implements JfirePrepare
     {
         private static final Logger logger = LoggerFactory.getLogger(EnableAutoConfigurationProcessor.class);
@@ -83,6 +81,12 @@ public @interface EnableAutoConfiguration
             {
                 ReflectUtil.throwException(e);
             }
+        }
+
+        @Override
+        public int order()
+        {
+            return JfirePreparedConstant.DEFAULT_ORDER;
         }
 
         void registgerAutoConfigor(String className, Environment environment) throws ClassNotFoundException
