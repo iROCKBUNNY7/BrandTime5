@@ -22,8 +22,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
                 }
                 if ( connection.isTransactionActive() )
                 {
-                    JdbcTransactionState transactionState = new JdbcTransactionState(Propagation.REQUIRED, false, false);
-                    return transactionState;
+                    return new JdbcTransactionState(Propagation.REQUIRED, false, false);
                 }
                 else
                 {

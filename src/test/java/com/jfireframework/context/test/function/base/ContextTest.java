@@ -6,7 +6,7 @@ import com.jfireframework.context.test.function.base.data.MutablePerson;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
-import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Test;
 import org.slf4j.Logger;

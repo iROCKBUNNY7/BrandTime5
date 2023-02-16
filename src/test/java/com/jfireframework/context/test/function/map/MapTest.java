@@ -2,8 +2,8 @@ package com.jfireframework.context.test.function.map;
 
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
-import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
-import com.jfireframework.jfire.core.prepare.impl.Configuration;
+import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -22,6 +22,7 @@ import org.junit.runners.Suite;
         CacheTest.class, //
         InitMethodTest.class, //
         HolderTest.class, //
+        ConfigurationOrderTest.class,//
         MapTest.class, //
         ValidateTest.class, //
         ConfigBeanTest.class, //

@@ -3,8 +3,8 @@ package com.jfireframework.context.test.function;
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
-import com.jfireframework.jfire.core.prepare.impl.Configuration;
-import com.jfireframework.jfire.core.prepare.impl.PropertyPath;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
 import org.junit.Assert;
 import org.junit.Test;
 

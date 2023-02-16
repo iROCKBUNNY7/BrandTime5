@@ -2,11 +2,11 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.condition.Conditional;
-import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
-import com.jfireframework.jfire.core.prepare.impl.Configuration;
-import com.jfireframework.jfire.core.prepare.impl.Configuration.Bean;
-import com.jfireframework.jfire.core.prepare.impl.Import;
+import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
+import com.jfireframework.jfire.core.prepare.annotation.Import;
 
 import javax.annotation.Resource;
 

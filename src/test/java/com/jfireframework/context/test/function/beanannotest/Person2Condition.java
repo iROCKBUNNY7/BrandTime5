@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
-import com.jfireframework.jfire.core.prepare.condition.Condition;
+import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 
 import java.lang.annotation.Annotation;
 

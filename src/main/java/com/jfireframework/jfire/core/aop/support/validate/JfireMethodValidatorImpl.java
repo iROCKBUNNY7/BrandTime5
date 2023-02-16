@@ -34,8 +34,7 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
             {
                 cache.append(each.getPropertyPath().toString()).appendComma();
             }
-            ValidationException validationException = new ValidationException(cache.toString());
-            throw validationException;
+            throw new ValidationException(cache.toString());
         }
     }
 
@@ -51,8 +50,7 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
             {
                 cache.append(each.getPropertyPath().toString()).appendComma();
             }
-            ValidationException validationException = new ValidationException(cache.toString());
-            throw validationException;
+            throw new ValidationException(cache.toString());
         }
     }
 

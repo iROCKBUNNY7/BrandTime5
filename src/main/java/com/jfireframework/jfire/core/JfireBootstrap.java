@@ -8,13 +8,13 @@ import com.jfireframework.jfire.core.aop.impl.DefaultAopManager;
 import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
 import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.impl.AddProperty.AddPropertyProcessor;
-import com.jfireframework.jfire.core.prepare.impl.ComponentScan.ComponentScanProcessor;
-import com.jfireframework.jfire.core.prepare.impl.Configuration.ConfigurationProcessor;
-import com.jfireframework.jfire.core.prepare.impl.EnableAutoConfiguration.EnableAutoConfigurationProcessor;
-import com.jfireframework.jfire.core.prepare.impl.Import.ImportProcessor;
-import com.jfireframework.jfire.core.prepare.impl.ProfileSelector.ProfileSelectorProcessor;
-import com.jfireframework.jfire.core.prepare.impl.PropertyPath.PropertyPathProcessor;
+import com.jfireframework.jfire.core.prepare.processor.AddPropertyProcessor;
+import com.jfireframework.jfire.core.prepare.processor.ComponentScanProcessor;
+import com.jfireframework.jfire.core.prepare.processor.ConfigurationProcessor;
+import com.jfireframework.jfire.core.prepare.processor.EnableAutoConfigurationProcessor;
+import com.jfireframework.jfire.core.prepare.processor.ImportProcessor;
+import com.jfireframework.jfire.core.prepare.processor.ProfileSelectorProcessor;
+import com.jfireframework.jfire.core.prepare.processor.PropertyPathProcessor;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.OutterObjectBeanInstanceResolver;
@@ -65,18 +65,18 @@ public class JfireBootstrap
 
     private void registerDefault()
     {
-        registerAopManager(new DefaultAopManager());
-        registerAopManager(new TransactionAopManager());
-        registerAopManager(new CacheAopManager());
-        registerAopManager(new ValidateAopManager());
+        addAopManager(new DefaultAopManager());
+        addAopManager(new TransactionAopManager());
+        addAopManager(new CacheAopManager());
+        addAopManager(new ValidateAopManager());
         /**/
-        registerJfirePrepare(new ImportProcessor());
-        registerJfirePrepare(new AddPropertyProcessor());
-        registerJfirePrepare(new ComponentScanProcessor());
-        registerJfirePrepare(new ConfigurationProcessor());
-        registerJfirePrepare(new EnableAutoConfigurationProcessor());
-        registerJfirePrepare(new ProfileSelectorProcessor());
-        registerJfirePrepare(new PropertyPathProcessor());
+        addJfirePrepare(new ImportProcessor());
+        addJfirePrepare(new AddPropertyProcessor());
+        addJfirePrepare(new ComponentScanProcessor());
+        addJfirePrepare(new ConfigurationProcessor());
+        addJfirePrepare(new EnableAutoConfigurationProcessor());
+        addJfirePrepare(new ProfileSelectorProcessor());
+        addJfirePrepare(new PropertyPathProcessor());
     }
 
     private Jfire registerJfireInstance()
@@ -179,12 +179,12 @@ public class JfireBootstrap
         }
     }
 
-    public void registerJfirePrepare(JfirePrepare jfirePrepare)
+    public void addJfirePrepare(JfirePrepare jfirePrepare)
     {
         jfirePrepares.add(jfirePrepare);
     }
 
-    public void registerAopManager(AopManager aopManager)
+    public void addAopManager(AopManager aopManager)
     {
         aopManagers.add(aopManager);
     }

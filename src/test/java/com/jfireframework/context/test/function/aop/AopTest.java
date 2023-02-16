@@ -3,8 +3,8 @@ package com.jfireframework.context.test.function.aop;
 import com.jfireframework.context.test.function.aop.Enhance.EnhanceForOrder;
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
-import com.jfireframework.jfire.core.prepare.impl.ComponentScan;
-import com.jfireframework.jfire.core.prepare.impl.Configuration;
+import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 

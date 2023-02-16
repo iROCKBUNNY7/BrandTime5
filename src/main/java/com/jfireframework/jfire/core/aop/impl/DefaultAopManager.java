@@ -202,8 +202,7 @@ public class DefaultAopManager implements AopManager
 
     private String generatePointName()
     {
-        String pointName = "point_" + fieldNameCounter.getAndIncrement();
-        return pointName;
+        return "point_" + fieldNameCounter.getAndIncrement();
     }
 
     private void processAfterThrowableAdvice(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName, String fieldName, Method enhanceMethod)

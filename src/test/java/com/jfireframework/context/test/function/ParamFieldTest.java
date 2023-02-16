@@ -55,7 +55,7 @@ public class ParamFieldTest
     public void test()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.registerJfirePrepare(new ForProperty());
+        jfireConfig.addJfirePrepare(new ForProperty());
         jfireConfig.register(ParamFieldTest.class);
         BeanDefinition beanDefinition = new BeanDefinition("xx", ForProperty.class, false);
         beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForProperty.class));

@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function.beanannotest;
 
-import com.jfireframework.jfire.core.prepare.impl.Import;
+import com.jfireframework.jfire.core.prepare.annotation.Import;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
