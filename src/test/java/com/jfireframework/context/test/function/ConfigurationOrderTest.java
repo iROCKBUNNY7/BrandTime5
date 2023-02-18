@@ -12,7 +12,7 @@ import org.junit.Test;
 import javax.annotation.Resource;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ConfigurationOrderTest
+public class ConfigurationOrderTest<sta>
 {
     public static AtomicInteger count = new AtomicInteger();
 
@@ -93,6 +93,7 @@ public class ConfigurationOrderTest
     @Configuration
     @Resource
     @ConfigAfter(Order_3.class)
+    @ConfigBefore(Order_5.class)
     public static class Order_4
     {
         @Bean
@@ -110,6 +111,25 @@ public class ConfigurationOrderTest
         }
     }
 
+    @Configuration
+    @Resource
+    public static class Order_5
+    {
+        @Bean
+        public static Person person5()
+        {
+            if ( count.get() == 4 )
+            {
+                count.set(5);
+                return new Person(5);
+            }
+            else
+            {
+                throw new IllegalStateException();
+            }
+        }
+    }
+
     @Test
     public void test()
     {
@@ -118,11 +138,13 @@ public class ConfigurationOrderTest
         bootstrap.register(Order_2.class);
         bootstrap.register(Order_3.class);
         bootstrap.register(Order_4.class);
+        bootstrap.register(Order_5.class);
         Jfire jfire = bootstrap.start();
         Assert.assertEquals(1, ((Person) jfire.getBean("person")).getAge());
         Assert.assertEquals(2, ((Person) jfire.getBean("person2")).getAge());
         Assert.assertEquals(3, ((Person) jfire.getBean("person3")).getAge());
         Assert.assertEquals(4, ((Person) jfire.getBean("person4")).getAge());
-        Assert.assertEquals(4, count.get());
+        Assert.assertEquals(5, ((Person) jfire.getBean("person5")).getAge());
+        Assert.assertEquals(5, count.get());
     }
 }

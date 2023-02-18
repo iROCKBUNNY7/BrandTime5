@@ -33,7 +33,7 @@ public class ConfigurationProcessor implements JfirePrepare
         List<BeanDefinition> list = findConfigurationBeanDefinition(environment);
         logOrder(list);
         list = new SortList(list).sort();
-        logger.debug("traceId:{}修正排序完毕", TRACEID.currentTraceId());
+        logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
         logOrder(list);
         for (BeanDefinition beanDefinition : list)
         {
@@ -99,7 +99,7 @@ public class ConfigurationProcessor implements JfirePrepare
             String traceId = TRACEID.currentTraceId();
             for (BeanDefinition beanDefinition : list)
             {
-                logger.debug("traceId:{} 顺序:{}为{}", traceId, index, beanDefinition.getType());
+                logger.trace("traceId:{} 顺序:{}为{}", traceId, index, beanDefinition.getType());
                 index++;
             }
         }
@@ -145,7 +145,7 @@ public class ConfigurationProcessor implements JfirePrepare
                     }
                     if (index != null)
                     {
-                        logger.debug("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value.getType().getName(), index.value.getType().getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value.getType().getName(), index.value.getType().getName());
                         remove(entry);
                         addBefore(entry, index);
                         entry = head;
@@ -162,7 +162,7 @@ public class ConfigurationProcessor implements JfirePrepare
                     }
                     if (index != null)
                     {
-                        logger.debug("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value.getType().getName(), entry.value.getType().getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value.getType().getName(), entry.value.getType().getName());
                         remove(index);
                         addBefore(index, entry);
                         entry = head;
@@ -228,7 +228,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 int index = 1;
                 while (head != null)
                 {
-                    logger.debug("traceId:{}顺序{}为{}", traceId, index, head.value.getType().getName());
+                    logger.trace("traceId:{} 顺序{}为{}", traceId, index, head.value.getType().getName());
                     head = head.next;
                     index++;
                 }
