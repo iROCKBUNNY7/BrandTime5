@@ -15,9 +15,6 @@ import java.util.*;
 public class Environment
 {
     public static final String ENVIRONMENT_FIELD_NAME = "environment_jfire_3";
-    // 版本。每当有新的Bean被注册进来，则+1
-    private int version = 0;
-    private int markVersion;
     private final Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
     private final Map<String, String> properties = new HashMap<String, String>();
     private final Set<Annotation> annotationStore = new HashSet<Annotation>();
@@ -45,20 +42,6 @@ public class Environment
         return methods.get(sequence);
     }
 
-    public void markVersion()
-    {
-        markVersion = version;
-    }
-
-    /**
-     * 返回自上次标记后环境是否变化
-     *
-     * @return
-     */
-    public boolean isChanged()
-    {
-        return markVersion != version;
-    }
 
     public Map<String, String> getProperties()
     {
@@ -72,7 +55,6 @@ public class Environment
         {
             throw new DuplicateBeanNameException(pred.getBeanName());
         }
-        version += 1;
     }
 
     public void removeBeanDefinition(String beanName)
