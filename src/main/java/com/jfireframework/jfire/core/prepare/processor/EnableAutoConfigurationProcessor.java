@@ -79,7 +79,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     @Override
     public int order()
     {
-        return JfirePreparedConstant.DEFAULT_ORDER;
+        return JfirePreparedConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
     void registgerAutoConfigor(String className, Environment environment) throws ClassNotFoundException

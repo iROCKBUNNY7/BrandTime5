@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.bytecode.util.BytecodeUtil;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.model.ClassModel;
@@ -9,14 +10,12 @@ import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
-import com.jfireframework.extrautil.MethodParamNamesScanner;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
-import com.jfireframework.jfire.exception.MethodParamterNameCanNotFetchException;
 import com.jfireframework.jfire.util.Utils;
 import com.jfireframework.jfireel.expression.Expression;
 
@@ -38,9 +37,9 @@ public class CacheAopManager implements AopManager
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
-                if ( annotationUtil.isPresent(CacheDelete.class, method) //
+                if (annotationUtil.isPresent(CacheDelete.class, method) //
                         || annotationUtil.isPresent(CacheGet.class, method)//
-                        || annotationUtil.isPresent(CachePut.class, method) )
+                        || annotationUtil.isPresent(CachePut.class, method))
                 {
                     beanDefinition.addAopManager(this);
                     break;
@@ -48,7 +47,7 @@ public class CacheAopManager implements AopManager
             }
         }
         List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(CacheManager.class);
-        if ( list.isEmpty() == false )
+        if (list.isEmpty() == false)
         {
             cacheBeanDefinition = list.get(0);
         }
@@ -68,23 +67,23 @@ public class CacheAopManager implements AopManager
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         for (Method method : type.getMethods())
         {
-            if ( Modifier.isFinal(method.getModifiers()) )
+            if (Modifier.isFinal(method.getModifiers()))
             {
                 continue;
             }
-            if ( method.getReturnType().isPrimitive() == false //
+            if (method.getReturnType().isPrimitive() == false //
                     && method.getReturnType() != Void.class //
-                    && annotationUtil.isPresent(CacheGet.class, method) )
+                    && annotationUtil.isPresent(CacheGet.class, method))
             {
                 processCacheGet(classModel, cacheManagerFieldName, annotationUtil, method);
             }
-            else if ( annotationUtil.isPresent(CacheDelete.class, method) )
+            else if (annotationUtil.isPresent(CacheDelete.class, method))
             {
                 processCacheDelete(classModel, cacheManagerFieldName, annotationUtil, method);
             }
-            else if ( method.getReturnType().isPrimitive() == false //
+            else if (method.getReturnType().isPrimitive() == false //
                     && method.getReturnType() != Void.class //
-                    && annotationUtil.isPresent(CachePut.class, method) )
+                    && annotationUtil.isPresent(CachePut.class, method))
             {
                 processCachePut(classModel, cacheManagerFieldName, annotationUtil, method);
             }
@@ -94,14 +93,14 @@ public class CacheAopManager implements AopManager
     private void processCachePut(ClassModel classModel, String cacheManagerFieldName, AnnotationUtil annotationUtil, Method method)
     {
         CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, method);
-        if ( StringUtil.isNotBlank(cachePut.condition()) )
+        if (StringUtil.isNotBlank(cachePut.condition()))
         {
             String lexerConditionFieldName = generateConditionField(classModel, cachePut.condition());
             String lexerKeyFieldName = generateKeyField(classModel, cachePut.value());
             MethodModel origin = changeOriginMethodName(classModel, method);
             StringCache cache = new StringCache();
             boolean hasParams = method.getParameterTypes().length != 0;
-            if ( hasParams )
+            if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
             }
@@ -124,7 +123,7 @@ public class CacheAopManager implements AopManager
             MethodModel origin = changeOriginMethodName(classModel, method);
             StringCache cache = new StringCache();
             boolean hasParams = method.getParameterTypes().length != 0;
-            if ( hasParams )
+            if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
             }
@@ -140,7 +139,7 @@ public class CacheAopManager implements AopManager
     private void processCacheDelete(ClassModel classModel, String cacheManagerFieldName, AnnotationUtil annotationUtil, Method method)
     {
         CacheDelete cacheDelete = annotationUtil.getAnnotation(CacheDelete.class, method);
-        if ( StringUtil.isNotBlank(cacheDelete.condition()) )
+        if (StringUtil.isNotBlank(cacheDelete.condition()))
         {
             String lexerConditionFieldName = generateConditionField(classModel, cacheDelete.condition());
             String lexerKeyFieldName = generateKeyField(classModel, cacheDelete.value());
@@ -148,7 +147,7 @@ public class CacheAopManager implements AopManager
             MethodModel methodModel = classModel.getMethodModel(key);
             StringCache cache = new StringCache();
             boolean hasParams = method.getParameterTypes().length != 0;
-            if ( hasParams )
+            if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
             }
@@ -167,7 +166,7 @@ public class CacheAopManager implements AopManager
             MethodModel methodModel = classModel.getMethodModel(key);
             StringCache cache = new StringCache();
             boolean hasParams = method.getParameterTypes().length != 0;
-            if ( hasParams )
+            if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
             }
@@ -181,7 +180,7 @@ public class CacheAopManager implements AopManager
     private void processCacheGet(ClassModel classModel, String cacheManagerFieldName, AnnotationUtil annotationUtil, Method method)
     {
         CacheGet cacheGet = annotationUtil.getAnnotation(CacheGet.class, method);
-        if ( StringUtil.isNotBlank(cacheGet.condition()) )
+        if (StringUtil.isNotBlank(cacheGet.condition()))
         {
             String lexerConditionFieldName = generateConditionField(classModel, cacheGet.condition());
             String lexerKeyFieldName = generateKeyField(classModel, cacheGet.value());
@@ -196,7 +195,7 @@ public class CacheAopManager implements AopManager
             MethodModel origin = changeOriginMethodName(classModel, method);
             StringCache cache = new StringCache();
             boolean hasParams = method.getParameterTypes().length != 0;
-            if ( hasParams )
+            if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
             }
@@ -214,7 +213,7 @@ public class CacheAopManager implements AopManager
      */
     private void generateConditionDeclarationPart(String lexerConditionFieldName, StringCache cache, boolean hasParams)
     {
-        if ( hasParams )
+        if (hasParams)
         {
             cache.append("Boolean condition = (Boolean)").append(lexerConditionFieldName).append(".calculate(conditionParams);\r\n");
         }
@@ -265,7 +264,7 @@ public class CacheAopManager implements AopManager
      */
     private void generateKeyNameDeclarationPart(StringCache cache, String keyFieldName, boolean hasParams)
     {
-        if ( hasParams )
+        if (hasParams)
         {
             cache.append("String name = (String)").append(keyFieldName).append(".calculate(conditionParams);\r\n");
         }
@@ -277,19 +276,15 @@ public class CacheAopManager implements AopManager
 
     private void generateConditionMapDeclarationPart(Method method, StringCache cache)
     {
-        List<String> methodParamNames = null;
-        try
+        String[] methodParamNames = BytecodeUtil.parseMethodParamNames(method);
+        if (methodParamNames == null)
         {
-            methodParamNames = MethodParamNamesScanner.getMethodParamNames(method);
-        } catch (Exception e)
-        {
-            throw new MethodParamterNameCanNotFetchException(method);
+            throw new NullPointerException("无法获取方法" + method.toString() + "的入参名称");
         }
         cache.append("Map<String,Object> conditionParams = new HashMap();\r\n");
-        int length = method.getParameterTypes().length;
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < methodParamNames.length; i++)
         {
-            cache.append("conditionParams.put(\"").append(methodParamNames.get(i)).append("\",$").append(i).append(");\r\n");
+            cache.append("conditionParams.put(\"").append(methodParamNames[i]).append("\",$").append(i).append(");\r\n");
         }
     }
 
@@ -321,7 +316,7 @@ public class CacheAopManager implements AopManager
 
     private void genetateCacheGetBodyWithCondition(String cacheManagerFieldName, Method method, CacheGet cacheGet, String lexerConditionFieldName, String lexerKeyFieldName, MethodModel origin, StringCache cache, boolean hasParams, ClassModel classModel)
     {
-        if ( hasParams )
+        if (hasParams)
         {
             generateConditionMapDeclarationPart(method, cache);
         }
@@ -387,7 +382,6 @@ public class CacheAopManager implements AopManager
         void remove(String key);
 
         void clear();
-
     }
 
     public interface CacheManager

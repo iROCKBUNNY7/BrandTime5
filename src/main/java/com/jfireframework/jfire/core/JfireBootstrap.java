@@ -32,23 +32,15 @@ public class JfireBootstrap
     private Set<JfirePrepare> jfirePrepares = new HashSet<JfirePrepare>();
     private Set<AopManager> aopManagers = new HashSet<AopManager>();
 
-    public JfireBootstrap()
+    public JfireBootstrap(Class<?> bootStrapClass, ClassLoader classLoader)
     {
     }
 
-    public JfireBootstrap(Class<?> configClass)
+    public JfireBootstrap(Class<?> bootStrapClass, ClassLoader classLoader, JavaCompiler compiler)
     {
-        environment.addAnnotations(configClass);
-    }
-
-    public void addAnnotations(Class<?> ckass)
-    {
-        environment.addAnnotations(ckass);
-    }
-
-    public void addAnnotations(Method method)
-    {
-        environment.addAnnotations(method);
+        environment.setAnnotationStore(bootStrapClass.getAnnotations());
+        environment.setClassLoader(classLoader);
+        environment.setJavaCompiler(compiler);
     }
 
     public Jfire start()
@@ -93,7 +85,7 @@ public class JfireBootstrap
     {
         for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
         {
-            if ( beanDefinition.isAwareContextInit() )
+            if (beanDefinition.isAwareContextInit())
             {
                 ((JfireAwareContextInited) beanDefinition.getBeanInstance()).awareContextInited(environment.readOnlyEnvironment());
             }
@@ -150,7 +142,7 @@ public class JfireBootstrap
 
     public void register(Class<?> ckass)
     {
-        if ( Utils.ANNOTATION_UTIL.isPresent(Resource.class, ckass) )
+        if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, ckass))
         {
             Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, ckass);
             String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : ckass.getName();

@@ -1,7 +1,7 @@
 package com.jfireframework.jfire.core;
 
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
+import com.jfireframework.baseutil.smc.compiler.CompileHelper;
 import com.jfireframework.jfire.exception.DuplicateBeanNameException;
 import com.jfireframework.jfire.util.Utils;
 
@@ -17,18 +17,20 @@ public class Environment
     public static final String ENVIRONMENT_FIELD_NAME = "environment_jfire_3";
     private final Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
     private final Map<String, String> properties = new HashMap<String, String>();
-    private final Set<Annotation> annotationStore = new HashSet<Annotation>();
     private final ReadOnlyEnvironment readOnlyEnvironment = new ReadOnlyEnvironment(this);
     private ClassLoader classLoader = Environment.class.getClassLoader();
-    private JavaStringCompiler compiler;
+    private CompileHelper compileHelper;
     private JavaCompiler javaCompiler;
     private List<Method> methods = new ArrayList<Method>();
     private int methodSequence = 0;
+    private List<Class<?>> candidateConfiguration = new ArrayList<Class<?>>();
+    //存储BootStrap类上的所有注解
+    private Annotation[] annotationStore;
 
     public int registerMethod(Method method)
     {
         int index = methods.indexOf(method);
-        if ( index != -1 )
+        if (index != -1)
         {
             return index;
         }
@@ -42,7 +44,6 @@ public class Environment
         return methods.get(sequence);
     }
 
-
     public Map<String, String> getProperties()
     {
         return properties;
@@ -51,15 +52,10 @@ public class Environment
     public void registerBeanDefinition(BeanDefinition beanDefinition)
     {
         BeanDefinition pred = beanDefinitions.put(beanDefinition.getBeanName(), beanDefinition);
-        if ( pred != null )
+        if (pred != null)
         {
             throw new DuplicateBeanNameException(pred.getBeanName());
         }
-    }
-
-    public void removeBeanDefinition(String beanName)
-    {
-        beanDefinitions.remove(beanName);
     }
 
     public ReadOnlyEnvironment readOnlyEnvironment()
@@ -67,25 +63,9 @@ public class Environment
         return readOnlyEnvironment;
     }
 
-    public void addAnnotations(Class<?> configClass)
-    {
-        for (Annotation each : configClass.getAnnotations())
-        {
-            annotationStore.add(each);
-        }
-    }
-
     public Map<String, BeanDefinition> beanDefinitions()
     {
         return readOnlyEnvironment.beanDefinitions;
-    }
-
-    public void addAnnotations(Method method)
-    {
-        for (Annotation each : method.getAnnotations())
-        {
-            annotationStore.add(each);
-        }
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annoType)
@@ -93,7 +73,7 @@ public class Environment
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         for (Annotation each : annotationStore)
         {
-            if ( annotationUtil.isPresent(annoType, each) )
+            if (annotationUtil.isPresent(annoType, each))
             {
                 return true;
             }
@@ -106,7 +86,7 @@ public class Environment
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         for (Annotation each : annotationStore)
         {
-            if ( annotationUtil.isPresent(type, each) )
+            if (annotationUtil.isPresent(type, each))
             {
                 return annotationUtil.getAnnotation(type, each);
             }
@@ -121,7 +101,7 @@ public class Environment
         List<T> list = new ArrayList<T>();
         for (Annotation each : annotationStore)
         {
-            if ( annotationUtil.isPresent(type, each) )
+            if (annotationUtil.isPresent(type, each))
             {
                 for (T anno : annotationUtil.getAnnotations(type, each))
                 {
@@ -141,7 +121,7 @@ public class Environment
     {
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if ( type == each.getType() )
+            if (type == each.getType())
             {
                 return each;
             }
@@ -151,14 +131,14 @@ public class Environment
 
     public List<BeanDefinition> getBeanDefinitionByAbstract(Class<?> type)
     {
-        if ( type.isInterface() == false && Modifier.isAbstract(type.getModifiers()) == false )
+        if (type.isInterface() == false && Modifier.isAbstract(type.getModifiers()) == false)
         {
             throw new IllegalArgumentException("该方法参数必须为接口或者抽象类");
         }
         List<BeanDefinition> list = new LinkedList<BeanDefinition>();
         for (BeanDefinition each : beanDefinitions.values())
         {
-            if ( type.isAssignableFrom(each.getType()) )
+            if (type.isAssignableFrom(each.getType()))
             {
                 list.add(each);
             }
@@ -176,15 +156,10 @@ public class Environment
         properties.put(name, value);
     }
 
-    public void removeProperty(String name)
-    {
-        properties.remove(name);
-    }
-
     public void setClassLoader(ClassLoader classLoader)
     {
         this.classLoader = classLoader;
-        compiler = new JavaStringCompiler(classLoader);
+        compileHelper = new CompileHelper(classLoader);
     }
 
     public ClassLoader getClassLoader()
@@ -192,13 +167,13 @@ public class Environment
         return classLoader;
     }
 
-    public JavaStringCompiler getCompiler()
+    public CompileHelper getCompileHelper()
     {
-        if ( compiler == null )
+        if (compileHelper == null)
         {
-            compiler = javaCompiler == null ? new JavaStringCompiler(classLoader) : new JavaStringCompiler(classLoader, javaCompiler);
+            compileHelper = javaCompiler == null ? new CompileHelper(classLoader) : new CompileHelper(classLoader, javaCompiler);
         }
-        return compiler;
+        return compileHelper;
     }
 
     public void setJavaCompiler(JavaCompiler javaCompiler)
@@ -243,11 +218,20 @@ public class Environment
         {
             return host.getProperty(name) != null;
         }
+    }
 
-        public boolean isBeanDefinitionExist(String beanName)
-        {
-            return host.getBeanDefinition(beanName) != null;
-        }
+    public void registerCandidateConfiguration(Class<?> ckass)
+    {
+        candidateConfiguration.add(ckass);
+    }
 
+    public Annotation[] getAnnotationStore()
+    {
+        return annotationStore;
+    }
+
+    public void setAnnotationStore(Annotation[] annotationStore)
+    {
+        this.annotationStore = annotationStore;
     }
 }

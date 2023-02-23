@@ -3,7 +3,7 @@ package com.jfireframework.jfire.core;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
-import com.jfireframework.baseutil.smc.compiler.JavaStringCompiler;
+import com.jfireframework.baseutil.smc.compiler.CompileHelper;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
@@ -129,7 +129,7 @@ public class BeanDefinition
         {
             aopManager.enhance(classModel, type, environment, hostFieldName);
         }
-        JavaStringCompiler compiler = environment.getCompiler();
+        CompileHelper compiler = environment.getCompileHelper();
         try
         {
             enhanceType = compiler.compile(classModel);
