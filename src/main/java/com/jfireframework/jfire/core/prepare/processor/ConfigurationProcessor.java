@@ -1,11 +1,5 @@
 package com.jfireframework.jfire.core.prepare.processor;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
@@ -17,35 +11,44 @@ import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.MethodBeanInstanceResolver;
 import com.jfireframework.jfire.exception.ConditionCannotInstanceException;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ConfigurationProcessor implements JfirePrepare
 {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
-    
+
     @Override
     public void prepare(Environment environment)
     {
-        List<BeanDefinition> list = findConfigurationBeanDefinition(environment);
+        List<Class<?>> list = findConfigurationBeanDefinition(environment);
         logOrder(list);
         list = new SortList(list).sort();
         logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
         logOrder(list);
-        for (BeanDefinition beanDefinition : list)
+        for (Class<?> each : list)
         {
-            if (Utils.ANNOTATION_UTIL.isPresent(Conditional.class, beanDefinition.getType()))
+            if (Utils.ANNOTATION_UTIL.isPresent(Conditional.class, each))
             {
-                boolean match = matchCondition(environment, Utils.ANNOTATION_UTIL.getAnnotation(Conditional.class, beanDefinition.getType()), beanDefinition.getType().getAnnotations());
+                boolean match = matchCondition(environment, Utils.ANNOTATION_UTIL.getAnnotation(Conditional.class, each), each.getAnnotations());
                 if (match == false)
                 {
                     continue;
                 }
             }
-            for (Method method : beanDefinition.getType().getMethods())
+            registerDeclaringClassBeanDefinition(each, environment);
+            for (Method method : each.getMethods())
             {
                 if (Utils.ANNOTATION_UTIL.isPresent(Bean.class, method) == false)
                 {
@@ -64,54 +67,43 @@ public class ConfigurationProcessor implements JfirePrepare
             }
         }
     }
-    
+
     @Override
     public int order()
     {
         return JfirePreparedConstant.CONFIGURATION_ORDER;
     }
-    
+
     /**
      * @param environment
      * @return
      */
-    private List<BeanDefinition> findConfigurationBeanDefinition(Environment environment)
+    private List<Class<?>> findConfigurationBeanDefinition(Environment environment)
     {
-        String traceId = TRACEID.currentTraceId();
-        List<BeanDefinition> list = new LinkedList<BeanDefinition>();
-        for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
-        {
-            if (Utils.ANNOTATION_UTIL.isPresent(Configuration.class, beanDefinition.getType()))
-            {
-                logger.debug("traceId:{} 发现配置类:{}", traceId, beanDefinition.getType());
-                list.add(beanDefinition);
-                continue;
-            }
-        }
-        return list;
+        return new ArrayList<Class<?>>(environment.getCandidateConfiguration());
     }
-    
-    private void logOrder(List<BeanDefinition> list)
+
+    private void logOrder(List<Class<?>> list)
     {
         if (logger.isDebugEnabled())
         {
-            int index = 1;
+            int    index   = 1;
             String traceId = TRACEID.currentTraceId();
-            for (BeanDefinition beanDefinition : list)
+            for (Class<?> each : list)
             {
-                logger.trace("traceId:{} 顺序:{}为{}", traceId, index, beanDefinition.getType());
+                logger.trace("traceId:{} 顺序:{}为{}", traceId, index, each);
                 index++;
             }
         }
     }
-    
+
     class SortList
     {
         SortList.SortEntry head;
-        
-        SortList(List<BeanDefinition> list)
+
+        SortList(List<Class<?>> list)
         {
-            for (BeanDefinition each : list)
+            for (Class<?> each : list)
             {
                 if (head == null)
                 {
@@ -125,44 +117,43 @@ public class ConfigurationProcessor implements JfirePrepare
                     head = newHead;
                 }
             }
-            
         }
-        
-        List<BeanDefinition> sort()
+
+        List<Class<?>> sort()
         {
-            SortList.SortEntry entry = head;
-            AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
+            SortList.SortEntry entry          = head;
+            AnnotationUtil     annotationUtil = Utils.ANNOTATION_UTIL;
             logOrder();
             while (entry != null)
             {
-                if (annotationUtil.isPresent(ConfigBefore.class, entry.value.getType()))
+                if (annotationUtil.isPresent(ConfigBefore.class, entry.value))
                 {
-                    ConfigBefore configBefore = annotationUtil.getAnnotation(ConfigBefore.class, entry.value.getType());
-                    SortList.SortEntry index = entry.pre;
-                    while (index != null && index.value.getType() != configBefore.value())
+                    ConfigBefore       configBefore = annotationUtil.getAnnotation(ConfigBefore.class, entry.value);
+                    SortList.SortEntry index        = entry.pre;
+                    while (index != null && index.value != configBefore.value())
                     {
                         index = index.pre;
                     }
                     if (index != null)
                     {
-                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value.getType().getName(), index.value.getType().getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value.getName(), index.value.getName());
                         remove(entry);
                         addBefore(entry, index);
                         entry = head;
                         continue;
                     }
                 }
-                if (annotationUtil.isPresent(ConfigAfter.class, entry.value.getType()))
+                if (annotationUtil.isPresent(ConfigAfter.class, entry.value))
                 {
-                    ConfigAfter configAfter = annotationUtil.getAnnotation(ConfigAfter.class, entry.value.getType());
-                    SortList.SortEntry index = entry.next;
-                    while (index != null && index.value.getType() != configAfter.value())
+                    ConfigAfter        configAfter = annotationUtil.getAnnotation(ConfigAfter.class, entry.value);
+                    SortList.SortEntry index       = entry.next;
+                    while (index != null && index.value != configAfter.value())
                     {
                         index = index.next;
                     }
                     if (index != null)
                     {
-                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value.getType().getName(), entry.value.getType().getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value.getName(), entry.value.getName());
                         remove(index);
                         addBefore(index, entry);
                         entry = head;
@@ -172,15 +163,15 @@ public class ConfigurationProcessor implements JfirePrepare
                 entry = entry.next;
             }
             entry = head;
-            List<BeanDefinition> beanDefinitions = new LinkedList<BeanDefinition>();
+            List<Class<?>> list = new LinkedList<Class<?>>();
             while (entry != null)
             {
-                beanDefinitions.add(entry.value);
+                list.add(entry.value);
                 entry = entry.next;
             }
-            return beanDefinitions;
+            return list;
         }
-        
+
         void remove(SortList.SortEntry entry)
         {
             if (entry.pre == null)
@@ -190,7 +181,7 @@ public class ConfigurationProcessor implements JfirePrepare
             }
             else
             {
-                SortList.SortEntry pre = entry.pre;
+                SortList.SortEntry pre  = entry.pre;
                 SortList.SortEntry next = entry.next;
                 pre.next = next;
                 if (next != null)
@@ -200,7 +191,7 @@ public class ConfigurationProcessor implements JfirePrepare
             }
             entry.pre = entry.next = null;
         }
-        
+
         void addBefore(SortList.SortEntry add, SortList.SortEntry index)
         {
             SortList.SortEntry pre = index.pre;
@@ -218,36 +209,36 @@ public class ConfigurationProcessor implements JfirePrepare
                 index.pre = add;
             }
         }
-        
+
         void logOrder()
         {
             if (logger.isDebugEnabled())
             {
-                SortList.SortEntry head = this.head;
-                String traceId = TRACEID.currentTraceId();
-                int index = 1;
+                SortList.SortEntry head    = this.head;
+                String             traceId = TRACEID.currentTraceId();
+                int                index   = 1;
                 while (head != null)
                 {
-                    logger.trace("traceId:{} 顺序{}为{}", traceId, index, head.value.getType().getName());
+                    logger.trace("traceId:{} 顺序{}为{}", traceId, index, head.value.getName());
                     head = head.next;
                     index++;
                 }
             }
         }
-        
+
         class SortEntry
         {
             SortList.SortEntry pre;
             SortList.SortEntry next;
-            BeanDefinition     value;
-            
-            public SortEntry(BeanDefinition value)
+            Class<?>           value;
+
+            public SortEntry(Class<?> value)
             {
                 this.value = value;
             }
         }
     }
-    
+
     /**
      * @param environment
      * @return
@@ -265,22 +256,29 @@ public class ConfigurationProcessor implements JfirePrepare
                     match = false;
                     break;
                 }
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 throw new ConditionCannotInstanceException(conditionClass, e);
             }
         }
         return match;
     }
-    
+
     private void registerMethodBeanDefinition(Method method, Environment environment)
     {
-        Bean bean = Utils.ANNOTATION_UTIL.getAnnotation(Bean.class, method);
-        String beanName = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
+        Bean           bean                 = Utils.ANNOTATION_UTIL.getAnnotation(Bean.class, method);
+        String         beanName             = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
         BeanDefinition methodBeanDefinition = new BeanDefinition(beanName, method.getReturnType(), bean.prototype());
         methodBeanDefinition.setBeanInstanceResolver(new MethodBeanInstanceResolver(method));
         environment.registerBeanDefinition(methodBeanDefinition);
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
+    }
+
+    private void registerDeclaringClassBeanDefinition(Class<?> ckass, Environment environment)
+    {
+        BeanDefinition beanDefinition = new BeanDefinition(ckass.getName(), ckass, false);
+        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
+        environment.registerBeanDefinition(beanDefinition);
+        logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
     }
 }

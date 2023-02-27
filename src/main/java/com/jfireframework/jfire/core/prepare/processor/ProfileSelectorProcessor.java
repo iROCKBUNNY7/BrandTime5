@@ -14,17 +14,17 @@ public class ProfileSelectorProcessor implements JfirePrepare
     @Override
     public void prepare(Environment environment)
     {
-        if ( environment.isAnnotationPresent(ProfileSelector.class) )
+        if (environment.isAnnotationPresent(ProfileSelector.class))
         {
             for (ProfileSelector selector : environment.getAnnotations(ProfileSelector.class))
             {
                 String activeAttribute = environment.getProperty(ProfileSelector.activePropertyName);
-                if ( StringUtil.isNotBlank(activeAttribute) == false )
+                if (StringUtil.isNotBlank(activeAttribute) == false)
                 {
                     return;
                 }
-                String profileFileName = selector.protocol() + selector.prefix() + activeAttribute + ".ini";
-                IniReader.IniFile iniFile = Utils.processPath(profileFileName);
+                String            profileFileName = selector.protocol() + selector.prefix() + activeAttribute + ".ini";
+                IniReader.IniFile iniFile         = Utils.processPath(profileFileName);
                 for (String key : iniFile.keySet())
                 {
                     environment.putProperty(key, iniFile.getValue(key));
@@ -38,5 +38,4 @@ public class ProfileSelectorProcessor implements JfirePrepare
     {
         return JfirePreparedConstant.PROFILE_SELECTOR_ORDER;
     }
-
 }

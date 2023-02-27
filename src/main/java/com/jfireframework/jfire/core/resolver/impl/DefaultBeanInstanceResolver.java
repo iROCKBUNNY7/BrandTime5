@@ -30,5 +30,4 @@ public class DefaultBeanInstanceResolver implements BeanInstanceResolver
     {
         // TODO Auto-generated method stub
     }
-
 }

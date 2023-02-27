@@ -17,5 +17,4 @@ public @interface Bean
     String name() default "";
 
     boolean prototype() default false;
-
 }

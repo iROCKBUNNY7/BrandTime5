@@ -10,8 +10,8 @@ public class ConcurrentMapCache implements Cache
     class Element
     {
         private final Object value;
-        private final long time;
-        private final long ttl;
+        private final long   time;
+        private final long   ttl;
 
         public Element(Object value, long time, long ttl)
         {
@@ -19,7 +19,6 @@ public class ConcurrentMapCache implements Cache
             this.time = time;
             this.ttl = ttl;
         }
-
     }
 
     private ConcurrentMap<String, Element> map = new ConcurrentHashMap<String, Element>();
@@ -27,7 +26,7 @@ public class ConcurrentMapCache implements Cache
     @Override
     public void put(String key, Object value, int timeToLive)
     {
-        if ( timeToLive == -1 )
+        if (timeToLive == -1)
         {
             Element element = new Element(value, System.currentTimeMillis(), -1);
             map.put(key, element);
@@ -43,13 +42,13 @@ public class ConcurrentMapCache implements Cache
     public Object get(String key)
     {
         Element element = map.get(key);
-        if ( element != null )
+        if (element != null)
         {
-            if ( element.ttl == -1 )
+            if (element.ttl == -1)
             {
                 return element.value;
             }
-            else if ( System.currentTimeMillis() - element.time > element.ttl )
+            else if (System.currentTimeMillis() - element.time > element.ttl)
             {
                 map.remove(key, element);
                 return null;
@@ -76,5 +75,4 @@ public class ConcurrentMapCache implements Cache
     {
         map.clear();
     }
-
 }

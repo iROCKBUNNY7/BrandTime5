@@ -14,5 +14,4 @@ public class ConcurrentMapCacheManager extends AbstractCacheManager
             cacheMap.put(name, cache);
         }
     }
-
 }

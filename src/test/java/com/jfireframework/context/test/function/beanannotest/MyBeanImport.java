@@ -1,8 +1,8 @@
 package com.jfireframework.context.test.function.beanannotest;
 
 import com.jfireframework.jfire.core.Jfire;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 
 import javax.annotation.Resource;
 
@@ -16,9 +16,8 @@ public class MyBeanImport
     public Object importBean()
     {
         MyImport import1 = jfire.getAnnotation(MyImport.class);
-        Person person = new Person();
+        Person   person  = new Person();
         person.setName(import1.name());
         return person;
     }
-
 }

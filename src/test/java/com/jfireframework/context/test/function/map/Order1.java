@@ -13,5 +13,4 @@ public class Order1 implements Order
     {
         return 1;
     }
-
 }

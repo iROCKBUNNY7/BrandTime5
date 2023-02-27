@@ -19,9 +19,8 @@ public class InitMethodTest
     public void test()
     {
         JfireBootstrap config = new JfireBootstrap(InitMethodTestScan.class);
-        Person person = config.start().getBean(Person.class);
+        Person         person = config.start().getBean(Person.class);
         Assert.assertEquals(23, person.getAge());
         Assert.assertEquals("林斌", person.getName());
     }
-
 }

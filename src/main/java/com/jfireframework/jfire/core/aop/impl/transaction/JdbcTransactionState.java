@@ -2,7 +2,7 @@ package com.jfireframework.jfire.core.aop.impl.transaction;
 
 public class JdbcTransactionState implements TransactionState
 {
-    private int propagation;
+    private int     propagation;
     private boolean beginWithNewConnection;
     private boolean rootTransaction;
 
@@ -30,5 +30,4 @@ public class JdbcTransactionState implements TransactionState
     {
         return beginWithNewConnection;
     }
-
 }

@@ -17,5 +17,4 @@ public class CacheManagerTest implements CacheManager
         System.out.println("cache名称：" + name);
         return cahce;
     }
-
 }

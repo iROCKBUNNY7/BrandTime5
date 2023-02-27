@@ -23,8 +23,8 @@ public class AopTest
     public void beforetest()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         person.sayHello("你好");
         Enhance enhance = jfire.getBean(Enhance.class);
         assertEquals("你好", enhance.getParam());
@@ -37,8 +37,8 @@ public class AopTest
     public void testAround()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         assertEquals(0, person.testInts(new int[]{1, 2, 3}).length);
         assertEquals(1, person.invokeCount());
     }
@@ -50,8 +50,8 @@ public class AopTest
     public void testOrder()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         person.order();
         assertEquals("EnhanceForOrder_enhance", EnhanceForOrder.result);
     }
@@ -63,8 +63,8 @@ public class AopTest
     public void testOrder2()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         person.order2("林斌", 25);
         Enhance enhance = jfire.getBean(Enhance.class);
         assertEquals("林斌25", enhance.getResult());
@@ -74,8 +74,8 @@ public class AopTest
     public void testMyname()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         assertEquals("林斌你好", person.myName("你好"));
     }
 
@@ -83,8 +83,8 @@ public class AopTest
     public void testThrow()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         try
         {
             person.throwe();
@@ -99,13 +99,12 @@ public class AopTest
     public void testTx()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         person.tx();
         person.autoClose();
         TxManager txManager = jfire.getBean(TxManager.class);
         Assert.assertTrue(txManager.isBeginTransAction());
         Assert.assertTrue(txManager.isCommit());
     }
-
 }

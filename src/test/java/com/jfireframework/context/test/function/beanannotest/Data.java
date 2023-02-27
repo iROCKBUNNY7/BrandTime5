@@ -2,19 +2,18 @@ package com.jfireframework.context.test.function.beanannotest;
 
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.Import;
+import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 
 import javax.annotation.Resource;
 
 @Configuration
 @ComponentScan("com.jfireframework.context.test.function.beanannotest")
 @MyImport(name = "myimport")
-@Import({HouseProvider.class})
-@Resource
+@Import({HouseProvider.class, Data.NameProperty.class})
 public class Data
 {
     public static class NameProperty implements JfirePrepare
@@ -32,7 +31,6 @@ public class Data
         {
             return 0;
         }
-
     }
 
     @Resource(name = "house")
@@ -79,5 +77,4 @@ public class Data
         person.setName(house2.name());
         return person;
     }
-
 }

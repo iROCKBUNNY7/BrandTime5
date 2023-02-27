@@ -6,6 +6,7 @@ import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.annotation.Import;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,45 +24,44 @@ public class ParamFieldTest
     }
 
     @PropertyRead
-    private int[] f1;
+    private int[]       f1;
     @PropertyRead
-    private String f2;
+    private String      f2;
     @PropertyRead
-    private Integer f3;
+    private Integer     f3;
     @PropertyRead
-    private int f4;
+    private int         f4;
     @PropertyRead
-    private Long f5;
+    private Long        f5;
     @PropertyRead
-    private long f6;
+    private long        f6;
     @PropertyRead
-    private Boolean f7;
+    private Boolean     f7;
     @PropertyRead
-    private boolean f8;
+    private boolean     f8;
     @PropertyRead
-    private float f9;
+    private float       f9;
     @PropertyRead
-    private Float f10;
+    private Float       f10;
     @PropertyRead
-    private String[] f11;
+    private String[]    f11;
     @PropertyRead
     private Set<String> f12;
     @PropertyRead
-    private Class<?> f13;
+    private Class<?>    f13;
     @PropertyRead
-    private name f14;
+    private name        f14;
 
     @Test
     public void test()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.addJfirePrepare(new ForProperty());
+        JfireBootstrap jfireConfig = new JfireBootstrap(ForProperty.class);
         jfireConfig.register(ParamFieldTest.class);
         BeanDefinition beanDefinition = new BeanDefinition("xx", ForProperty.class, false);
         beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForProperty.class));
         jfireConfig.register(beanDefinition);
-        Jfire jfire = jfireConfig.start();
-        ParamFieldTest data = jfire.getBean(ParamFieldTest.class);
+        Jfire          jfire = jfireConfig.start();
+        ParamFieldTest data  = jfire.getBean(ParamFieldTest.class);
         Assert.assertArrayEquals(new int[]{1, 2}, data.f1);
         Assert.assertEquals("aaa", data.f2);
         Assert.assertEquals(1, data.f3.intValue());
@@ -81,6 +81,7 @@ public class ParamFieldTest
         Assert.assertEquals(name.test1, data.f14);
     }
 
+    @Import(ForProperty.class)
     public static class ForProperty implements JfirePrepare
     {
 
@@ -108,6 +109,5 @@ public class ParamFieldTest
         {
             return 0;
         }
-
     }
 }

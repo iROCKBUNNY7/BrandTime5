@@ -25,9 +25,9 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
     @Override
     public <T> void validateParameters(T object, Method method, Object[] parameterValues, Class<?>... groups)
     {
-        ExecutableValidator executables = validator.forExecutables();
-        Set<ConstraintViolation<T>> set = executables.validateParameters(object, method, parameterValues, groups);
-        if ( set.isEmpty() == false )
+        ExecutableValidator         executables = validator.forExecutables();
+        Set<ConstraintViolation<T>> set         = executables.validateParameters(object, method, parameterValues, groups);
+        if (set.isEmpty() == false)
         {
             StringCache cache = new StringCache();
             for (ConstraintViolation<T> each : set)
@@ -41,9 +41,9 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
     @Override
     public <T> void validateReturnValue(T object, Method method, Object returnValue, Class<?>... groups)
     {
-        ExecutableValidator executables = validator.forExecutables();
-        Set<ConstraintViolation<T>> set = executables.validateReturnValue(object, method, returnValue, groups);
-        if ( set.isEmpty() == false )
+        ExecutableValidator         executables = validator.forExecutables();
+        Set<ConstraintViolation<T>> set         = executables.validateReturnValue(object, method, returnValue, groups);
+        if (set.isEmpty() == false)
         {
             StringCache cache = new StringCache();
             for (ConstraintViolation<T> each : set)
@@ -53,5 +53,4 @@ public class JfireMethodValidatorImpl implements JfireMethodValidator
             throw new ValidationException(cache.toString());
         }
     }
-
 }

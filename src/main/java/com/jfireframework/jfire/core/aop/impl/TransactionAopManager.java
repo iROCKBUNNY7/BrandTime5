@@ -32,7 +32,7 @@ public class TransactionAopManager implements AopManager
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
-                if ( Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) )
+                if (Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method))
                 {
                     beanDefinition.addAopManager(this);
                     break;
@@ -40,7 +40,7 @@ public class TransactionAopManager implements AopManager
             }
         }
         List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(TransactionManager.class);
-        if ( list.isEmpty() == false )
+        if (list.isEmpty() == false)
         {
             transactionBeandefinition = list.get(0);
         }
@@ -49,7 +49,7 @@ public class TransactionAopManager implements AopManager
     @Override
     public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
-        if ( transactionBeandefinition == null )
+        if (transactionBeandefinition == null)
         {
             return;
         }
@@ -58,28 +58,28 @@ public class TransactionAopManager implements AopManager
         generateSetTransactionManagerMethod(classModel, transFieldName);
         for (Method method : type.getMethods())
         {
-            if ( Modifier.isFinal(method.getModifiers()) )
+            if (Modifier.isFinal(method.getModifiers()))
             {
                 continue;
             }
-            if ( Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) == false )
+            if (Utils.ANNOTATION_UTIL.isPresent(Transactional.class, method) == false)
             {
                 continue;
             }
-            MethodModelKey key = new MethodModelKey(method);
-            MethodModel origin = classModel.removeMethodModel(key);
+            MethodModelKey key    = new MethodModelKey(method);
+            MethodModel    origin = classModel.removeMethodModel(key);
             origin.setAccessLevel(AccessLevel.PRIVATE);
             origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
             classModel.putMethodModel(origin);
-            MethodModel newOne = new MethodModel(method, classModel);
-            StringCache cache = new StringCache();
-            Transactional transactional = Utils.ANNOTATION_UTIL.getAnnotation(Transactional.class, method);
-            int propagation = transactional.propagation();
-            String transactionStateName = "transactionState_" + varNameCounter.getAndIncrement();
+            MethodModel   newOne               = new MethodModel(method, classModel);
+            StringCache   cache                = new StringCache();
+            Transactional transactional        = Utils.ANNOTATION_UTIL.getAnnotation(Transactional.class, method);
+            int           propagation          = transactional.propagation();
+            String        transactionStateName = "transactionState_" + varNameCounter.getAndIncrement();
             cache.append(SmcHelper.getReferenceName(TransactionState.class, classModel)).append(" ").append(transactionStateName)//
                     .append(" = ").append(transFieldName).append(".beginTransAction(").append(propagation).append(");\r\n");
             cache.append("try\r\n{\r\n");
-            if ( method.getReturnType() != void.class )
+            if (method.getReturnType() != void.class)
             {
                 cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
                 cache.append(transFieldName).append(".commit();\r\n");
@@ -94,12 +94,12 @@ public class TransactionAopManager implements AopManager
             cache.append("catch(java.lang.Throwable e)\r\n{\r\n");
             cache.append(transFieldName).append(".rollback(").append(transactionStateName).append(",e);\r\n");
             cache.append("ReflectUtil.throwException(e);\r\n");
-            if ( method.getReturnType() != void.class )
+            if (method.getReturnType() != void.class)
             {
-                if ( method.getReturnType().isPrimitive() )
+                if (method.getReturnType().isPrimitive())
                 {
                     Class<?> returnType = method.getReturnType();
-                    if ( returnType == boolean.class )
+                    if (returnType == boolean.class)
                     {
                         cache.append("return false;\r\n");
                     }
@@ -115,7 +115,7 @@ public class TransactionAopManager implements AopManager
             }
             cache.append("}\r\n");
             newOne.setBody(cache.toString());
-            if ( method.getGenericParameterTypes().length != 0 )
+            if (method.getGenericParameterTypes().length != 0)
             {
                 boolean[] flags = new boolean[method.getParameterTypes().length];
                 Arrays.fill(flags, true);
@@ -127,8 +127,8 @@ public class TransactionAopManager implements AopManager
 
     private String generateTransactionManagerField(ClassModel classModel)
     {
-        String transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
-        FieldModel fieldModel = new FieldModel(transFieldName, TransactionManager.class, classModel);
+        String     transFieldName = "transactionManager_" + fieldNameCounter.getAndIncrement();
+        FieldModel fieldModel     = new FieldModel(transFieldName, TransactionManager.class, classModel);
         classModel.addField(fieldModel);
         return transFieldName;
     }

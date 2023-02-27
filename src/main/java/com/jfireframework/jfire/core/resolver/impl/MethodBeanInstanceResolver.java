@@ -12,9 +12,9 @@ import java.util.List;
 
 public class MethodBeanInstanceResolver implements BeanInstanceResolver
 {
-    private Method method;
+    private Method           method;
     private BeanDefinition[] paramsBeandefinition;
-    private BeanDefinition hostBeanDefinition;
+    private BeanDefinition   hostBeanDefinition;
 
     public MethodBeanInstanceResolver(Method method)
     {
@@ -28,7 +28,7 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
         try
         {
             Object instance = hostBeanDefinition.getBeanInstance();
-            if ( paramsBeandefinition.length == 0 )
+            if (paramsBeandefinition.length == 0)
             {
                 return method.invoke(instance);
             }
@@ -52,19 +52,19 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
     public void init(Environment environment)
     {
         hostBeanDefinition = environment.getBeanDefinition(method.getDeclaringClass());
-        if ( hostBeanDefinition == null )
+        if (hostBeanDefinition == null)
         {
             throw new BeanDefinitionCanNotFindException(method.getDeclaringClass());
         }
         List<BeanDefinition> paramsBeandefinition = new LinkedList<BeanDefinition>();
-        Class<?>[] parameterTypes = method.getParameterTypes();
+        Class<?>[]           parameterTypes       = method.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++)
         {
             Class<?> ckass = parameterTypes[i];
-            if ( ckass.isInterface() )
+            if (ckass.isInterface())
             {
                 List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(ckass);
-                if ( list.isEmpty() )
+                if (list.isEmpty())
                 {
                     throw new BeanDefinitionCanNotFindException(list, ckass);
                 }
@@ -73,15 +73,13 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
             else
             {
                 BeanDefinition beanDefinition = environment.getBeanDefinition(ckass);
-                if ( beanDefinition == null )
+                if (beanDefinition == null)
                 {
                     throw new BeanDefinitionCanNotFindException(ckass);
                 }
                 paramsBeandefinition.add(beanDefinition);
-
             }
         }
         this.paramsBeandefinition = paramsBeandefinition.toArray(new BeanDefinition[paramsBeandefinition.size()]);
     }
-
 }

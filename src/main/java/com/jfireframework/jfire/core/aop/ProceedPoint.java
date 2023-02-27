@@ -51,5 +51,4 @@ public interface ProceedPoint
      * @return
      */
     Object[] getParams();
-
 }

@@ -95,11 +95,11 @@ public class CacheAopManager implements AopManager
         CachePut cachePut = annotationUtil.getAnnotation(CachePut.class, method);
         if (StringUtil.isNotBlank(cachePut.condition()))
         {
-            String lexerConditionFieldName = generateConditionField(classModel, cachePut.condition());
-            String lexerKeyFieldName = generateKeyField(classModel, cachePut.value());
-            MethodModel origin = changeOriginMethodName(classModel, method);
-            StringCache cache = new StringCache();
-            boolean hasParams = method.getParameterTypes().length != 0;
+            String      lexerConditionFieldName = generateConditionField(classModel, cachePut.condition());
+            String      lexerKeyFieldName       = generateKeyField(classModel, cachePut.value());
+            MethodModel origin                  = changeOriginMethodName(classModel, method);
+            StringCache cache                   = new StringCache();
+            boolean     hasParams               = method.getParameterTypes().length != 0;
             if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
@@ -119,10 +119,10 @@ public class CacheAopManager implements AopManager
         }
         else
         {
-            String lexerKeyFieldName = generateKeyField(classModel, cachePut.value());
-            MethodModel origin = changeOriginMethodName(classModel, method);
-            StringCache cache = new StringCache();
-            boolean hasParams = method.getParameterTypes().length != 0;
+            String      lexerKeyFieldName = generateKeyField(classModel, cachePut.value());
+            MethodModel origin            = changeOriginMethodName(classModel, method);
+            StringCache cache             = new StringCache();
+            boolean     hasParams         = method.getParameterTypes().length != 0;
             if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
@@ -141,12 +141,12 @@ public class CacheAopManager implements AopManager
         CacheDelete cacheDelete = annotationUtil.getAnnotation(CacheDelete.class, method);
         if (StringUtil.isNotBlank(cacheDelete.condition()))
         {
-            String lexerConditionFieldName = generateConditionField(classModel, cacheDelete.condition());
-            String lexerKeyFieldName = generateKeyField(classModel, cacheDelete.value());
-            MethodModelKey key = new MethodModelKey(method);
-            MethodModel methodModel = classModel.getMethodModel(key);
-            StringCache cache = new StringCache();
-            boolean hasParams = method.getParameterTypes().length != 0;
+            String         lexerConditionFieldName = generateConditionField(classModel, cacheDelete.condition());
+            String         lexerKeyFieldName       = generateKeyField(classModel, cacheDelete.value());
+            MethodModelKey key                     = new MethodModelKey(method);
+            MethodModel    methodModel             = classModel.getMethodModel(key);
+            StringCache    cache                   = new StringCache();
+            boolean        hasParams               = method.getParameterTypes().length != 0;
             if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
@@ -161,11 +161,11 @@ public class CacheAopManager implements AopManager
         }
         else
         {
-            String lexerKeyFieldName = generateKeyField(classModel, cacheDelete.value());
-            MethodModelKey key = new MethodModelKey(method);
-            MethodModel methodModel = classModel.getMethodModel(key);
-            StringCache cache = new StringCache();
-            boolean hasParams = method.getParameterTypes().length != 0;
+            String         lexerKeyFieldName = generateKeyField(classModel, cacheDelete.value());
+            MethodModelKey key               = new MethodModelKey(method);
+            MethodModel    methodModel       = classModel.getMethodModel(key);
+            StringCache    cache             = new StringCache();
+            boolean        hasParams         = method.getParameterTypes().length != 0;
             if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
@@ -182,19 +182,19 @@ public class CacheAopManager implements AopManager
         CacheGet cacheGet = annotationUtil.getAnnotation(CacheGet.class, method);
         if (StringUtil.isNotBlank(cacheGet.condition()))
         {
-            String lexerConditionFieldName = generateConditionField(classModel, cacheGet.condition());
-            String lexerKeyFieldName = generateKeyField(classModel, cacheGet.value());
-            MethodModel origin = changeOriginMethodName(classModel, method);
-            StringCache cache = new StringCache();
+            String      lexerConditionFieldName = generateConditionField(classModel, cacheGet.condition());
+            String      lexerKeyFieldName       = generateKeyField(classModel, cacheGet.value());
+            MethodModel origin                  = changeOriginMethodName(classModel, method);
+            StringCache cache                   = new StringCache();
             genetateCacheGetBodyWithCondition(cacheManagerFieldName, method, cacheGet, lexerConditionFieldName, lexerKeyFieldName, origin, cache, method.getParameterTypes().length != 0, classModel);
             generateMethod(classModel, method, cache.toString());
         }
         else
         {
-            String keyFieldName = generateKeyField(classModel, cacheGet.value());
-            MethodModel origin = changeOriginMethodName(classModel, method);
-            StringCache cache = new StringCache();
-            boolean hasParams = method.getParameterTypes().length != 0;
+            String      keyFieldName = generateKeyField(classModel, cacheGet.value());
+            MethodModel origin       = changeOriginMethodName(classModel, method);
+            StringCache cache        = new StringCache();
+            boolean     hasParams    = method.getParameterTypes().length != 0;
             if (hasParams)
             {
                 generateConditionMapDeclarationPart(method, cache);
@@ -290,8 +290,8 @@ public class CacheAopManager implements AopManager
 
     private MethodModel changeOriginMethodName(ClassModel classModel, Method method)
     {
-        MethodModelKey key = new MethodModelKey(method);
-        MethodModel origin = classModel.removeMethodModel(key);
+        MethodModelKey key    = new MethodModelKey(method);
+        MethodModel    origin = classModel.removeMethodModel(key);
         origin.setAccessLevel(AccessLevel.PRIVATE);
         origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
         classModel.putMethodModel(origin);
@@ -300,16 +300,16 @@ public class CacheAopManager implements AopManager
 
     private String generateKeyField(ClassModel classModel, String key)
     {
-        String lexerKeyFieldName = "expression_" + fieldNameCounter.getAndIncrement();
-        FieldModel keyField = new FieldModel(lexerKeyFieldName, Expression.class, "Expression.parse(\"" + key + "\")", classModel);
+        String     lexerKeyFieldName = "expression_" + fieldNameCounter.getAndIncrement();
+        FieldModel keyField          = new FieldModel(lexerKeyFieldName, Expression.class, "Expression.parse(\"" + key + "\")", classModel);
         classModel.addField(keyField);
         return lexerKeyFieldName;
     }
 
     private String generateConditionField(ClassModel classModel, String condition)
     {
-        String lexerConditionFieldName = "expression_" + fieldNameCounter.getAndIncrement();
-        FieldModel conditionField = new FieldModel(lexerConditionFieldName, Expression.class, "Expression.parse(\"" + condition + "\")", classModel);
+        String     lexerConditionFieldName = "expression_" + fieldNameCounter.getAndIncrement();
+        FieldModel conditionField          = new FieldModel(lexerConditionFieldName, Expression.class, "Expression.parse(\"" + condition + "\")", classModel);
         classModel.addField(conditionField);
         return lexerConditionFieldName;
     }
@@ -330,8 +330,8 @@ public class CacheAopManager implements AopManager
 
     private String generateCacheManagerField(ClassModel classModel)
     {
-        String cacheManagerFieldName = "cacheManager_" + fieldNameCounter.getAndIncrement();
-        FieldModel fieldModel = new FieldModel(cacheManagerFieldName, CacheManager.class, classModel);
+        String     cacheManagerFieldName = "cacheManager_" + fieldNameCounter.getAndIncrement();
+        FieldModel fieldModel            = new FieldModel(cacheManagerFieldName, CacheManager.class, classModel);
         classModel.addField(fieldModel);
         return cacheManagerFieldName;
     }

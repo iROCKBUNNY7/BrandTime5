@@ -17,15 +17,15 @@ public class ValidateTest
     @Test
     public void test_2()
     {
-        JfireBootstrap config = new JfireBootstrap();
-        BeanDefinition beanDefinition = new BeanDefinition(JfireMethodValidatorImpl.class.getName(), JfireMethodValidatorImpl.class, false);
-        BeanInstanceResolver resolver = new DefaultBeanInstanceResolver(JfireMethodValidatorImpl.class);
+        JfireBootstrap       config         = new JfireBootstrap();
+        BeanDefinition       beanDefinition = new BeanDefinition(JfireMethodValidatorImpl.class.getName(), JfireMethodValidatorImpl.class, false);
+        BeanInstanceResolver resolver       = new DefaultBeanInstanceResolver(JfireMethodValidatorImpl.class);
         beanDefinition.setBeanInstanceResolver(resolver);
         config.register(beanDefinition);
         config.register(Person.class);
-        Jfire jfire = config.start();
+        Jfire  jfire  = config.start();
         Person person = jfire.getBean(Person.class);
-        User user = new User();
+        User   user   = new User();
         try
         {
             person.sayHello(user);

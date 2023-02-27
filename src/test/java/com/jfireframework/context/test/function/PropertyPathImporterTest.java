@@ -3,8 +3,8 @@ package com.jfireframework.context.test.function;
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,8 +38,8 @@ public class PropertyPathImporterTest
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(Test1.class);
         jfireConfig.register(PropertyPathImporterTest.class);
-        Jfire jfire = jfireConfig.start();
-        PropertyPathImporterTest test = jfire.getBean(PropertyPathImporterTest.class);
+        Jfire                    jfire = jfireConfig.start();
+        PropertyPathImporterTest test  = jfire.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }
 
@@ -51,8 +51,8 @@ public class PropertyPathImporterTest
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(Test2.class);
         jfireConfig.register(PropertyPathImporterTest.class);
-        Jfire jfire = jfireConfig.start();
-        PropertyPathImporterTest test = jfire.getBean(PropertyPathImporterTest.class);
+        Jfire                    jfire = jfireConfig.start();
+        PropertyPathImporterTest test  = jfire.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }
 }

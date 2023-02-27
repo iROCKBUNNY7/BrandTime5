@@ -13,7 +13,7 @@ public class PropertyPathProcessor implements JfirePrepare
     @Override
     public void prepare(Environment environment)
     {
-        if ( environment.isAnnotationPresent(PropertyPath.class) )
+        if (environment.isAnnotationPresent(PropertyPath.class))
         {
             for (PropertyPath propertyPath : environment.getAnnotations(PropertyPath.class))
             {
@@ -34,5 +34,4 @@ public class PropertyPathProcessor implements JfirePrepare
     {
         return JfirePreparedConstant.DEFAULT_ORDER;
     }
-
 }

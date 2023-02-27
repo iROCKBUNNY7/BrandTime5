@@ -11,14 +11,14 @@ import java.lang.annotation.*;
 
 public class LoadByBeanInstanceResolver implements BeanInstanceResolver
 {
-    private String factoryBeanName;
-    private Class<?> ckass;
+    private String         factoryBeanName;
+    private Class<?>       ckass;
     private BeanDefinition factoryBeanDefinition;
 
     public LoadByBeanInstanceResolver(Class<?> ckass)
     {
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-        if ( annotationUtil.isPresent(LoadBy.class, ckass) == false )
+        if (annotationUtil.isPresent(LoadBy.class, ckass) == false)
         {
             throw new IllegalArgumentException();
         }
@@ -37,7 +37,7 @@ public class LoadByBeanInstanceResolver implements BeanInstanceResolver
     public void init(Environment environment)
     {
         factoryBeanDefinition = environment.getBeanDefinition(factoryBeanName);
-        if ( factoryBeanDefinition == null )
+        if (factoryBeanDefinition == null)
         {
             throw new BeanDefinitionCanNotFindException(factoryBeanName);
         }

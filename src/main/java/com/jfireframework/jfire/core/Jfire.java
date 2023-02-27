@@ -17,7 +17,7 @@ public class Jfire
     public <T> T getBean(Class<T> ckass)
     {
         BeanDefinition beanDefinition = environment.getBeanDefinition(ckass);
-        if ( beanDefinition == null )
+        if (beanDefinition == null)
         {
             throw new BeanDefinitionCanNotFindException(ckass);
         }
@@ -28,7 +28,7 @@ public class Jfire
     public <T> T getBean(String beanName)
     {
         BeanDefinition beanDefinition = environment.getBeanDefinition(beanName);
-        if ( beanDefinition == null )
+        if (beanDefinition == null)
         {
             throw new BeanDefinitionCanNotFindException(beanName);
         }

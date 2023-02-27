@@ -34,26 +34,26 @@ import java.util.*;
 public class BeanDefinition
 {
     // 多实例标记
-    private static final int PROTOTYPE = 1 << 0;
-    private static final int AWARE_CONTEXT_INIT = 1 << 1;
+    private static final int                              PROTOTYPE          = 1 << 0;
+    private static final int                              AWARE_CONTEXT_INIT = 1 << 1;
     // 如果是单例的情况，后续只会使用该实例
-    private volatile Object cachedSingtonInstance;
+    private volatile     Object                           cachedSingtonInstance;
     /******/
     // 该Bean配置的状态
-    private int state = 0;
+    private              int                              state              = 0;
     // 该Bean的类
-    private Class<?> type;
+    private              Class<?>                         type;
     // 增强后的类，如果没有增强标记，该属性为空
-    private Class<?> enhanceType;
-    private Set<AopManager> aopManagers = new HashSet<AopManager>();
-    private AopManager[] orderedAopManagers;
-    private String beanName;
+    private              Class<?>                         enhanceType;
+    private              Set<AopManager>                  aopManagers        = new HashSet<AopManager>();
+    private              AopManager[]                     orderedAopManagers;
+    private              String                           beanName;
     // 标注@PostConstruct的方法
-    private Method postConstructMethod;
-    private BeanInstanceResolver resolver;
-    private InjectHandler[] injectHandlers;
-    private Environment environment;
-    public static final ThreadLocal<Map<String, Object>> tmpBeanInstanceMap = new ThreadLocal<Map<String, Object>>()
+    private              Method                           postConstructMethod;
+    private              BeanInstanceResolver             resolver;
+    private              InjectHandler[]                  injectHandlers;
+    private              Environment                      environment;
+    public static final  ThreadLocal<Map<String, Object>> tmpBeanInstanceMap = new ThreadLocal<Map<String, Object>>()
     {
         @Override
         protected java.util.Map<String, Object> initialValue()
@@ -67,7 +67,7 @@ public class BeanDefinition
         this.beanName = beanName;
         this.type = type;
         setPrototype(prototype);
-        if ( JfireAwareContextInited.class.isAssignableFrom(type) )
+        if (JfireAwareContextInited.class.isAssignableFrom(type))
         {
             setAwareContextInit();
         }
@@ -85,7 +85,7 @@ public class BeanDefinition
 
     private void initAwareContextInit()
     {
-        if ( JfireAwareContextInited.class.isAssignableFrom(type) )
+        if (JfireAwareContextInited.class.isAssignableFrom(type))
         {
             setAwareContextInit();
         }
@@ -93,7 +93,7 @@ public class BeanDefinition
 
     private void initEnhance(Environment environment)
     {
-        if ( aopManagers.size() == 0 )
+        if (aopManagers.size() == 0)
         {
             orderedAopManagers = new AopManager[0];
             return;
@@ -109,7 +109,7 @@ public class BeanDefinition
             }
         });
         ClassModel classModel = new ClassModel(type.getSimpleName() + "$AOP$" + AopManager.classNameCounter.getAndIncrement());
-        if ( type.isInterface() )
+        if (type.isInterface())
         {
             classModel.addInterface(type);
         }
@@ -153,13 +153,13 @@ public class BeanDefinition
     {
         for (Method each : type.getMethods())
         {
-            if ( Modifier.isFinal(each.getModifiers()) )
+            if (Modifier.isFinal(each.getModifiers()))
             {
                 continue;
             }
             MethodModel methodModel = new MethodModel(each, classModel);
-            StringCache cache = new StringCache();
-            if ( each.getReturnType() != void.class )
+            StringCache cache       = new StringCache();
+            if (each.getReturnType() != void.class)
             {
                 cache.append("return ");
             }
@@ -168,7 +168,7 @@ public class BeanDefinition
             {
                 cache.append("$").append(i).appendComma();
             }
-            if ( cache.isCommaLast() )
+            if (cache.isCommaLast())
             {
                 cache.deleteLast();
             }
@@ -201,17 +201,17 @@ public class BeanDefinition
      */
     private void initPostConstructMethod()
     {
-        if ( type.isInterface() == false )
+        if (type.isInterface() == false)
         {
             Class<?> type = this.type;
-            boolean find = false;
+            boolean  find = false;
             while (type != Object.class)
             {
                 for (Method each : type.getDeclaredMethods())
                 {
-                    if ( each.getParameterTypes().length == 0 )
+                    if (each.getParameterTypes().length == 0)
                     {
-                        if ( Utils.ANNOTATION_UTIL.isPresent(PostConstruct.class, each) )
+                        if (Utils.ANNOTATION_UTIL.isPresent(PostConstruct.class, each))
                         {
                             postConstructMethod = each;
                             postConstructMethod.setAccessible(true);
@@ -220,7 +220,7 @@ public class BeanDefinition
                         }
                     }
                 }
-                if ( find )
+                if (find)
                 {
                     break;
                 }
@@ -239,13 +239,13 @@ public class BeanDefinition
      */
     private void initInjectHandlers(Environment environment)
     {
-        if ( type.isInterface() == false )
+        if (type.isInterface() == false)
         {
-            List<InjectHandler> list = new LinkedList<InjectHandler>();
-            AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
+            List<InjectHandler> list           = new LinkedList<InjectHandler>();
+            AnnotationUtil      annotationUtil = Utils.ANNOTATION_UTIL;
             for (Field each : getAllFields(type))
             {
-                if ( annotationUtil.isPresent(CustomInjectHanlder.class, each) )
+                if (annotationUtil.isPresent(CustomInjectHanlder.class, each))
                 {
                     CustomInjectHanlder customDiHanlder = annotationUtil.getAnnotation(CustomInjectHanlder.class, each);
                     try
@@ -258,13 +258,13 @@ public class BeanDefinition
                         throw new RuntimeException(e);
                     }
                 }
-                else if ( annotationUtil.isPresent(Resource.class, each) )
+                else if (annotationUtil.isPresent(Resource.class, each))
                 {
                     DefaultDependencyInjectHandler injectHandler = new DefaultDependencyInjectHandler();
                     injectHandler.init(each, environment);
                     list.add(injectHandler);
                 }
-                else if ( annotationUtil.isPresent(PropertyRead.class, each) )
+                else if (annotationUtil.isPresent(PropertyRead.class, each))
                 {
                     DefaultPropertyInjectHandler injectHandler = new DefaultPropertyInjectHandler();
                     injectHandler.init(each, environment);
@@ -309,11 +309,11 @@ public class BeanDefinition
      */
     public Object getBeanInstance()
     {
-        if ( isPropertype() )
+        if (isPropertype())
         {
             return buildInstance();
         }
-        else if ( cachedSingtonInstance != null )
+        else if (cachedSingtonInstance != null)
         {
             return cachedSingtonInstance;
         }
@@ -321,7 +321,7 @@ public class BeanDefinition
         {
             synchronized (this)
             {
-                if ( cachedSingtonInstance != null )
+                if (cachedSingtonInstance != null)
                 {
                     return cachedSingtonInstance;
                 }
@@ -333,14 +333,14 @@ public class BeanDefinition
 
     private Object buildInstance()
     {
-        Map<String, Object> map = tmpBeanInstanceMap.get();
-        boolean cleanMark = map.isEmpty();
-        Object instance = map.get(beanName);
-        if ( instance != null )
+        Map<String, Object> map       = tmpBeanInstanceMap.get();
+        boolean             cleanMark = map.isEmpty();
+        Object              instance  = map.get(beanName);
+        if (instance != null)
         {
             return instance;
         }
-        if ( orderedAopManagers.length != 0 )
+        if (orderedAopManagers.length != 0)
         {
             try
             {
@@ -357,19 +357,19 @@ public class BeanDefinition
                 throw new NewBeanInstanceException(e);
             }
         }
-        if ( instance == null )
+        if (instance == null)
         {
             instance = resolver.buildInstance();
             map.put(beanName, instance);
         }
-        if ( injectHandlers.length != 0 )
+        if (injectHandlers.length != 0)
         {
             for (InjectHandler each : injectHandlers)
             {
                 each.inject(instance);
             }
         }
-        if ( postConstructMethod != null )
+        if (postConstructMethod != null)
         {
             try
             {
@@ -379,7 +379,7 @@ public class BeanDefinition
                 throw new PostConstructMethodException(e);
             }
         }
-        if ( cleanMark )
+        if (cleanMark)
         {
             map.clear();
         }
@@ -400,7 +400,7 @@ public class BeanDefinition
             @Override
             public int compare(Field o1, Field o2)
             {
-                if ( o1.getName().equals(o2.getName()) )
+                if (o1.getName().equals(o2.getName()))
                 {
                     return 0;
                 }
@@ -419,7 +419,6 @@ public class BeanDefinition
             entityClass = entityClass.getSuperclass();
         }
         return set.toArray(new Field[set.size()]);
-
     }
 
     public void setPrototype(boolean flag)
@@ -459,15 +458,15 @@ public class BeanDefinition
 
     public void check()
     {
-        if ( beanName == null )
+        if (beanName == null)
         {
             throw new IncompleteBeanDefinitionException("beanName没有赋值");
         }
-        if ( resolver == null )
+        if (resolver == null)
         {
             throw new IncompleteBeanDefinitionException("BeanInstanceResolver没有赋值");
         }
-        if ( type == null )
+        if (type == null)
         {
             throw new IncompleteBeanDefinitionException("类型没有赋值");
         }

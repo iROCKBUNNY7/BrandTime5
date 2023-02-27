@@ -31,13 +31,12 @@ public @interface ConditionOnProperty
         {
             for (String each : conditionOnProperty.value())
             {
-                if ( readOnlyEnvironment.hasProperty(each) == false )
+                if (readOnlyEnvironment.hasProperty(each) == false)
                 {
                     return false;
                 }
             }
             return true;
         }
-
     }
 }

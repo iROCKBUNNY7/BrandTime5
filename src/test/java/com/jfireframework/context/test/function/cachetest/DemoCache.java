@@ -31,5 +31,4 @@ public class DemoCache implements Cache
     {
         map.put(key, value);
     }
-
 }

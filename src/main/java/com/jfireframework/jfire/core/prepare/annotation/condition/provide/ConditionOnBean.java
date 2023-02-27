@@ -31,19 +31,18 @@ public @interface ConditionOnBean
                 boolean miss = true;
                 for (BeanDefinition beanDefinition : readOnlyEnvironment.beanDefinitions())
                 {
-                    if ( each.isAssignableFrom(beanDefinition.getType()) )
+                    if (each.isAssignableFrom(beanDefinition.getType()))
                     {
                         miss = false;
                         break;
                     }
                 }
-                if ( miss )
+                if (miss)
                 {
                     return false;
                 }
             }
             return true;
         }
-
     }
 }

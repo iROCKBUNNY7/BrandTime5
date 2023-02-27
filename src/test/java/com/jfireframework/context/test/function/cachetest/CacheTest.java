@@ -16,10 +16,10 @@ public class CacheTest
         config.register(CacheTarget.class);
         config.register(DemoCache.class);
         config.register(CacheManagerTest.class);
-        Jfire jfire = config.start();
+        Jfire       jfire       = config.start();
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
-        House house = cacheTarget.get(1);
-        House second = cacheTarget.get(1);
+        House       house       = cacheTarget.get(1);
+        House       second      = cacheTarget.get(1);
         Assert.assertFalse(house == second);
         house = cacheTarget.get(5);
         second = cacheTarget.get(5);
@@ -33,7 +33,7 @@ public class CacheTest
         cacheTarget.remove(5);
         second = cacheTarget.get(5);
         Assert.assertFalse(house == second);
-        String first = cacheTarget.get();
+        String first   = cacheTarget.get();
         String seconde = cacheTarget.get();
         Assert.assertTrue(first == seconde);
         cacheTarget.put();
@@ -53,10 +53,10 @@ public class CacheTest
         config.register(CacheTarget.class);
         config.register(DemoCache.class);
         config.register(CacheManagerTest.class);
-        Jfire jfire = config.start();
+        Jfire       jfire       = config.start();
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
-        House house = cacheTarget.get2(6);
-        House second = cacheTarget.get2(6);
+        House       house       = cacheTarget.get2(6);
+        House       second      = cacheTarget.get2(6);
         Assert.assertTrue(house == second);
     }
 
@@ -70,10 +70,10 @@ public class CacheTest
         config.register(CacheTarget.class);
         config.register(DemoCache.class);
         config.register(CacheManagerTest.class);
-        Jfire jfire = config.start();
+        Jfire       jfire       = config.start();
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
-        House house = cacheTarget.get3(6);
-        House second = cacheTarget.get3(6);
+        House       house       = cacheTarget.get3(6);
+        House       second      = cacheTarget.get3(6);
         Assert.assertTrue(house == second);
     }
 
@@ -87,11 +87,11 @@ public class CacheTest
         config.register(CacheTarget.class);
         config.register(DemoCache.class);
         config.register(CacheManagerTest.class);
-        Jfire jfire = config.start();
-        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
-        MutablePerson person = new MutablePerson();
+        Jfire         jfire       = config.start();
+        CacheTarget   cacheTarget = jfire.getBean(CacheTarget.class);
+        MutablePerson person      = new MutablePerson();
         person.setAge(18);
-        House house = cacheTarget.get4(person);
+        House house  = cacheTarget.get4(person);
         House second = cacheTarget.get4(person);
         Assert.assertTrue(house == second);
     }

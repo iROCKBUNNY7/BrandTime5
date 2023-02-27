@@ -5,11 +5,11 @@ import javax.annotation.Resource;
 @Resource
 public class ImmutablePerson
 {
-    private int age;
-    private String name;
+    private int      age;
+    private String   name;
     @Resource
-    private House home;
-    private Boolean boy;
+    private House    home;
+    private Boolean  boy;
     private String[] arrays;
 
     public String[] getArrays()
@@ -61,5 +61,4 @@ public class ImmutablePerson
     {
         this.boy = boy;
     }
-
 }

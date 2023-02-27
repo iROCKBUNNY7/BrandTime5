@@ -32,7 +32,7 @@ public class ValidateAopManager implements AopManager
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
-                if ( annotationUtil.isPresent(ValidateOnExecution.class, method) )
+                if (annotationUtil.isPresent(ValidateOnExecution.class, method))
                 {
                     beanDefinition.addAopManager(this);
                     break;
@@ -40,7 +40,7 @@ public class ValidateAopManager implements AopManager
             }
         }
         List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(JfireMethodValidator.class);
-        if ( list.isEmpty() == false )
+        if (list.isEmpty() == false)
         {
             validatorBeandefinition = list.get(0);
         }
@@ -50,22 +50,22 @@ public class ValidateAopManager implements AopManager
     public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         classModel.addInterface(SetJfireMethodValidator.class);
-        AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-        String validateFieldName = generateValidatorField(classModel);
+        AnnotationUtil annotationUtil    = Utils.ANNOTATION_UTIL;
+        String         validateFieldName = generateValidatorField(classModel);
         generateSetJfireMethodValidatorMethod(classModel, validateFieldName);
         for (Method method : type.getMethods())
         {
-            if ( Modifier.isFinal(method.getModifiers()) )
+            if (Modifier.isFinal(method.getModifiers()))
             {
                 continue;
             }
-            if ( annotationUtil.isPresent(ValidateOnExecution.class, method) )
+            if (annotationUtil.isPresent(ValidateOnExecution.class, method))
             {
-                if ( hasConstraintBeforeMethodExecute(method) )
+                if (hasConstraintBeforeMethodExecute(method))
                 {
                     processValidateParamter(classModel, environment, hostFieldName, validateFieldName, method);
                 }
-                if ( hasConstraintOnReturnValue(method) )
+                if (hasConstraintOnReturnValue(method))
                 {
                     processValidateReturnValue(classModel, environment, hostFieldName, validateFieldName, method);
                 }
@@ -82,12 +82,12 @@ public class ValidateAopManager implements AopManager
      */
     private void processValidateReturnValue(ClassModel classModel, Environment environment, String hostFieldName, String validateFieldName, Method method)
     {
-        MethodModelKey key = new MethodModelKey(method);
-        MethodModel origin = classModel.removeMethodModel(key);
+        MethodModelKey key    = new MethodModelKey(method);
+        MethodModel    origin = classModel.removeMethodModel(key);
         origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
         classModel.putMethodModel(origin);
-        StringCache cache = new StringCache();
-        int sequence = environment.registerMethod(method);
+        StringCache cache    = new StringCache();
+        int         sequence = environment.registerMethod(method);
         cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
         cache.append(validateFieldName).append(".validateReturnValue(").append(hostFieldName).append(",")//
                 .append(Environment.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),result);\r\n")//
@@ -106,8 +106,8 @@ public class ValidateAopManager implements AopManager
      */
     private void processValidateParamter(ClassModel classModel, Environment environment, String hostFieldName, String validateFieldName, Method method)
     {
-        StringCache cache = new StringCache();
-        int sequence = environment.registerMethod(method);
+        StringCache cache    = new StringCache();
+        int         sequence = environment.registerMethod(method);
         cache.append(validateFieldName).append(".validateParameters(").append(hostFieldName).append(",")//
                 .append(Environment.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),")//
                 .append("new Object[]{");
@@ -116,13 +116,13 @@ public class ValidateAopManager implements AopManager
         {
             cache.append("$").append(i).appendComma();
         }
-        if ( cache.isCommaLast() )
+        if (cache.isCommaLast())
         {
             cache.deleteLast();
         }
         cache.append("});\r\n");
-        MethodModelKey key = new MethodModelKey(method);
-        MethodModel methodModel = classModel.getMethodModel(key);
+        MethodModelKey key         = new MethodModelKey(method);
+        MethodModel    methodModel = classModel.getMethodModel(key);
         methodModel.setBody(cache.toString() + methodModel.getBody());
     }
 
@@ -132,7 +132,7 @@ public class ValidateAopManager implements AopManager
      */
     private String generateValidatorField(ClassModel classModel)
     {
-        String fieldName = "validator_" + fieldNameCounter.getAndIncrement();
+        String     fieldName  = "validator_" + fieldNameCounter.getAndIncrement();
         FieldModel fieldModel = new FieldModel(fieldName, JfireMethodValidator.class, classModel);
         classModel.addField(fieldModel);
         return fieldName;
@@ -156,7 +156,7 @@ public class ValidateAopManager implements AopManager
     private static boolean hasConstraintBeforeMethodExecute(Method method)
     {
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-        if ( annotationUtil.isPresent(Constraint.class, method) )
+        if (annotationUtil.isPresent(Constraint.class, method))
         {
             return true;
         }
@@ -164,12 +164,12 @@ public class ValidateAopManager implements AopManager
         {
             for (Annotation annotation : parameterAnnotations)
             {
-                if ( annotation.annotationType() == Valid.class )
+                if (annotation.annotationType() == Valid.class)
                 {
                     return true;
                 }
             }
-            if ( annotationUtil.isPresent(Constraint.class, parameterAnnotations) )
+            if (annotationUtil.isPresent(Constraint.class, parameterAnnotations))
             {
                 return true;
             }

@@ -38,9 +38,9 @@ public class ContextTest
     private void baseTest(Jfire jfire)
     {
         ImmutablePerson immutablePerson = jfire.getBean(ImmutablePerson.class);
-        ImmutablePerson person2 = jfire.getBean(ImmutablePerson.class.getName());
+        ImmutablePerson person2         = jfire.getBean(ImmutablePerson.class.getName());
         assertEquals(immutablePerson, person2);
-        MutablePerson mutablePerson = jfire.getBean(MutablePerson.class);
+        MutablePerson mutablePerson  = jfire.getBean(MutablePerson.class);
         MutablePerson mutablePerson2 = jfire.getBean(MutablePerson.class);
         assertNotEquals(mutablePerson, mutablePerson2);
         logger.debug(mutablePerson.getHome().getName());
@@ -61,7 +61,7 @@ public class ContextTest
     @Test
     public void testDirect2()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
+        JfireBootstrap jfireConfig    = new JfireBootstrap();
         BeanDefinition beanDefinition = new BeanDefinition(House.class.getName(), House.class, false);
         beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(House.class));
         jfireConfig.register(beanDefinition);
@@ -74,9 +74,8 @@ public class ContextTest
     public void testInit2()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(ContextTestScan.class);
-        Jfire jfire = jfireConfig.start();
+        Jfire          jfire       = jfireConfig.start();
         assertEquals("林斌的房子", jfire.getBean(House.class).getName());
         assertEquals("林斌的房子", ((House) jfire.getBean(House.class.getName())).getName());
     }
-
 }

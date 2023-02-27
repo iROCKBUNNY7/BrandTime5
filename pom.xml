@@ -67,17 +67,6 @@
             <version>4.12</version>
             <optional>true</optional>
         </dependency>
-       <!-- <dependency>
-            <groupId>org.eclipse.jdt</groupId>
-            <artifactId>ecj</artifactId>
-            <version>3.14.0</version>
-        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.eclipse.jdt.core.compiler/ecj -->
-        <dependency>
-            <groupId>org.eclipse.jdt.core.compiler</groupId>
-            <artifactId>ecj</artifactId>
-            <version>4.6.1</version>
-        </dependency>
     </dependencies>
     <build>
         <finalName>jfire</finalName>

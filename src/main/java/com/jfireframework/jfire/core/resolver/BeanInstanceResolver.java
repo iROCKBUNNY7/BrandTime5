@@ -17,5 +17,4 @@ public interface BeanInstanceResolver
      * @param environment
      */
     void init(Environment environment);
-
 }

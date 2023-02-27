@@ -22,5 +22,4 @@ public class OutterObjectBeanInstanceResolver implements BeanInstanceResolver
     public void init(Environment environment)
     {
     }
-
 }

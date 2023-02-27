@@ -13,14 +13,14 @@ public abstract class JdbcTransactionManager implements TransactionManager
             case Propagation.REQUIRED:
             {
                 ConnectionHolder connection = CONTEXT.get();
-                if ( connection == null )
+                if (connection == null)
                 {
                     connection = openConnection();
                     CONTEXT.set(connection);
                     connection.beginTransaction();
                     return new JdbcTransactionState(Propagation.REQUIRED, true, true);
                 }
-                if ( connection.isTransactionActive() )
+                if (connection.isTransactionActive())
                 {
                     return new JdbcTransactionState(Propagation.REQUIRED, false, false);
                 }
@@ -33,7 +33,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
             case Propagation.SUPPORTS:
             {
                 ConnectionHolder connection = CONTEXT.get();
-                if ( connection == null )
+                if (connection == null)
                 {
                     connection = openConnection();
                     CONTEXT.set(connection);
@@ -44,7 +44,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
             case Propagation.MANDATORY:
             {
                 ConnectionHolder connection = CONTEXT.get();
-                if ( connection == null || connection.isTransactionActive() == false )
+                if (connection == null || connection.isTransactionActive() == false)
                 {
                     throw new IllegalStateException("当前上下文内没有事务");
                 }
@@ -71,12 +71,12 @@ public abstract class JdbcTransactionManager implements TransactionManager
     @Override
     public void commit(TransactionState state)
     {
-        if ( state.isContextCompleted() )
+        if (state.isContextCompleted())
         {
             ConnectionHolder connectionHolder = CONTEXT.get();
             connectionHolder.commit();
         }
-        if ( state.isBeginWithNewConnection() )
+        if (state.isBeginWithNewConnection())
         {
             closeCurrentConnection(state);
         }
@@ -85,27 +85,25 @@ public abstract class JdbcTransactionManager implements TransactionManager
     @Override
     public void rollback(TransactionState state, Throwable e)
     {
-        if ( state.isContextCompleted() )
+        if (state.isContextCompleted())
         {
             ConnectionHolder connectionHolder = CONTEXT.get();
             connectionHolder.rollback();
         }
-        if ( state.isBeginWithNewConnection() )
+        if (state.isBeginWithNewConnection())
         {
             closeCurrentConnection(state);
         }
-
     }
 
     private void closeCurrentConnection(TransactionState state)
     {
         ConnectionHolder connectionHolder = CONTEXT.get();
         connectionHolder.close();
-        if ( state.propagation() == Propagation.REQUIRES_NEW )
+        if (state.propagation() == Propagation.REQUIRES_NEW)
         {
             ConnectionHolder prev = connectionHolder.getPrev();
             CONTEXT.set(prev);
         }
     }
-
 }

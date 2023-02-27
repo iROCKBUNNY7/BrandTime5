@@ -21,11 +21,10 @@ public class MapTest
     public void test()
     {
         JfireBootstrap config = new JfireBootstrap(MapTestScan.class);
-        Jfire jfire = config.start();
+        Jfire          jfire  = config.start();
         assertEquals(jfire.getBean(Host.class).getMap().get(1).getClass(), Order1.class);
         assertEquals(2, jfire.getBean(Host.class).getMap().size());
         assertEquals(2, jfire.getBean(Host.class).getMap2().size());
         assertEquals(jfire.getBean(Host.class).getMap2().get(Order1.class.getName()).getClass(), Order1.class);
     }
-
 }

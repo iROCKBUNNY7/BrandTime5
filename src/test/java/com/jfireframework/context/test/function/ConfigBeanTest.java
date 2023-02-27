@@ -2,15 +2,12 @@ package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Resource;
-
 @Configuration
-@Resource
 public class ConfigBeanTest
 {
     @Bean
@@ -30,7 +27,6 @@ public class ConfigBeanTest
     public static class Home
     {
         private Person person;
-
     }
 
     public static class Person
@@ -40,11 +36,10 @@ public class ConfigBeanTest
     @Test
     public void test()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.register(ConfigBeanTest.class);
-        Jfire jfire = jfireConfig.start();
-        Home home = jfire.getBean(Home.class);
-        Person person = jfire.getBean(Person.class);
+        JfireBootstrap jfireConfig = new JfireBootstrap(ConfigBeanTest.class);
+        Jfire          jfire       = jfireConfig.start();
+        Home           home        = jfire.getBean(Home.class);
+        Person         person      = jfire.getBean(Person.class);
         Assert.assertNotNull(person);
         Assert.assertTrue(person == home.person);
     }

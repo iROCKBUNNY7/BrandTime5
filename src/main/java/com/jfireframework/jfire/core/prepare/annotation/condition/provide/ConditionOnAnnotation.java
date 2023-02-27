@@ -27,13 +27,12 @@ public @interface ConditionOnAnnotation
         {
             for (Class<? extends Annotation> type : conditionOnAnnotation.value())
             {
-                if ( readOnlyEnvironment.isAnnotationPresent(type) == false )
+                if (readOnlyEnvironment.isAnnotationPresent(type) == false)
                 {
                     return false;
                 }
             }
             return true;
         }
-
     }
 }

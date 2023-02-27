@@ -40,5 +40,4 @@ public @interface CacheGet
      * @return
      */
     int timeToLive() default -1;
-
 }

@@ -14,12 +14,11 @@ public class NewCacheTest
         config.register(CacheTarget.class);
         config.register(DemoCache.class);
         config.register(CacheManagerTest.class);
-        Jfire jfire = config.start();
+        Jfire       jfire       = config.start();
         CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
-        House house = cacheTarget.get(5);
+        House       house       = cacheTarget.get(5);
         System.out.println(house);
         house = cacheTarget.get(5);
         System.out.println(house);
-
     }
 }

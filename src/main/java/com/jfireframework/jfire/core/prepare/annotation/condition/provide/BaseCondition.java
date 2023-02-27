@@ -20,7 +20,7 @@ public abstract class BaseCondition<T extends Annotation> implements Condition
     {
         for (Annotation each : annotations)
         {
-            if ( each.annotationType() == selectAnnoType )
+            if (each.annotationType() == selectAnnoType)
             {
                 return handleSelectAnnoType(readOnlyEnvironment, (T) each);
             }

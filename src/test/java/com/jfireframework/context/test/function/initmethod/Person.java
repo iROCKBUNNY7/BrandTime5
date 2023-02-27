@@ -6,7 +6,7 @@ import javax.annotation.Resource;
 @Resource
 public class Person
 {
-    private int age;
+    private int    age;
     private String name;
 
     @PostConstruct

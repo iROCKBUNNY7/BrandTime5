@@ -12,5 +12,4 @@ public class DuplicateBeanNameException extends RuntimeException
     {
         super("bean名称:" + beanName + "重复");
     }
-
 }

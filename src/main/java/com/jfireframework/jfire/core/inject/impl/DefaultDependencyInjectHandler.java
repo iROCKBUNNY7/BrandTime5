@@ -20,29 +20,29 @@ import java.util.*;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
-    private Environment environment;
-    private Inject inject;
+    private Environment   environment;
+    private Inject        inject;
     private ValueAccessor valueAccessor;
 
     @Override
     public void init(Field field, Environment environment)
     {
-        if ( field.getType().isPrimitive() )
+        if (field.getType().isPrimitive())
         {
             throw new UnsupportedOperationException("基础类型无法执行注入操作");
         }
         this.environment = environment;
         valueAccessor = new ValueAccessor(field);
         Class<?> fieldType = field.getType();
-        if ( Map.class.isAssignableFrom(fieldType) )
+        if (Map.class.isAssignableFrom(fieldType))
         {
             inject = new MapInject();
         }
-        else if ( Collection.class.isAssignableFrom(fieldType) )
+        else if (Collection.class.isAssignableFrom(fieldType))
         {
             inject = new CollectionInject();
         }
-        else if ( fieldType.isInterface() || Modifier.isAbstract(fieldType.getModifiers()) )
+        else if (fieldType.isInterface() || Modifier.isAbstract(fieldType.getModifiers()))
         {
             inject = new AbstractInject();
         }
@@ -69,12 +69,12 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         InstacenInject()
         {
-            Field field = valueAccessor.getField();
+            Field          field          = valueAccessor.getField();
             AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-            Resource resource = annotationUtil.getAnnotation(Resource.class, field);
-            String beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
+            Resource       resource       = annotationUtil.getAnnotation(Resource.class, field);
+            String         beanName       = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
             beanDefinition = environment.getBeanDefinition(beanName);
-            if ( beanDefinition == null )
+            if (beanDefinition == null)
             {
                 throw new InjectValueException("无法找到属性:" + field.getDeclaringClass().getSimpleName() + "." + field.getName() + "可以注入的bean，需要的bean名称:" + beanName);
             }
@@ -99,14 +99,14 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         AbstractInject()
         {
-            Field field = valueAccessor.getField();
+            Field    field     = valueAccessor.getField();
             Class<?> fieldType = field.getType();
-            Resource resource = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, field);
+            Resource resource  = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, field);
             // 如果定义了名称，就寻找特定名称的Bean
-            if ( StringUtil.isNotBlank(resource.name()) )
+            if (StringUtil.isNotBlank(resource.name()))
             {
                 beanDefinition = environment.getBeanDefinition(resource.name());
-                if ( beanDefinition == null && Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field) == false )
+                if (beanDefinition == null && Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field) == false)
                 {
                     throw new BeanDefinitionCanNotFindException(resource.name());
                 }
@@ -114,15 +114,15 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             else
             {
                 List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(fieldType);
-                if ( list.size() > 1 )
+                if (list.size() > 1)
                 {
                     throw new BeanDefinitionCanNotFindException(list, fieldType);
                 }
-                else if ( list.size() == 1 )
+                else if (list.size() == 1)
                 {
                     beanDefinition = list.get(0);
                 }
-                else if ( Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field) )
+                else if (Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field))
                 {
                     //可为空，允许
                     return;
@@ -137,7 +137,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         @Override
         public void inject(Object instance)
         {
-            if ( beanDefinition != null )
+            if (beanDefinition != null)
             {
                 Object value = beanDefinition.getBeanInstance();
                 try
@@ -154,27 +154,27 @@ public class DefaultDependencyInjectHandler implements InjectHandler
     class CollectionInject implements Inject
     {
         private BeanDefinition[] beanDefinitions;
-        private int listOrSet = 0;
+        private int              listOrSet = 0;
 
         private static final int LIST = 1;
-        private static final int SET = 2;
+        private static final int SET  = 2;
 
         CollectionInject()
         {
-            Field field = valueAccessor.getField();
-            Type genericType = field.getGenericType();
-            if ( genericType instanceof ParameterizedType == false )
+            Field field       = valueAccessor.getField();
+            Type  genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType == false)
             {
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
-            Class<?> rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-            List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(rawType);
+            Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
+            List<BeanDefinition> list    = environment.getBeanDefinitionByAbstract(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
-            if ( List.class.isAssignableFrom(field.getType()) )
+            if (List.class.isAssignableFrom(field.getType()))
             {
                 listOrSet = LIST;
             }
-            else if ( Set.class.isAssignableFrom(field.getType()) )
+            else if (Set.class.isAssignableFrom(field.getType()))
             {
                 listOrSet = SET;
             }
@@ -187,14 +187,14 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             try
             {
                 Collection<Object> value = (Collection<Object>) valueAccessor.get(instance);
-                if ( value == null )
+                if (value == null)
                 {
-                    if ( listOrSet == LIST )
+                    if (listOrSet == LIST)
                     {
                         value = new LinkedList<Object>();
                         valueAccessor.setObject(instance, value);
                     }
-                    else if ( listOrSet == SET )
+                    else if (listOrSet == SET)
                     {
                         value = new HashSet<Object>();
                         valueAccessor.setObject(instance, value);
@@ -225,22 +225,22 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
     class MapInject implements Inject
     {
-        MapKeyType mapKeyType;
+        MapKeyType       mapKeyType;
         BeanDefinition[] beanDefinitions;
-        Method method;
+        Method           method;
 
         MapInject()
         {
-            Field field = valueAccessor.getField();
-            Type genericType = field.getGenericType();
-            if ( genericType instanceof ParameterizedType == false )
+            Field field       = valueAccessor.getField();
+            Type  genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType == false)
             {
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
-            Class<?> rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[1];
-            List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(rawType);
+            Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[1];
+            List<BeanDefinition> list    = environment.getBeanDefinitionByAbstract(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
-            if ( Utils.ANNOTATION_UTIL.isPresent(MapKeyMethodName.class, field) )
+            if (Utils.ANNOTATION_UTIL.isPresent(MapKeyMethodName.class, field))
             {
                 mapKeyType = MapKeyType.METHOD;
                 String methodName = Utils.ANNOTATION_UTIL.getAnnotation(MapKeyMethodName.class, field).value();
@@ -265,7 +265,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             try
             {
                 Map<Object, Object> value = (Map<Object, Object>) valueAccessor.get(instance);
-                if ( value == null )
+                if (value == null)
                 {
                     value = new HashMap<Object, Object>();
                     valueAccessor.setObject(instance, value);
@@ -276,7 +276,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                         for (BeanDefinition each : beanDefinitions)
                         {
                             Object entryValue = each.getBeanInstance();
-                            Object entryKey = method.invoke(entryValue);
+                            Object entryKey   = method.invoke(entryValue);
                             value.put(entryKey, entryValue);
                         }
                         break;
@@ -284,7 +284,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                         for (BeanDefinition each : beanDefinitions)
                         {
                             Object entryValue = each.getBeanInstance();
-                            String entryKey = each.getBeanName();
+                            String entryKey   = each.getBeanName();
                             value.put(entryKey, entryValue);
                         }
                         break;
@@ -296,6 +296,5 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 throw new InjectValueException(e);
             }
         }
-
     }
 }

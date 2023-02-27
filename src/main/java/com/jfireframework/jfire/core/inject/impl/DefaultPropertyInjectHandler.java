@@ -19,82 +19,82 @@ import java.util.Set;
 public class DefaultPropertyInjectHandler implements InjectHandler
 {
     private ValueAccessor valueAccessor;
-    private String propertyValue;
-    private Inject inject;
+    private String        propertyValue;
+    private Inject        inject;
 
     @Override
     public void init(Field field, Environment environment)
     {
         valueAccessor = new ValueAccessor(field);
         PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);
-        String propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
-        if ( StringUtil.isNotBlank(System.getProperty(propertyName)) )
+        String       propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
+        if (StringUtil.isNotBlank(System.getProperty(propertyName)))
         {
             propertyValue = System.getProperty(propertyName);
         }
-        else if ( StringUtil.isNotBlank(environment.getProperty(propertyName)) )
+        else if (StringUtil.isNotBlank(environment.getProperty(propertyName)))
         {
             propertyValue = environment.getProperty(propertyName);
         }
         else
         {
         }
-        if ( propertyValue != null )
+        if (propertyValue != null)
         {
             Class<?> type = field.getType();
-            if ( type == int.class || type == Integer.class )
+            if (type == int.class || type == Integer.class)
             {
                 inject = new IntInject();
             }
-            else if ( type == short.class || type == Short.class )
+            else if (type == short.class || type == Short.class)
             {
                 inject = new ShortInject();
             }
-            else if ( type == long.class || type == Long.class )
+            else if (type == long.class || type == Long.class)
             {
                 inject = new LongInject();
             }
-            else if ( type == float.class || type == Float.class )
+            else if (type == float.class || type == Float.class)
             {
                 inject = new FloatInject();
             }
-            else if ( type == double.class || type == Double.class )
+            else if (type == double.class || type == Double.class)
             {
                 inject = new DoubleInject();
             }
-            else if ( type == boolean.class || type == Boolean.class )
+            else if (type == boolean.class || type == Boolean.class)
             {
                 inject = new BooleanInject();
             }
-            else if ( type == byte[].class )
+            else if (type == byte[].class)
             {
                 inject = new ByteArrayInject();
             }
-            else if ( type == Class.class )
+            else if (type == Class.class)
             {
                 inject = new ClassInject();
             }
-            else if ( type == File.class )
+            else if (type == File.class)
             {
                 inject = new FileInject();
             }
-            else if ( type == int[].class )
+            else if (type == int[].class)
             {
                 inject = new IntArrayInject();
             }
-            else if ( type == String.class )
+            else if (type == String.class)
             {
                 inject = new StringInject();
             }
-            else if ( type == String[].class )
+            else if (type == String[].class)
             {
                 inject = new StringArrayInject();
             }
-            else if ( type == Set.class )
+            else if (type == Set.class)
             {
                 inject = new SetStringInject();
             }
-            else if ( type.isEnum() )
+            else if (type.isEnum())
             {
                 inject = new EnumInject(field);
             }
@@ -102,14 +102,13 @@ public class DefaultPropertyInjectHandler implements InjectHandler
             {
                 throw new InjectTypeException("无法识别的参数注入类型，请检查" + field.toGenericString());
             }
-
         }
     }
 
     @Override
     public void inject(Object instance)
     {
-        if ( inject == null )
+        if (inject == null)
         {
             return;
         }
@@ -136,7 +135,6 @@ public class DefaultPropertyInjectHandler implements InjectHandler
                 throw new InjectValueException(e);
             }
         }
-
     }
 
     class BooleanInject extends AbstractInject
@@ -191,7 +189,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     {
         ByteArrayInject()
         {
-            if ( propertyValue.startsWith("0x") )
+            if (propertyValue.startsWith("0x"))
             {
                 value = StringUtil.hexStringToBytes(propertyValue.substring(2));
             }
@@ -228,8 +226,8 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     {
         IntArrayInject()
         {
-            String[] tmp = propertyValue.split(",");
-            int[] array = new int[tmp.length];
+            String[] tmp   = propertyValue.split(",");
+            int[]    array = new int[tmp.length];
             for (int i = 0; i < array.length; i++)
             {
                 array[i] = Integer.valueOf(tmp[i]);

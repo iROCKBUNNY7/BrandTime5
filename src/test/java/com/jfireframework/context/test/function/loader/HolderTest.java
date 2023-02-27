@@ -20,8 +20,8 @@ public class HolderTest
     public void test()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(HolderTestScan.class);
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean(Person.class);
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean(Person.class);
         Assert.assertEquals("name", person.getName());
         Home home = jfire.getBean(Home.class);
         Assert.assertEquals(100, home.getLength());

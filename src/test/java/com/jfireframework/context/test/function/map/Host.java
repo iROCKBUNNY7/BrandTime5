@@ -26,5 +26,4 @@ public class Host
     {
         return map2;
     }
-
 }

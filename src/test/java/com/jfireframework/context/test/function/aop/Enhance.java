@@ -21,7 +21,7 @@ public class Enhance
         }
     }
 
-    private int order;
+    private int    order;
     private String param;
 
     public int getOrder()

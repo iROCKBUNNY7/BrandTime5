@@ -10,5 +10,4 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Testalis3
 {
     @OverridesAttribute(annotation = TestAlias.class, name = "test") String t();
-
 }

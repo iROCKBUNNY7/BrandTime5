@@ -9,7 +9,7 @@ import java.util.Map;
 @Resource(name = "allLoader")
 public class AllLoader implements BeanLoadFactory
 {
-    private Class<?> ckass;
+    private Class<?>           ckass;
     private Map<Class, Object> holder = new HashMap<Class, Object>();
 
     public AllLoader()
@@ -40,5 +40,4 @@ public class AllLoader implements BeanLoadFactory
     {
         return (T) holder.get(ckass);
     }
-
 }

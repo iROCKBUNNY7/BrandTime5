@@ -8,7 +8,7 @@ import javax.annotation.Resource;
 @Resource
 public class House implements JfireAwareContextInited
 {
-    private String name;
+    private String          name;
     @Resource
     private ImmutablePerson host;
 
@@ -37,5 +37,4 @@ public class House implements JfireAwareContextInited
     {
         name = "林斌的房子";
     }
-
 }

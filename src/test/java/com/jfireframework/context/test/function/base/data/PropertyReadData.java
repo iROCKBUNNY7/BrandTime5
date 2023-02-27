@@ -28,5 +28,4 @@ public class PropertyReadData
     {
         this.age1 = age1;
     }
-
 }

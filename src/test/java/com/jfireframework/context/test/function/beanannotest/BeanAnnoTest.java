@@ -16,9 +16,8 @@ public class BeanAnnoTest
     public void test()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(Data.class);
-        jfireConfig.addJfirePrepare(new Data.NameProperty());
-        Jfire jfire = jfireConfig.start();
-        Person person = jfire.getBean("person");
+        Jfire          jfire       = jfireConfig.start();
+        Person         person      = jfire.getBean("person");
         Assert.assertTrue(person != null);
         Person person2;
         try
@@ -29,7 +28,6 @@ public class BeanAnnoTest
             assertTrue(e instanceof BeanDefinitionCanNotFindException);
         }
         jfireConfig = new JfireBootstrap(Data.class);
-        jfireConfig.addJfirePrepare(new Data.NameProperty());
         Properties properties = new Properties();
         properties.put("person2", "pass");
         jfireConfig.addProperties(properties);
@@ -48,5 +46,4 @@ public class BeanAnnoTest
         Person person7_2 = jfire.getBean("person7");
         Assert.assertEquals(person7, person7_2);
     }
-
 }

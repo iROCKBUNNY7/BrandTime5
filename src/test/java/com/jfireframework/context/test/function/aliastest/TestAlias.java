@@ -11,5 +11,4 @@ import java.lang.annotation.RetentionPolicy;
 public @interface TestAlias
 {
     @OverridesAttribute(annotation = Resource.class, name = "name") String test() default "test";
-
 }

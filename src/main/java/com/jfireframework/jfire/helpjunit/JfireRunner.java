@@ -9,7 +9,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 public class JfireRunner extends BlockJUnit4ClassRunner
@@ -26,7 +25,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
     @SuppressWarnings("deprecation")
     protected Statement methodBlock(FrameworkMethod method)
     {
-        Object test = createTest(method.getMethod());
+        Object    test      = createTest();
         Statement statement = methodInvoker(method, test);
         statement = possiblyExpectingExceptions(method, test, statement);
         statement = withPotentialTimeout(method, test, statement);
@@ -39,7 +38,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
     private Statement withRules(FrameworkMethod method, Object target, Statement statement)
     {
         List<TestRule> testRules = getTestRules(target);
-        Statement result = statement;
+        Statement      result    = statement;
         result = withMethodRules(method, testRules, target, result);
         result = withTestRules(method, testRules, result);
         return result;
@@ -54,7 +53,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
     {
         for (org.junit.rules.MethodRule each : getMethodRules(target))
         {
-            if ( !testRules.contains(each) )
+            if (!testRules.contains(each))
             {
                 result = each.apply(result, method, target);
             }
@@ -67,11 +66,10 @@ public class JfireRunner extends BlockJUnit4ClassRunner
         return rules(target);
     }
 
-    protected Object createTest(Method method)
+    protected Object createTest()
     {
         JfireBootstrap jfireBootstrap = new JfireBootstrap(klass);
-        jfireBootstrap.addAnnotations(method);
-        Jfire jfire = jfireBootstrap.start();
+        Jfire          jfire          = jfireBootstrap.start();
         return jfire.getBean(klass);
     }
 }

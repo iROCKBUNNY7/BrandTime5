@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractCacheManager implements CacheManager
 {
-    protected List<String> cacheNames = new LinkedList<String>();
-    protected ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>();
+    protected List<String>                 cacheNames = new LinkedList<String>();
+    protected ConcurrentMap<String, Cache> cacheMap   = new ConcurrentHashMap<String, Cache>();
 
     public AbstractCacheManager()
     {
@@ -23,5 +23,4 @@ public abstract class AbstractCacheManager implements CacheManager
     {
         return cacheMap.get(name);
     }
-
 }

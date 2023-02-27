@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,17 +35,20 @@ import java.util.List;
  */
 public class ComponentScanProcessor implements JfirePrepare
 {
-    private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
-    private static final String ConfigurationName = Configuration.class.getName();
-    private static final String ResourceName = Resource.class.getName();
+    private static final Logger logger            = LoggerFactory.getLogger(ComponentScanProcessor.class);
+    private static final String ConfigurationName = Configuration.class.getName().replace('.', '/');
+    private static final String ResourceName      = Resource.class.getName().replace('.', '/');
+    private static final String RetentionName     = Retention.class.getName().replace('.', '/');
+    private static final String DocumentedName    = Documented.class.getName().replace('.', '/');
+    private static final String TargetName        = Target.class.getName().replace('.', '/');
 
     @Override
     public void prepare(Environment environment)
     {
         if (environment.isAnnotationPresent(ComponentScan.class))
         {
-            List<String> classNames = new LinkedList<String>();
-            ComponentScan[] scans = environment.getAnnotations(ComponentScan.class);
+            List<String>    classNames = new LinkedList<String>();
+            ComponentScan[] scans      = environment.getAnnotations(ComponentScan.class);
             for (ComponentScan componentScan : scans)
             {
                 for (String each : componentScan.value())
@@ -50,11 +56,11 @@ public class ComponentScanProcessor implements JfirePrepare
                     Collections.addAll(classNames, PackageScan.scan(each));
                 }
             }
-            ClassLoader classLoader = environment.getClassLoader();
+            ClassLoader    classLoader    = environment.getClassLoader();
             AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
             for (String each : classNames)
             {
-                byte[] bytes = loadBytecode(each, classLoader);
+                byte[]    bytes     = loadBytecode(each, classLoader);
                 ClassFile classFile = ((new ClassFileParser(bytes))).parse();
                 // 如果本身是一个注解或者没有使用resource注解，则忽略
                 if (classFile.isAnnotation())
@@ -63,15 +69,15 @@ public class ComponentScanProcessor implements JfirePrepare
                     continue;
                 }
                 List<AnnotationMetadata> annotations = classFile.getAnnotations(classLoader);
-                if (isResourceAnnotationed(annotations))
+                try
                 {
-                    try
+                    if (isAnnotationed(annotations, ResourceName))
                     {
                         Class<?> ckass = classLoader.loadClass(each);
                         logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
-                        Resource resource = annotationUtil.getAnnotation(Resource.class, ckass);
-                        String beanName = resource.name().equals("") ? ckass.getName() : resource.name();
-                        boolean prototype = resource.shareable() == false;
+                        Resource             resource  = annotationUtil.getAnnotation(Resource.class, ckass);
+                        String               beanName  = resource.name().equals("") ? ckass.getName() : resource.name();
+                        boolean              prototype = resource.shareable() == false;
                         BeanInstanceResolver resolver;
                         if (annotationUtil.isPresent(LoadByBeanInstanceResolver.LoadBy.class, ckass))
                         {
@@ -84,35 +90,30 @@ public class ComponentScanProcessor implements JfirePrepare
                         BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype);
                         beanDefinition.setBeanInstanceResolver(resolver);
                         environment.registerBeanDefinition(beanDefinition);
-                    } catch (ClassNotFoundException e)
-                    {
-                        ReflectUtil.throwException(e);
                     }
-                }
-                else if (isConfigurationAnnotationed(annotations))
+                    else if (isAnnotationed(annotations, ConfigurationName))
+                    {
+                        Class<?> ckass = classLoader.loadClass(each);
+                        logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), ckass.getName());
+                        environment.registerCandidateConfiguration(ckass);
+                    }
+                } catch (ClassNotFoundException e)
                 {
+                    ReflectUtil.throwException(e);
                 }
             }
         }
     }
 
-    private boolean isConfigurationAnnotationed(List<AnnotationMetadata> annotations)
+    private boolean isAnnotationed(List<AnnotationMetadata> annotations, String name)
     {
         for (AnnotationMetadata annotation : annotations)
         {
-            if (annotation.isAnnotation(ConfigurationName) || isConfigurationAnnotationed(annotation.getPresentAnnotations()))
+            if (annotation.isAnnotation(RetentionName) || annotation.isAnnotation(DocumentedName) || annotation.isAnnotation(TargetName))
             {
-                return true;
+                continue;
             }
-        }
-        return false;
-    }
-
-    private boolean isResourceAnnotationed(List<AnnotationMetadata> annotations)
-    {
-        for (AnnotationMetadata annotation : annotations)
-        {
-            if (annotation.isAnnotation(ResourceName) || isResourceAnnotationed(annotation.getPresentAnnotations()))
+            if (annotation.isAnnotation(name) || isAnnotationed(annotation.getPresentAnnotations(), name))
             {
                 return true;
             }
@@ -124,9 +125,9 @@ public class ComponentScanProcessor implements JfirePrepare
     {
         try
         {
-            String s = name.replace('.', '/') + ".class";
+            String      s                = name.replace('.', '/') + ".class";
             InputStream resourceAsStream = loader.getResourceAsStream(s);
-            byte[] content = new byte[resourceAsStream.available()];
+            byte[]      content          = new byte[resourceAsStream.available()];
             resourceAsStream.read(content);
             resourceAsStream.close();
             return content;

@@ -21,19 +21,19 @@ public class Utils
         InputStream inputStream = null;
         try
         {
-            if ( path.startsWith("classpath:") )
+            if (path.startsWith("classpath:"))
             {
                 path = path.substring(10);
-                if ( Utils.class.getClassLoader().getResource(path) == null )
+                if (Utils.class.getClassLoader().getResource(path) == null)
                 {
                     throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
                 }
                 inputStream = Utils.class.getClassLoader().getResourceAsStream(path);
             }
-            else if ( path.startsWith("file:") )
+            else if (path.startsWith("file:"))
             {
                 path = path.substring(5);
-                if ( new File(path).exists() == false )
+                if (new File(path).exists() == false)
                 {
                     throw new NullPointerException(StringUtil.format("资源:{}不存在", path));
                 }
@@ -52,7 +52,7 @@ public class Utils
         {
             try
             {
-                if ( inputStream != null )
+                if (inputStream != null)
                 {
                     inputStream.close();
                     inputStream = null;

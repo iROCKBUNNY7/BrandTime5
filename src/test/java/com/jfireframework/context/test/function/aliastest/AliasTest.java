@@ -30,9 +30,9 @@ public class AliasTest
     public void test() throws NoSuchMethodException, SecurityException, NoSuchFieldException
     {
         AnnotationUtil annotationUtil = new AnnotationUtil();
-        Resource resource = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
+        Resource       resource       = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
         Assert.assertTrue(resource.shareable());
-        Method method = AliasTest.class.getMethod("take");
+        Method     method     = AliasTest.class.getMethod("take");
         InitMethod initMethod = annotationUtil.getAnnotation(InitMethod.class, method);
         assertEquals("ss", initMethod.name());
         Field field = AliasTest.class.getDeclaredField("bi");
@@ -51,8 +51,8 @@ public class AliasTest
     public void test2()
     {
         JfireBootstrap jfireConfig = new JfireBootstrap(aliasCompopntScan.class);
-        Jfire jfire = jfireConfig.start();
-        SingleDemo demo = jfire.getBean("demo");
+        Jfire          jfire       = jfireConfig.start();
+        SingleDemo     demo        = jfire.getBean("demo");
         assertFalse(demo == null);
     }
 }

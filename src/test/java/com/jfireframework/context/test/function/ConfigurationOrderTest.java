@@ -2,6 +2,7 @@ package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
+import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
@@ -9,10 +10,10 @@ import com.jfireframework.jfire.core.prepare.annotation.configuration.Configurat
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Resource;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ConfigurationOrderTest<sta>
+@ComponentScan("com.jfireframework.context.test.function:in~com.jfireframework.context.test.function.ConfigurationOrderTest*")
+public class ConfigurationOrderTest
 {
     public static AtomicInteger count = new AtomicInteger();
 
@@ -31,14 +32,13 @@ public class ConfigurationOrderTest<sta>
         }
     }
 
-    @Resource
     @Configuration
     public static class Order_1
     {
         @Bean
         public Person person()
         {
-            if ( count.get() == 0 )
+            if (count.get() == 0)
             {
                 count.set(1);
                 return new Person(1);
@@ -50,14 +50,13 @@ public class ConfigurationOrderTest<sta>
         }
     }
 
-    @Resource
     @Configuration
     public static class Order_3
     {
         @Bean
         public Person person2()
         {
-            if ( count.get() == 1 )
+            if (count.get() == 1)
             {
                 count.set(2);
                 return new Person(2);
@@ -69,7 +68,6 @@ public class ConfigurationOrderTest<sta>
         }
     }
 
-    @Resource
     @Configuration
     @ConfigBefore(Order_3.class)
     @ConfigAfter(Order_1.class)
@@ -78,7 +76,7 @@ public class ConfigurationOrderTest<sta>
         @Bean
         public static Person person3()
         {
-            if ( count.get() == 2 )
+            if (count.get() == 2)
             {
                 count.set(3);
                 return new Person(3);
@@ -91,7 +89,6 @@ public class ConfigurationOrderTest<sta>
     }
 
     @Configuration
-    @Resource
     @ConfigAfter(Order_3.class)
     @ConfigBefore(Order_5.class)
     public static class Order_4
@@ -99,7 +96,7 @@ public class ConfigurationOrderTest<sta>
         @Bean
         public static Person person4()
         {
-            if ( count.get() == 3 )
+            if (count.get() == 3)
             {
                 count.set(4);
                 return new Person(4);
@@ -112,13 +109,12 @@ public class ConfigurationOrderTest<sta>
     }
 
     @Configuration
-    @Resource
     public static class Order_5
     {
         @Bean
         public static Person person5()
         {
-            if ( count.get() == 4 )
+            if (count.get() == 4)
             {
                 count.set(5);
                 return new Person(5);
@@ -133,13 +129,8 @@ public class ConfigurationOrderTest<sta>
     @Test
     public void test()
     {
-        JfireBootstrap bootstrap = new JfireBootstrap();
-        bootstrap.register(Order_1.class);
-        bootstrap.register(Order_2.class);
-        bootstrap.register(Order_3.class);
-        bootstrap.register(Order_4.class);
-        bootstrap.register(Order_5.class);
-        Jfire jfire = bootstrap.start();
+        JfireBootstrap bootstrap = new JfireBootstrap(ConfigurationOrderTest.class);
+        Jfire          jfire     = bootstrap.start();
         Assert.assertEquals(1, ((Person) jfire.getBean("person")).getAge());
         Assert.assertEquals(2, ((Person) jfire.getBean("person2")).getAge());
         Assert.assertEquals(3, ((Person) jfire.getBean("person3")).getAge());

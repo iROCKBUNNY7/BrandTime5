@@ -14,18 +14,18 @@ import java.util.*;
 
 public class Environment
 {
-    public static final String ENVIRONMENT_FIELD_NAME = "environment_jfire_3";
-    private final Map<String, BeanDefinition> beanDefinitions = new HashMap<String, BeanDefinition>();
-    private final Map<String, String> properties = new HashMap<String, String>();
-    private final ReadOnlyEnvironment readOnlyEnvironment = new ReadOnlyEnvironment(this);
-    private ClassLoader classLoader = Environment.class.getClassLoader();
-    private CompileHelper compileHelper;
-    private JavaCompiler javaCompiler;
-    private List<Method> methods = new ArrayList<Method>();
-    private int methodSequence = 0;
-    private List<Class<?>> candidateConfiguration = new ArrayList<Class<?>>();
+    public static final String                      ENVIRONMENT_FIELD_NAME = "environment_jfire_3";
+    private final       Map<String, BeanDefinition> beanDefinitions        = new HashMap<String, BeanDefinition>();
+    private final       Map<String, String>         properties             = new HashMap<String, String>();
+    private final       ReadOnlyEnvironment         readOnlyEnvironment    = new ReadOnlyEnvironment(this);
+    private             ClassLoader                 classLoader            = Environment.class.getClassLoader();
+    private             CompileHelper               compileHelper;
+    private             JavaCompiler                javaCompiler;
+    private             List<Method>                methods                = new ArrayList<Method>();
+    private             int                         methodSequence         = 0;
+    private             Set<Class<?>>               candidateConfiguration = new HashSet<Class<?>>();
     //存储BootStrap类上的所有注解
-    private Annotation[] annotationStore;
+    private             Annotation[]                annotationStore;
 
     public int registerMethod(Method method)
     {
@@ -98,7 +98,7 @@ public class Environment
     public <T extends Annotation> T[] getAnnotations(Class<T> type)
     {
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-        List<T> list = new ArrayList<T>();
+        List<T>        list           = new ArrayList<T>();
         for (Annotation each : annotationStore)
         {
             if (annotationUtil.isPresent(type, each))
@@ -159,7 +159,6 @@ public class Environment
     public void setClassLoader(ClassLoader classLoader)
     {
         this.classLoader = classLoader;
-        compileHelper = new CompileHelper(classLoader);
     }
 
     public ClassLoader getClassLoader()
@@ -183,9 +182,9 @@ public class Environment
 
     public static class ReadOnlyEnvironment
     {
-        private final Environment host;
+        private final   Environment                 host;
         protected final Map<String, BeanDefinition> beanDefinitions;
-        protected final Map<String, String> properties;
+        protected final Map<String, String>         properties;
 
         public ReadOnlyEnvironment(Environment host)
         {
@@ -233,5 +232,10 @@ public class Environment
     public void setAnnotationStore(Annotation[] annotationStore)
     {
         this.annotationStore = annotationStore;
+    }
+
+    public Set<Class<?>> getCandidateConfiguration()
+    {
+        return candidateConfiguration;
     }
 }

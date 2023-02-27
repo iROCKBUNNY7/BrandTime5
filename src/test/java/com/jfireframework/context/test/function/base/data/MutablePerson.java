@@ -5,10 +5,10 @@ import javax.annotation.Resource;
 @Resource(shareable = false)
 public class MutablePerson
 {
-    private int age;
+    private int    age;
     private String name;
     @Resource
-    private House home;
+    private House  home;
 
     public House getHome()
     {
