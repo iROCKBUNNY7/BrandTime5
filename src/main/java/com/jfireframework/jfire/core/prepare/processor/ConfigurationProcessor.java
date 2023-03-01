@@ -3,6 +3,8 @@ package com.jfireframework.jfire.core.prepare.processor;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
@@ -11,19 +13,17 @@ import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.MethodBeanInstanceResolver;
-import com.jfireframework.jfire.exception.ConditionCannotInstanceException;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class ConfigurationProcessor implements JfirePrepare
 {
@@ -32,17 +32,26 @@ public class ConfigurationProcessor implements JfirePrepare
     @Override
     public void prepare(Environment environment)
     {
-        List<Class<?>> list = findConfigurationBeanDefinition(environment);
+        List<String> list = new ArrayList<String>(environment.getCandidateConfiguration());
         logOrder(list);
-        list = new SortList(list).sort();
+        list = new SortList(list, environment.getAnnotationDatabase()).sort();
         logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
         logOrder(list);
-        for (Class<?> each : list)
+        for (String each : list)
         {
-            if (Utils.ANNOTATION_UTIL.isPresent(Conditional.class, each))
+            List<AnnotationInstance> conditionalAnnotations = environment.getAnnotationDatabase().getAnnotations(each, Conditional.class);
+            if (!conditionalAnnotations.isEmpty())
             {
-                boolean match = matchCondition(environment, Utils.ANNOTATION_UTIL.getAnnotation(Conditional.class, each), each.getAnnotations());
-                if (match == false)
+                boolean pass = true;
+                for (AnnotationInstance instance : conditionalAnnotations)
+                {
+                    if (!matchCondition(environment, instance, environment.getAnnotationDatabase().getAnnotaionOnClass(each)))
+                    {
+                        pass = false;
+                        break;
+                    }
+                }
+                if (pass == false)
                 {
                     continue;
                 }
@@ -74,22 +83,13 @@ public class ConfigurationProcessor implements JfirePrepare
         return JfirePreparedConstant.CONFIGURATION_ORDER;
     }
 
-    /**
-     * @param environment
-     * @return
-     */
-    private List<Class<?>> findConfigurationBeanDefinition(Environment environment)
-    {
-        return new ArrayList<Class<?>>(environment.getCandidateConfiguration());
-    }
-
-    private void logOrder(List<Class<?>> list)
+    private void logOrder(List<String> list)
     {
         if (logger.isDebugEnabled())
         {
             int    index   = 1;
             String traceId = TRACEID.currentTraceId();
-            for (Class<?> each : list)
+            for (String each : list)
             {
                 logger.trace("traceId:{} 顺序:{}为{}", traceId, index, each);
                 index++;
@@ -100,10 +100,11 @@ public class ConfigurationProcessor implements JfirePrepare
     class SortList
     {
         SortList.SortEntry head;
+        AnnotationDatabase annotationDatabase;
 
-        SortList(List<Class<?>> list)
+        SortList(List<String> list, AnnotationDatabase annotationDatabase)
         {
-            for (Class<?> each : list)
+            for (String each : list)
             {
                 if (head == null)
                 {
@@ -119,41 +120,43 @@ public class ConfigurationProcessor implements JfirePrepare
             }
         }
 
-        List<Class<?>> sort()
+        List<String> sort()
         {
             SortList.SortEntry entry          = head;
             AnnotationUtil     annotationUtil = Utils.ANNOTATION_UTIL;
             logOrder();
             while (entry != null)
             {
-                if (annotationUtil.isPresent(ConfigBefore.class, entry.value))
+                if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigBefore.class))
                 {
-                    ConfigBefore       configBefore = annotationUtil.getAnnotation(ConfigBefore.class, entry.value);
+                    AnnotationInstance configBefore = annotationDatabase.getAnnotation(entry.value, ConfigBefore.class);
                     SortList.SortEntry index        = entry.pre;
-                    while (index != null && index.value != configBefore.value())
+                    Class<?>           value        = (Class<?>) configBefore.getAttributes().get("value");
+                    while (index != null && index.value != value.getName())
                     {
                         index = index.pre;
                     }
                     if (index != null)
                     {
-                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value.getName(), index.value.getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), entry.value, index.value);
                         remove(entry);
                         addBefore(entry, index);
                         entry = head;
                         continue;
                     }
                 }
-                if (annotationUtil.isPresent(ConfigAfter.class, entry.value))
+                if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigAfter.class))
                 {
-                    ConfigAfter        configAfter = annotationUtil.getAnnotation(ConfigAfter.class, entry.value);
+                    AnnotationInstance configAfter = annotationDatabase.getAnnotation(entry.value, ConfigAfter.class);
                     SortList.SortEntry index       = entry.next;
-                    while (index != null && index.value != configAfter.value())
+                    Class<?>           value       = (Class<?>) configAfter.getAttributes().get("value");
+                    while (index != null && index.value != value.getName())
                     {
                         index = index.next;
                     }
                     if (index != null)
                     {
-                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value.getName(), entry.value.getName());
+                        logger.trace("traceId:{}将{}移动到{}前面", TRACEID.currentTraceId(), index.value, entry.value);
                         remove(index);
                         addBefore(index, entry);
                         entry = head;
@@ -163,7 +166,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 entry = entry.next;
             }
             entry = head;
-            List<Class<?>> list = new LinkedList<Class<?>>();
+            List<String> list = new LinkedList<String>();
             while (entry != null)
             {
                 list.add(entry.value);
@@ -219,7 +222,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 int                index   = 1;
                 while (head != null)
                 {
-                    logger.trace("traceId:{} 顺序{}为{}", traceId, index, head.value.getName());
+                    logger.trace("traceId:{} 顺序{}为{}", traceId, index, head.value);
                     head = head.next;
                     index++;
                 }
@@ -230,35 +233,33 @@ public class ConfigurationProcessor implements JfirePrepare
         {
             SortList.SortEntry pre;
             SortList.SortEntry next;
-            Class<?>           value;
+            String             value;
 
-            public SortEntry(Class<?> value)
+            public SortEntry(String value)
             {
                 this.value = value;
             }
         }
     }
 
-    /**
-     * @param environment
-     * @return
-     */
-    private boolean matchCondition(Environment environment, Conditional conditional, Annotation[] annotations)
+    private boolean matchCondition(Environment environment, AnnotationInstance conditionalAnnotation, List<AnnotationInstance> annotationInstances)
     {
-        boolean match = true;
-        for (Class<? extends Condition> conditionClass : conditional.value())
+        boolean    match = true;
+        Class<?>[] value = (Class<?>[]) conditionalAnnotation.getAttributes().get("value");
+        for (Class<?> each : value)
         {
             try
             {
-                Condition condition = conditionClass.newInstance();
-                if (condition.match(environment.readOnlyEnvironment(), annotations) == false)
+                Condition instance = (Condition) each.newInstance();
+                if (instance.match(environment.readOnlyEnvironment(), annotationInstances) == false)
                 {
                     match = false;
                     break;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
-                throw new ConditionCannotInstanceException(conditionClass, e);
+                ReflectUtil.throwException(e);
             }
         }
         return match;
@@ -280,5 +281,19 @@ public class ConfigurationProcessor implements JfirePrepare
         beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
         environment.registerBeanDefinition(beanDefinition);
         logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
+    }
+
+    private static final String conditionalName = Conditional.class.getName().replace('.', '/');
+
+    void findConditionalInstance(AnnotationMetadata annotationMetadata, List<AnnotationMetadata> list)
+    {
+        if (annotationMetadata.isAnnotation(conditionalName))
+        {
+            list.add(annotationMetadata);
+        }
+        for (AnnotationMetadata presentAnnotation : annotationMetadata.getPresentAnnotations())
+        {
+            findConditionalInstance(presentAnnotation, list);
+        }
     }
 }

@@ -2,6 +2,8 @@ package com.jfireframework.jfire.core;
 
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.smc.compiler.CompileHelper;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabaseImpl;
 import com.jfireframework.jfire.exception.DuplicateBeanNameException;
 import com.jfireframework.jfire.util.Utils;
 
@@ -18,14 +20,27 @@ public class Environment
     private final       Map<String, BeanDefinition> beanDefinitions        = new HashMap<String, BeanDefinition>();
     private final       Map<String, String>         properties             = new HashMap<String, String>();
     private final       ReadOnlyEnvironment         readOnlyEnvironment    = new ReadOnlyEnvironment(this);
-    private             ClassLoader                 classLoader            = Environment.class.getClassLoader();
+    private             ClassLoader                 classLoader;
     private             CompileHelper               compileHelper;
     private             JavaCompiler                javaCompiler;
     private             List<Method>                methods                = new ArrayList<Method>();
     private             int                         methodSequence         = 0;
-    private             Set<Class<?>>               candidateConfiguration = new HashSet<Class<?>>();
+    private             Set<String>                 candidateConfiguration = new HashSet<String>();
     //存储BootStrap类上的所有注解
     private             Annotation[]                annotationStore;
+    private             AnnotationDatabase          annotationDatabase;
+
+    public Environment(ClassLoader classLoader)
+    {
+        this.classLoader = classLoader;
+        annotationDatabase = new AnnotationDatabaseImpl(classLoader);
+    }
+
+    public Environment()
+    {
+        classLoader = Environment.class.getClassLoader();
+        annotationDatabase = new AnnotationDatabaseImpl(classLoader);
+    }
 
     public int registerMethod(Method method)
     {
@@ -219,9 +234,9 @@ public class Environment
         }
     }
 
-    public void registerCandidateConfiguration(Class<?> ckass)
+    public void registerCandidateConfiguration(String className)
     {
-        candidateConfiguration.add(ckass);
+        candidateConfiguration.add(className);
     }
 
     public Annotation[] getAnnotationStore()
@@ -234,8 +249,13 @@ public class Environment
         this.annotationStore = annotationStore;
     }
 
-    public Set<Class<?>> getCandidateConfiguration()
+    public Set<String> getCandidateConfiguration()
     {
         return candidateConfiguration;
+    }
+
+    public AnnotationDatabase getAnnotationDatabase()
+    {
+        return annotationDatabase;
     }
 }

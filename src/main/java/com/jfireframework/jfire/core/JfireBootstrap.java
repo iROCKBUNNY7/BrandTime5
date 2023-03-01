@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 
 public class JfireBootstrap
 {
-    private              Environment       environment   = new Environment();
+    private              Environment       environment;
     private              Set<JfirePrepare> jfirePrepares = new HashSet<JfirePrepare>();
     private              Set<AopManager>   aopManagers   = new HashSet<AopManager>();
     private static final Logger            logger        = LoggerFactory.getLogger(JfireBootstrap.class);
@@ -49,14 +49,18 @@ public class JfireBootstrap
 
     public JfireBootstrap(Class<?> bootStrapClass, ClassLoader classLoader, JavaCompiler compiler)
     {
+        if (classLoader != null)
+        {
+            environment = new Environment(classLoader);
+        }
+        else
+        {
+            environment = new Environment();
+        }
         environment.setAnnotationStore(bootStrapClass == null ? new Annotation[0] : bootStrapClass.getAnnotations());
         if (bootStrapClass != null && Utils.ANNOTATION_UTIL.isPresent(Configuration.class, bootStrapClass))
         {
-            environment.registerCandidateConfiguration(bootStrapClass);
-        }
-        if (classLoader != null)
-        {
-            environment.setClassLoader(classLoader);
+            environment.registerCandidateConfiguration(bootStrapClass.getName());
         }
         if (compiler != null)
         {
@@ -90,7 +94,8 @@ public class JfireBootstrap
                     {
                         logger.debug("traceId:{} 导入一个预处理器:{}", traceId, each.getName());
                         addJfirePrepare((JfirePrepare) each.newInstance());
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         ReflectUtil.throwException(e);
                     }
@@ -98,7 +103,7 @@ public class JfireBootstrap
                 else if (Utils.ANNOTATION_UTIL.isPresent(Configuration.class, each))
                 {
                     logger.debug("traceId:{} 发现一个候选配置类:{}", traceId, each.getName());
-                    environment.registerCandidateConfiguration(each);
+                    environment.registerCandidateConfiguration(each.getName());
                 }
                 else if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, each))
                 {
