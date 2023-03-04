@@ -3,18 +3,16 @@ package com.jfireframework.jfire.core.prepare.processor;
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
-import com.jfireframework.baseutil.bytecode.ClassFile;
-import com.jfireframework.baseutil.bytecode.ClassFileParser;
-import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver;
-import com.jfireframework.jfire.util.BytecodeTool;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
@@ -48,20 +46,12 @@ public class ComponentScanProcessor implements JfirePrepare
             }
             ClassLoader    classLoader    = environment.getClassLoader();
             AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
+            AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
             for (String each : classNames)
             {
-                byte[]    bytecode  = BytecodeTool.loadBytecode(each.replace('.', '/'), classLoader);
-                ClassFile classFile = ((new ClassFileParser(bytecode))).parse();
-                // 如果本身是一个注解或者没有使用resource注解，则忽略
-                if (classFile.isAnnotation())
-                {
-                    logger.trace("traceId:{} 扫描发现类:{},但不符合要求", TRACEID.currentTraceId(), each);
-                    continue;
-                }
-                List<AnnotationMetadata> annotations = classFile.getAnnotations(classLoader);
                 try
                 {
-                    if (BytecodeTool.isAnnotationed(annotations, BytecodeTool.ResourceName))
+                    if (annotationDatabase.isAnnotationPresentOnClass(each,Resource.class))
                     {
                         Class<?> ckass = classLoader.loadClass(each);
                         logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
@@ -81,7 +71,7 @@ public class ComponentScanProcessor implements JfirePrepare
                         beanDefinition.setBeanInstanceResolver(resolver);
                         environment.registerBeanDefinition(beanDefinition);
                     }
-                    else if (BytecodeTool.isAnnotationed(annotations, BytecodeTool.ConfigurationName))
+                    else if (annotationDatabase.isAnnotationPresentOnClass(each, Configuration.class))
                     {
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         environment.registerCandidateConfiguration(each);

@@ -1,7 +1,6 @@
 package com.jfireframework.jfire.core.prepare.support.annotaion;
 
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
-import com.jfireframework.baseutil.bytecode.structure.AnnotationInfo;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.util.BytecodeTool;
 
@@ -57,12 +56,13 @@ public class AnnotationInstanceImpl implements AnnotationInstance
                 }
                 list.add(new AnnotationInstanceImpl(classLoader, metadata, metadata.type()));
             }
+            presentAnnotations = list;
         }
         return presentAnnotations;
     }
 
     @Override
-    public boolean annotationPresent(String annotationResourceName)
+    public boolean isAnnotationPresent(String annotationResourceName)
     {
         if (this.annotationResourceName.equals(annotationResourceName))
         {
@@ -70,7 +70,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
         }
         for (AnnotationInstance presentAnnotaion : getPresentAnnotaions())
         {
-            if (presentAnnotaion.annotationPresent(annotationResourceName))
+            if (presentAnnotaion.isAnnotationPresent(annotationResourceName))
             {
                 return true;
             }
@@ -109,7 +109,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
         {
             for (AnnotationInstance presentAnnotaion : getPresentAnnotaions())
             {
-                presentAnnotaion.getAnnotations(annotationResourceName,list);
+                presentAnnotaion.getAnnotations(annotationResourceName, list);
             }
         }
     }

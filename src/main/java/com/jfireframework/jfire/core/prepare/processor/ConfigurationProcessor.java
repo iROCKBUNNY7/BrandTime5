@@ -23,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ConfigurationProcessor implements JfirePrepare
 {
@@ -32,7 +34,8 @@ public class ConfigurationProcessor implements JfirePrepare
     @Override
     public void prepare(Environment environment)
     {
-        List<String> list = new ArrayList<String>(environment.getCandidateConfiguration());
+        AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
+        List<String>       list               = new ArrayList<String>(environment.getCandidateConfiguration());
         logOrder(list);
         list = new SortList(list, environment.getAnnotationDatabase()).sort();
         logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
@@ -56,22 +59,34 @@ public class ConfigurationProcessor implements JfirePrepare
                     continue;
                 }
             }
-            registerDeclaringClassBeanDefinition(each, environment);
-            for (Method method : each.getMethods())
+            Class<?> ckass = registerDeclaringClassBeanDefinition(each, environment);
+            for (Method method : ckass.getMethods())
             {
-                if (Utils.ANNOTATION_UTIL.isPresent(Bean.class, method) == false)
+                if (annotationDatabase.isAnnotationPresentOnMethod(method, Bean.class) == false)
                 {
                     continue;
                 }
                 // 没有包含条件的直接注册
-                else if (Utils.ANNOTATION_UTIL.isPresent(Conditional.class, method) == false)
+                else if (annotationDatabase.isAnnotationPresentOnMethod(method, Conditional.class) == false)
                 {
                     registerMethodBeanDefinition(method, environment);
                 }
                 // 判断条件是否成功
-                else if (matchCondition(environment, Utils.ANNOTATION_UTIL.getAnnotation(Conditional.class, method), method.getAnnotations()))
+                else
                 {
-                    registerMethodBeanDefinition(method, environment);
+                    boolean pass = true;
+                    for (AnnotationInstance annotation : annotationDatabase.getAnnotations(method, Conditional.class))
+                    {
+                        if (matchCondition(environment, annotation, annotationDatabase.getAnnotationOnMethod(method)) == false)
+                        {
+                            pass = false;
+                            break;
+                        }
+                    }
+                    if (pass)
+                    {
+                        registerMethodBeanDefinition(method, environment);
+                    }
                 }
             }
         }
@@ -129,7 +144,7 @@ public class ConfigurationProcessor implements JfirePrepare
             {
                 if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigBefore.class))
                 {
-                    AnnotationInstance configBefore = annotationDatabase.getAnnotation(entry.value, ConfigBefore.class);
+                    AnnotationInstance configBefore = annotationDatabase.getAnnotations(entry.value, ConfigBefore.class).get(0);
                     SortList.SortEntry index        = entry.pre;
                     Class<?>           value        = (Class<?>) configBefore.getAttributes().get("value");
                     while (index != null && index.value != value.getName())
@@ -147,7 +162,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 }
                 if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigAfter.class))
                 {
-                    AnnotationInstance configAfter = annotationDatabase.getAnnotation(entry.value, ConfigAfter.class);
+                    AnnotationInstance configAfter = annotationDatabase.getAnnotations(entry.value, ConfigAfter.class).get(0);
                     SortList.SortEntry index       = entry.next;
                     Class<?>           value       = (Class<?>) configAfter.getAttributes().get("value");
                     while (index != null && index.value != value.getName())
@@ -256,8 +271,7 @@ public class ConfigurationProcessor implements JfirePrepare
                     match = false;
                     break;
                 }
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 ReflectUtil.throwException(e);
             }
@@ -275,12 +289,21 @@ public class ConfigurationProcessor implements JfirePrepare
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
     }
 
-    private void registerDeclaringClassBeanDefinition(Class<?> ckass, Environment environment)
+    private Class<?> registerDeclaringClassBeanDefinition(String className, Environment environment)
     {
-        BeanDefinition beanDefinition = new BeanDefinition(ckass.getName(), ckass, false);
-        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
-        environment.registerBeanDefinition(beanDefinition);
-        logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
+        try
+        {
+            Class<?>       ckass          = environment.getClassLoader().loadClass(className);
+            BeanDefinition beanDefinition = new BeanDefinition(className, ckass, false);
+            beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
+            environment.registerBeanDefinition(beanDefinition);
+            logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
+            return ckass;
+        } catch (ClassNotFoundException e)
+        {
+            ReflectUtil.throwException(e);
+            return null;
+        }
     }
 
     private static final String conditionalName = Conditional.class.getName().replace('.', '/');

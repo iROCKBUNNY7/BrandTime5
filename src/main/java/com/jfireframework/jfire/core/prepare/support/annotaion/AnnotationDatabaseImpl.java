@@ -68,7 +68,7 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
         List<AnnotationInstance> annotaionOnClass = getAnnotaionOnClass(className);
         for (AnnotationInstance annotationInstance : annotaionOnClass)
         {
-            if (annotationInstance.annotationPresent(replace))
+            if (annotationInstance.isAnnotationPresent(replace))
             {
                 return true;
             }
@@ -77,17 +77,17 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     }
 
     @Override
-    public AnnotationInstance getAnnotation(String className, Class<? extends Annotation> ckass)
+    public boolean isAnnotationPresentOnMethod(Method method, Class<? extends Annotation> ckass)
     {
         String replace = ckass.getName().replace('.', '/');
-        for (AnnotationInstance annotaionOnClass : getAnnotaionOnClass(className))
+        for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
         {
-            if (annotaionOnClass.getAnnotation(replace) != null)
+            if (annotationInstance.isAnnotationPresent(replace))
             {
-                return annotaionOnClass;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     @Override
@@ -98,6 +98,18 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
         for (AnnotationInstance annotaionOnClass : getAnnotaionOnClass(className))
         {
             annotaionOnClass.getAnnotations(replace, list);
+        }
+        return list;
+    }
+
+    @Override
+    public List<AnnotationInstance> getAnnotations(Method method, Class<? extends Annotation> ckass)
+    {
+        String                   replace = ckass.getName().replace('.', '/');
+        List<AnnotationInstance> list    = new ArrayList<AnnotationInstance>();
+        for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
+        {
+            annotationInstance.getAnnotations(replace, list);
         }
         return list;
     }

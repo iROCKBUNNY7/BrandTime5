@@ -32,18 +32,27 @@ public interface AnnotationDatabase
     boolean isAnnotationPresentOnClass(String className, Class<? extends Annotation> ckass);
 
     /**
-     * 返回类上的指定注解的实例信息
-     * @param className
-     * @param ckass
+     * 方法上是否存在指定的注解（该判断执行循环判断）
+     *
+     * @param ckass 注解类
      * @return
      */
-    AnnotationInstance getAnnotation(String className, Class<? extends Annotation> ckass);
+    boolean isAnnotationPresentOnMethod(Method method, Class<? extends Annotation> ckass);
 
     /**
      * 返回类上的指定注解的实例信息
+     *
      * @param className
      * @param ckass
      * @return
      */
-    List<AnnotationInstance> getAnnotations(String className,Class<? extends  Annotation> ckass);
+    List<AnnotationInstance> getAnnotations(String className, Class<? extends Annotation> ckass);
+
+    /**
+     * 返回方法上的制定注解的实例信息
+     * @param method
+     * @param ckass
+     * @return
+     */
+    List<AnnotationInstance> getAnnotations(Method method, Class<? extends Annotation> ckass);
 }
