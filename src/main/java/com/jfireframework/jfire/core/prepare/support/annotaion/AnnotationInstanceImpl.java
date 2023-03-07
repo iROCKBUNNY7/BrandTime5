@@ -1,8 +1,8 @@
 package com.jfireframework.jfire.core.prepare.support.annotaion;
 
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.bytecode.util.BytecodeUtil;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.util.BytecodeTool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
     {
         if (presentAnnotations == null)
         {
-            List<AnnotationMetadata> annotationsOnClass = BytecodeTool.findAnnotationsOnClass(annotationResourceName, classLoader);
+            List<AnnotationMetadata> annotationsOnClass = BytecodeUtil.findAnnotationsOnClass(annotationResourceName, classLoader);
             List<AnnotationInstance> list               = new ArrayList<AnnotationInstance>();
             for (AnnotationMetadata metadata : annotationsOnClass)
             {
@@ -50,7 +50,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
                 {
                     continue;
                 }
-                if (metadata.type().equals(BytecodeTool.DocumentedName) || metadata.type().equals(BytecodeTool.RetentionName) || metadata.type().equals(BytecodeTool.TargetName))
+                if (metadata.type().equals(AnnotationDatabase.DocumentedName) || metadata.type().equals(AnnotationDatabase.RetentionName) || metadata.type().equals(AnnotationDatabase.TargetName))
                 {
                     continue;
                 }

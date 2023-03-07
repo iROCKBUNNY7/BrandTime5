@@ -1,31 +1,32 @@
 package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
-import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
-import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnAnnotation.OnAnnotation;
 import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
-import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Conditional(OnAnnotation.class)
-public @interface ConditionOnAnnotation
+@Conditional(ConditionOnClass.ConditonOnClassProcessor.class)
+public @interface ConditionOnClass
 {
-    Class<? extends Annotation>[] value();
+    Class<?>[] value();
 
-    class OnAnnotation extends BaseCondition
+    class ConditonOnClassProcessor extends BaseCondition
     {
 
-        public OnAnnotation()
+        public ConditonOnClassProcessor()
         {
-            super(ConditionOnAnnotation.class);
+            super(ConditionOnClass.class);
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(Environment.ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
             String[]    value       = (String[]) annotation.getAttributes().get("value");
@@ -38,16 +39,11 @@ public @interface ConditionOnAnnotation
                 }
                 catch (ClassNotFoundException e)
                 {
-                    errorMessage.addErrorMessage("注解:" + each + "不存在于类路径");
-                    return false;
-                }
-                if (readOnlyEnvironment.isAnnotationPresent((Class<? extends Annotation>) aClass)==false)
-                {
-                    errorMessage.addErrorMessage("注解:"+each+"没有标注在启动类上");
+                    errorMessage.addErrorMessage("classpath不存在类:" + each + "不存在");
                     return false;
                 }
             }
-            return true;
+            return false;
         }
     }
 }

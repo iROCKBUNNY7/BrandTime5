@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface Condition
 {
-    boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationInstance> annotations);
+    boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage);
 }

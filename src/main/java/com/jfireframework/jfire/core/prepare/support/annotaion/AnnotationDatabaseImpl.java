@@ -1,7 +1,9 @@
 package com.jfireframework.jfire.core.prepare.support.annotaion;
 
+import com.jfireframework.baseutil.bytecode.ClassFile;
+import com.jfireframework.baseutil.bytecode.ClassFileParser;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
-import com.jfireframework.jfire.util.BytecodeTool;
+import com.jfireframework.baseutil.bytecode.util.BytecodeUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -22,21 +24,21 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     }
 
     @Override
-    public List<AnnotationInstance> getAnnotaionOnClass(String name)
+    public List<AnnotationInstance> getAnnotaionOnClass(String className)
     {
-        List<AnnotationInstance> list = annotationOnClass.get(name);
+        List<AnnotationInstance> list = annotationOnClass.get(className);
         if (list == null)
         {
             list = new ArrayList<AnnotationInstance>();
-            for (AnnotationMetadata metadata : BytecodeTool.findAnnotationsOnClass(name.replace('.', '/'), classLoader))
+            for (AnnotationMetadata metadata : BytecodeUtil.findAnnotationsOnClass(className.replace('.', '/'), classLoader))
             {
-                if (metadata.isValid() == false || metadata.type().equals(BytecodeTool.DocumentedName) || metadata.type().equals(BytecodeTool.RetentionName) || metadata.type().equals(BytecodeTool.TargetName))
+                if (metadata.isValid() == false || metadata.type().equals(DocumentedName) || metadata.type().equals(RetentionName) || metadata.type().equals(TargetName))
                 {
                     continue;
                 }
                 list.add(new AnnotationInstanceImpl(classLoader, metadata, metadata.type()));
             }
-            annotationOnClass.put(name, list);
+            annotationOnClass.put(className, list);
         }
         return list;
     }
@@ -48,9 +50,9 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
         if (list == null)
         {
             list = new ArrayList<AnnotationInstance>();
-            for (AnnotationMetadata metadata : BytecodeTool.findAnnotationsOnMethod(method, classLoader))
+            for (AnnotationMetadata metadata : BytecodeUtil.findAnnotationsOnMethod(method, classLoader))
             {
-                if (metadata.isValid() == false || metadata.type().equals(BytecodeTool.DocumentedName) || metadata.type().equals(BytecodeTool.RetentionName) || metadata.type().equals(BytecodeTool.TargetName))
+                if (metadata.isValid() == false || metadata.type().equals(DocumentedName) || metadata.type().equals(RetentionName) || metadata.type().equals(TargetName))
                 {
                     continue;
                 }
@@ -93,11 +95,11 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     @Override
     public List<AnnotationInstance> getAnnotations(String className, Class<? extends Annotation> ckass)
     {
-        String                   replace = ckass.getName().replace('.', '/');
-        List<AnnotationInstance> list    = new ArrayList<AnnotationInstance>();
+        String                   annotationResourceName = ckass.getName().replace('.', '/');
+        List<AnnotationInstance> list                   = new ArrayList<AnnotationInstance>();
         for (AnnotationInstance annotaionOnClass : getAnnotaionOnClass(className))
         {
-            annotaionOnClass.getAnnotations(replace, list);
+            annotaionOnClass.getAnnotations(annotationResourceName, list);
         }
         return list;
     }
@@ -105,12 +107,20 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     @Override
     public List<AnnotationInstance> getAnnotations(Method method, Class<? extends Annotation> ckass)
     {
-        String                   replace = ckass.getName().replace('.', '/');
-        List<AnnotationInstance> list    = new ArrayList<AnnotationInstance>();
+        String                   annotationResourceName = ckass.getName().replace('.', '/');
+        List<AnnotationInstance> list                   = new ArrayList<AnnotationInstance>();
         for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
         {
-            annotationInstance.getAnnotations(replace, list);
+            annotationInstance.getAnnotations(annotationResourceName, list);
         }
         return list;
+    }
+
+    @Override
+    public boolean isAnnotation(String className)
+    {
+        byte[]    bytecode  = BytecodeUtil.loadBytecode(classLoader, className.replace('.', '/'));
+        ClassFile classFile = new ClassFileParser(bytecode).parse();
+        return classFile.isAnnotation();
     }
 }

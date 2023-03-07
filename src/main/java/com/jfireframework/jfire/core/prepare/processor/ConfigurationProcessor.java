@@ -10,6 +10,7 @@ import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
@@ -40,15 +41,17 @@ public class ConfigurationProcessor implements JfirePrepare
         list = new SortList(list, environment.getAnnotationDatabase()).sort();
         logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
         logOrder(list);
+        ErrorMessage errorMessage = new ErrorMessage();
         for (String each : list)
         {
+            errorMessage.clear();
             List<AnnotationInstance> conditionalAnnotations = environment.getAnnotationDatabase().getAnnotations(each, Conditional.class);
             if (!conditionalAnnotations.isEmpty())
             {
                 boolean pass = true;
-                for (AnnotationInstance instance : conditionalAnnotations)
+                for (AnnotationInstance conditional : conditionalAnnotations)
                 {
-                    if (!matchCondition(environment, instance, environment.getAnnotationDatabase().getAnnotaionOnClass(each)))
+                    if (!matchCondition(environment, conditional, annotationDatabase.getAnnotaionOnClass(each), errorMessage))
                     {
                         pass = false;
                         break;
@@ -56,11 +59,15 @@ public class ConfigurationProcessor implements JfirePrepare
                 }
                 if (pass == false)
                 {
+                    for (String error : errorMessage.getList())
+                    {
+                        logger.debug("traceId:{} 配置类:{}不符合条件:{}", each, error, TRACEID.currentTraceId());
+                    }
                     continue;
                 }
             }
             Class<?> ckass = registerDeclaringClassBeanDefinition(each, environment);
-            for (Method method : ckass.getMethods())
+            for (Method method : ckass.getDeclaredMethods())
             {
                 if (annotationDatabase.isAnnotationPresentOnMethod(method, Bean.class) == false)
                 {
@@ -75,9 +82,9 @@ public class ConfigurationProcessor implements JfirePrepare
                 else
                 {
                     boolean pass = true;
-                    for (AnnotationInstance annotation : annotationDatabase.getAnnotations(method, Conditional.class))
+                    for (AnnotationInstance conditional : annotationDatabase.getAnnotations(method, Conditional.class))
                     {
-                        if (matchCondition(environment, annotation, annotationDatabase.getAnnotationOnMethod(method)) == false)
+                        if (matchCondition(environment, conditional, annotationDatabase.getAnnotationOnMethod(method), errorMessage) == false)
                         {
                             pass = false;
                             break;
@@ -86,6 +93,13 @@ public class ConfigurationProcessor implements JfirePrepare
                     if (pass)
                     {
                         registerMethodBeanDefinition(method, environment);
+                    }
+                    else
+                    {
+                        for (String error : errorMessage.getList())
+                        {
+                            logger.debug("traceId:{} 配置类:{}不符合条件:{}", each, error, TRACEID.currentTraceId());
+                        }
                     }
                 }
             }
@@ -119,6 +133,7 @@ public class ConfigurationProcessor implements JfirePrepare
 
         SortList(List<String> list, AnnotationDatabase annotationDatabase)
         {
+            this.annotationDatabase = annotationDatabase;
             for (String each : list)
             {
                 if (head == null)
@@ -146,8 +161,8 @@ public class ConfigurationProcessor implements JfirePrepare
                 {
                     AnnotationInstance configBefore = annotationDatabase.getAnnotations(entry.value, ConfigBefore.class).get(0);
                     SortList.SortEntry index        = entry.pre;
-                    Class<?>           value        = (Class<?>) configBefore.getAttributes().get("value");
-                    while (index != null && index.value != value.getName())
+                    String           value        = (String) configBefore.getAttributes().get("value");
+                    while (index != null && index.value != value)
                     {
                         index = index.pre;
                     }
@@ -164,8 +179,8 @@ public class ConfigurationProcessor implements JfirePrepare
                 {
                     AnnotationInstance configAfter = annotationDatabase.getAnnotations(entry.value, ConfigAfter.class).get(0);
                     SortList.SortEntry index       = entry.next;
-                    Class<?>           value       = (Class<?>) configAfter.getAttributes().get("value");
-                    while (index != null && index.value != value.getName())
+                  String           value       = (String) configAfter.getAttributes().get("value");
+                    while (index != null && index.value != value)
                     {
                         index = index.next;
                     }
@@ -257,21 +272,32 @@ public class ConfigurationProcessor implements JfirePrepare
         }
     }
 
-    private boolean matchCondition(Environment environment, AnnotationInstance conditionalAnnotation, List<AnnotationInstance> annotationInstances)
+    /**
+     * 判断条件注解中的条件是否被符合
+     *
+     * @param environment
+     * @param conditional
+     * @param annotationsOnMember 在元素上的注解集合。元素可能为class也可能为member
+     * @param errorMessage
+     * @return
+     */
+    private boolean matchCondition(Environment environment, AnnotationInstance conditional, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage)
     {
-        boolean    match = true;
-        Class<?>[] value = (Class<?>[]) conditionalAnnotation.getAttributes().get("value");
-        for (Class<?> each : value)
+        boolean  match = true;
+        Object[] value = (Object[]) conditional.getAttributes().get("value");
+        ClassLoader classLoader = environment.getClassLoader();
+        for (Object each : value)
         {
             try
             {
-                Condition instance = (Condition) each.newInstance();
-                if (instance.match(environment.readOnlyEnvironment(), annotationInstances) == false)
+                Condition instance = (Condition) (classLoader.loadClass((String) each)).newInstance();
+                if (instance.match(environment.readOnlyEnvironment(), annotationsOnMember, errorMessage) == false)
                 {
                     match = false;
                     break;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 ReflectUtil.throwException(e);
             }
@@ -299,7 +325,8 @@ public class ConfigurationProcessor implements JfirePrepare
             environment.registerBeanDefinition(beanDefinition);
             logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
             return ckass;
-        } catch (ClassNotFoundException e)
+        }
+        catch (ClassNotFoundException e)
         {
             ReflectUtil.throwException(e);
             return null;

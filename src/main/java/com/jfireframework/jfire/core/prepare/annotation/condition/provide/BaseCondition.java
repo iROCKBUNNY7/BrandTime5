@@ -2,31 +2,40 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
+import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
-import java.lang.annotation.Annotation;
+import java.util.LinkedList;
+import java.util.List;
 
-public abstract class BaseCondition<T extends Annotation> implements Condition
+public abstract class BaseCondition implements Condition
 {
-    protected final Class<T> selectAnnoType;
+    protected final Class<?> selectAnnoType;
+    protected       String   selectAnnoResourceName;
 
-    public BaseCondition(Class<T> selectAnnoType)
+    public BaseCondition(Class<?> selectAnnoType)
     {
         this.selectAnnoType = selectAnnoType;
+        selectAnnoResourceName = selectAnnoType.getName().replace('.', '/');
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, Annotation[] annotations)
+    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage)
     {
-        for (Annotation each : annotations)
+        List<AnnotationInstance> list = new LinkedList<AnnotationInstance>();
+        for (AnnotationInstance annotationInstance : annotationsOnMember)
         {
-            if (each.annotationType() == selectAnnoType)
+            annotationInstance.getAnnotations(selectAnnoResourceName,list);
+        }
+        for (AnnotationInstance instance : list)
+        {
+            if (!handleSelectAnnoType(readOnlyEnvironment, instance,errorMessage ))
             {
-                return handleSelectAnnoType(readOnlyEnvironment, (T) each);
+                return false;
             }
         }
-        throw new NullPointerException();
+        return true;
     }
 
-    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, T annotation);
+    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage);
 }

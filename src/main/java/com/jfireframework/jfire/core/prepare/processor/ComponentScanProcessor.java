@@ -44,14 +44,18 @@ public class ComponentScanProcessor implements JfirePrepare
                     Collections.addAll(classNames, PackageScan.scan(each));
                 }
             }
-            ClassLoader    classLoader    = environment.getClassLoader();
-            AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
+            ClassLoader        classLoader        = environment.getClassLoader();
+            AnnotationUtil     annotationUtil     = Utils.ANNOTATION_UTIL;
             AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
             for (String each : classNames)
             {
                 try
                 {
-                    if (annotationDatabase.isAnnotationPresentOnClass(each,Resource.class))
+                    if (annotationDatabase.isAnnotation(each))
+                    {
+                        continue;
+                    }
+                    if (annotationDatabase.isAnnotationPresentOnClass(each, Resource.class))
                     {
                         Class<?> ckass = classLoader.loadClass(each);
                         logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
@@ -76,7 +80,8 @@ public class ComponentScanProcessor implements JfirePrepare
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         environment.registerCandidateConfiguration(each);
                     }
-                } catch (ClassNotFoundException e)
+                }
+                catch (ClassNotFoundException e)
                 {
                     ReflectUtil.throwException(e);
                 }

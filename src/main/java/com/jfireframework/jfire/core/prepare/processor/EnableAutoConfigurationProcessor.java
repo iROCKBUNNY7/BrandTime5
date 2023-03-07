@@ -79,6 +79,6 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
         String traceId = TRACEID.currentTraceId();
         logger.debug("traceId:{} 发现配置类:{}", traceId, className);
         Class<?> configor = environment.getClassLoader().loadClass(className);
-        environment.registerCandidateConfiguration(configor);
+        environment.registerCandidateConfiguration(className);
     }
 }

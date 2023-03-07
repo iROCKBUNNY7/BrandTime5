@@ -8,7 +8,8 @@ import java.util.Map;
 public interface AnnotationInstance
 {
     /**
-     * 返回该注解实例的所有值，以Map的形式。 object的实际类型可能为基本类型的包装类，String，Class，Enum，Map ，以及以上元素的数组
+     * 返回该注解实例的所有值，以Map的形式。
+     * object的实际类型可能为基本类型的包装类，String，Class(采用字符串表达，实际类型是String,为类的全限定名)，Enum(采用字符串表达，实际类型是String，格式为EnumTypeName:enumName)，Map<String, Object>，以及以上元素的数组
      *
      * @return
      */

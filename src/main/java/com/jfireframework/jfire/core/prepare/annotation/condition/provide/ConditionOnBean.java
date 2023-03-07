@@ -3,7 +3,9 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
+import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnBean.OnBean;
+import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,7 +16,7 @@ public @interface ConditionOnBean
 {
     Class<?>[] value();
 
-    class OnBean extends BaseCondition<ConditionOnBean>
+    class OnBean extends BaseCondition
     {
 
         public OnBean()
@@ -23,15 +25,26 @@ public @interface ConditionOnBean
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, ConditionOnBean annotation)
+        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
         {
-            Class<?>[] beanTypes = annotation.value();
-            for (Class<?> each : beanTypes)
+            ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
+            String[]    beanTypes   = (String[]) annotation.getAttributes().get("value");
+            for (String beanType : beanTypes)
             {
+                Class<?> aClass;
+                try
+                {
+                    aClass = classLoader.loadClass(beanType);
+                }
+                catch (ClassNotFoundException e)
+                {
+                    errorMessage.addErrorMessage("类:" + beanType + "不存在classpath，对应的Bean也不会存在");
+                    return false;
+                }
                 boolean miss = true;
                 for (BeanDefinition beanDefinition : readOnlyEnvironment.beanDefinitions())
                 {
-                    if (each.isAssignableFrom(beanDefinition.getType()))
+                    if (aClass.isAssignableFrom(beanDefinition.getType()))
                     {
                         miss = false;
                         break;
@@ -39,6 +52,7 @@ public @interface ConditionOnBean
                 }
                 if (miss)
                 {
+                    errorMessage.addErrorMessage("没有Bean是" + beanType + "类型或者其子类");
                     return false;
                 }
             }

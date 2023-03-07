@@ -232,6 +232,11 @@ public class Environment
         {
             return host.getProperty(name) != null;
         }
+
+        public ClassLoader getClassLoader()
+        {
+            return host.getClassLoader();
+        }
     }
 
     public void registerCandidateConfiguration(String className)
