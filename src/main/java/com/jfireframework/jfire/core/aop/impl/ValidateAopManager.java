@@ -9,6 +9,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.util.Utils;
 
@@ -47,7 +48,7 @@ public class ValidateAopManager implements AopManager
     }
 
     @Override
-    public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         classModel.addInterface(SetJfireMethodValidator.class);
         AnnotationUtil annotationUtil    = Utils.ANNOTATION_UTIL;
@@ -71,6 +72,14 @@ public class ValidateAopManager implements AopManager
                 }
             }
         }
+        return new AopCallbackForBeanInstance()
+        {
+            @Override
+            public void run(Object beanInstance)
+            {
+                ((SetJfireMethodValidator) beanInstance).setJfireMethodValidator((JfireMethodValidator) validatorBeandefinition.getBeanInstance());
+            }
+        };
     }
 
     /**
@@ -180,18 +189,6 @@ public class ValidateAopManager implements AopManager
     private static boolean hasConstraintOnReturnValue(Method method)
     {
         return method.getReturnType() != void.class && !method.getReturnType().isPrimitive() && method.isAnnotationPresent(Valid.class) != false;
-    }
-
-    @Override
-    public void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment)
-    {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void fillBean(Object bean, Class<?> type)
-    {
-        ((SetJfireMethodValidator) bean).setJfireMethodValidator((JfireMethodValidator) validatorBeandefinition.getBeanInstance());
     }
 
     @Override

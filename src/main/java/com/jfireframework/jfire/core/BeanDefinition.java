@@ -8,6 +8,7 @@ import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
+import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.AopManager.SetHost;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
@@ -47,6 +48,7 @@ public class BeanDefinition
     private              Class<?>                         enhanceType;
     private              Set<AopManager>                  aopManagers        = new HashSet<AopManager>();
     private              AopManager[]                     orderedAopManagers;
+    private              AopCallbackForBeanInstance[]     aopCallbackForBeanInstances;
     private              String                           beanName;
     // 标注@PostConstruct的方法
     private              Method                           postConstructMethod;
@@ -99,6 +101,7 @@ public class BeanDefinition
             return;
         }
         orderedAopManagers = aopManagers.toArray(new AopManager[aopManagers.size()]);
+        aopCallbackForBeanInstances = new AopCallbackForBeanInstance[orderedAopManagers.length];
         Arrays.sort(orderedAopManagers, new Comparator<AopManager>()
         {
 
@@ -125,18 +128,14 @@ public class BeanDefinition
         addHostField(classModel, hostFieldName);
         addSetAopHostMethod(classModel, hostFieldName);
         addInvokeHostPublicMethod(classModel, hostFieldName);
-        for (AopManager aopManager : orderedAopManagers)
+        for (int i = 0; i < orderedAopManagers.length; i++)
         {
-            aopManager.enhance(classModel, type, environment, hostFieldName);
+            aopCallbackForBeanInstances[i] = orderedAopManagers[i].enhance(classModel, type, environment, hostFieldName);
         }
         CompileHelper compiler = environment.getCompileHelper();
         try
         {
             enhanceType = compiler.compile(classModel);
-            for (AopManager aopManager : orderedAopManagers)
-            {
-                aopManager.enhanceFinish(type, enhanceType, environment);
-            }
         } catch (Throwable e)
         {
             throw new EnhanceException(e);
@@ -348,9 +347,9 @@ public class BeanDefinition
                 newInstance.setAopHost(resolver.buildInstance(), environment);
                 instance = newInstance;
                 map.put(beanName, instance);
-                for (AopManager each : orderedAopManagers)
+                for (AopCallbackForBeanInstance each : aopCallbackForBeanInstances)
                 {
-                    each.fillBean(instance, type);
+                    each.run(instance);
                 }
             } catch (Throwable e)
             {

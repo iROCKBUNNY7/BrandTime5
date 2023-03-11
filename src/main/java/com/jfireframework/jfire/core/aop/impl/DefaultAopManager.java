@@ -13,6 +13,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.notated.*;
 import com.jfireframework.jfire.exception.CannotFindEnhanceFieldException;
@@ -34,10 +35,8 @@ public class DefaultAopManager implements AopManager
         Class<?>         type;
         String[]         fieldNames;
         BeanDefinition[] injects;
-        Field[]          fields;
+        volatile Field[] fields;
     }
-
-    private IdentityHashMap<Class<?>, EnhanceInfo> enhanceInfos = new IdentityHashMap<Class<?>, DefaultAopManager.EnhanceInfo>();
 
     @Override
     public void scan(Environment environment)
@@ -60,7 +59,7 @@ public class DefaultAopManager implements AopManager
     }
 
     @Override
-    public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public AopCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, Environment environment, String hostFieldName)
     {
         PriorityQueue<BeanDefinition> queue      = findAspectClass(type, environment);
         List<String>                  fieldNames = new ArrayList<String>();
@@ -96,11 +95,56 @@ public class DefaultAopManager implements AopManager
                 }
             }
         }
-        EnhanceInfo enhanceInfo = new EnhanceInfo();
+        final EnhanceInfo enhanceInfo = new EnhanceInfo();
         enhanceInfo.fieldNames = fieldNames.toArray(new String[fieldNames.size()]);
         enhanceInfo.injects = injects.toArray(new BeanDefinition[injects.size()]);
         enhanceInfo.type = type;
-        enhanceInfos.put(type, enhanceInfo);
+        return new AopCallbackForBeanInstance()
+        {
+
+            @Override
+            public void run(Object beanInstance)
+            {
+                if (enhanceInfo.fields == null)
+                {
+                    synchronized (enhanceInfo)
+                    {
+                        if (enhanceInfo.fields == null)
+                        {
+                            Field[]  fields      = new Field[enhanceInfo.fieldNames.length];
+                            Class<?> enhanceType = beanInstance.getClass();
+                            for (int i = 0; i < enhanceInfo.fieldNames.length; i++)
+                            {
+                                String fieldName = enhanceInfo.fieldNames[i];
+                                try
+                                {
+                                    Field field = enhanceType.getDeclaredField(fieldName);
+                                    field.setAccessible(true);
+                                    fields[i] = field;
+                                } catch (Exception e)
+                                {
+                                    throw new CannotFindEnhanceFieldException(e);
+                                }
+                            }
+                            enhanceInfo.fields = fields;
+                        }
+                    }
+                }
+                Field[]          fields  = enhanceInfo.fields;
+                BeanDefinition[] injects = enhanceInfo.injects;
+                for (int i = 0; i < fields.length; i++)
+                {
+                    Field field = fields[i];
+                    try
+                    {
+                        field.set(beanInstance, injects[i].getBeanInstance());
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
     }
 
     private void processBeforeAdvice(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName, String fieldName, Method enhanceMethod)
@@ -407,46 +451,6 @@ public class DefaultAopManager implements AopManager
             }
         }
         return true;
-    }
-
-    @Override
-    public void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment)
-    {
-        EnhanceInfo enhanceInfo = enhanceInfos.get(type);
-        Field[]     fields      = new Field[enhanceInfo.fieldNames.length];
-        for (int i = 0; i < enhanceInfo.fieldNames.length; i++)
-        {
-            String fieldName = enhanceInfo.fieldNames[i];
-            try
-            {
-                Field field = enhanceType.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                fields[i] = field;
-            } catch (Exception e)
-            {
-                throw new CannotFindEnhanceFieldException(e);
-            }
-        }
-        enhanceInfo.fields = fields;
-    }
-
-    @Override
-    public void fillBean(Object bean, Class<?> type)
-    {
-        EnhanceInfo      enhanceInfo = enhanceInfos.get(type);
-        Field[]          fields      = enhanceInfo.fields;
-        BeanDefinition[] injects     = enhanceInfo.injects;
-        for (int i = 0; i < fields.length; i++)
-        {
-            Field field = fields[i];
-            try
-            {
-                field.set(bean, injects[i].getBeanInstance());
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override

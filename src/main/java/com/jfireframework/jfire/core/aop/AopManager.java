@@ -37,23 +37,7 @@ public interface AopManager
      * @param environment   环境
      * @param hostFieldName 被增强类实例
      */
-    void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName);
-
-    /**
-     * 一个Bean增强完毕后调用。该调用是紧挨着enhance方法全部完成后。
-     *
-     * @param type        被增强类
-     * @param enhanceType 增强后的代理类
-     * @param environment
-     */
-    void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment);
-
-    /**
-     * 填充Bean当中涉及到的AOP增强属性
-     *
-     * @param bean
-     */
-    void fillBean(Object bean, Class<?> type);
+    AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName);
 
     /**
      * 该AOP生效顺序。数字越小生效越快

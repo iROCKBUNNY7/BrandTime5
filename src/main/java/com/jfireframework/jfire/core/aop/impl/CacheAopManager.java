@@ -12,6 +12,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
@@ -54,7 +55,7 @@ public class CacheAopManager implements AopManager
     }
 
     @Override
-    public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         classModel.addImport(Expression.class);
         classModel.addImport(HashMap.class);
@@ -88,6 +89,14 @@ public class CacheAopManager implements AopManager
                 processCachePut(classModel, cacheManagerFieldName, annotationUtil, method);
             }
         }
+        return new AopCallbackForBeanInstance()
+        {
+            @Override
+            public void run(Object beanInstance)
+            {
+                ((SetCacheManager) beanInstance).setCacheManager((CacheManager) cacheBeanDefinition.getBeanInstance());
+            }
+        };
     }
 
     private void processCachePut(ClassModel classModel, String cacheManagerFieldName, AnnotationUtil annotationUtil, Method method)
@@ -348,17 +357,6 @@ public class CacheAopManager implements AopManager
         classModel.putMethodModel(methodModel);
     }
 
-    @Override
-    public void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment)
-    {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void fillBean(Object bean, Class<?> type)
-    {
-        ((SetCacheManager) bean).setCacheManager((CacheManager) cacheBeanDefinition.getBeanInstance());
-    }
 
     @Override
     public int order()

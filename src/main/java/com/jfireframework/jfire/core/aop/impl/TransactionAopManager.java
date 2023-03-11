@@ -10,6 +10,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.AopManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
@@ -47,11 +48,11 @@ public class TransactionAopManager implements AopManager
     }
 
     @Override
-    public void enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         if (transactionBeandefinition == null)
         {
-            return;
+            return null;
         }
         classModel.addImport(ReflectUtil.class);
         String transFieldName = generateTransactionManagerField(classModel);
@@ -123,6 +124,14 @@ public class TransactionAopManager implements AopManager
             }
             classModel.putMethodModel(newOne);
         }
+        return new AopCallbackForBeanInstance()
+        {
+            @Override
+            public void run(Object beanInstance)
+            {
+                ((SetTransactionManager) beanInstance).setTransactionManager((TransactionManager) transactionBeandefinition.getBeanInstance());
+            }
+        };
     }
 
     private String generateTransactionManagerField(ClassModel classModel)
@@ -143,17 +152,6 @@ public class TransactionAopManager implements AopManager
         methodModel.setReturnType(void.class);
         methodModel.setBody(transFieldName + " = $0;");
         classModel.putMethodModel(methodModel);
-    }
-
-    @Override
-    public void enhanceFinish(Class<?> type, Class<?> enhanceType, Environment environment)
-    {
-    }
-
-    @Override
-    public void fillBean(Object bean, Class<?> type)
-    {
-        ((SetTransactionManager) bean).setTransactionManager((TransactionManager) transactionBeandefinition.getBeanInstance());
     }
 
     @Override
