@@ -1,9 +1,9 @@
 package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,16 +20,16 @@ public abstract class BaseCondition implements Condition
     }
 
     @Override
-    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage)
+    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
     {
-        List<AnnotationInstance> list = new LinkedList<AnnotationInstance>();
-        for (AnnotationInstance annotationInstance : annotationsOnMember)
+        List<AnnotationMetadata> list = new LinkedList<AnnotationMetadata>();
+        for (AnnotationMetadata annotationInstance : annotationsOnMember)
         {
-            annotationInstance.getAnnotations(selectAnnoResourceName,list);
+            fill(annotationInstance,selectAnnoResourceName,list);
         }
-        for (AnnotationInstance instance : list)
+        for (AnnotationMetadata instance : list)
         {
-            if (!handleSelectAnnoType(readOnlyEnvironment, instance,errorMessage ))
+            if (!handleSelectAnnoType(readOnlyEnvironment, instance, errorMessage))
             {
                 return false;
             }
@@ -37,5 +37,20 @@ public abstract class BaseCondition implements Condition
         return true;
     }
 
-    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage);
+    private void fill(AnnotationMetadata annotationMetadata, String typeName, List<AnnotationMetadata> list)
+    {
+        if (annotationMetadata.isAnnotation(typeName))
+        {
+            list.add(annotationMetadata);
+        }
+        for (AnnotationMetadata each : annotationMetadata.getPresentAnnotations())
+        {
+            if (each.isAnnotation(typeName))
+            {
+                list.add(each);
+            }
+        }
+    }
+
+    protected abstract boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotationMetadata, ErrorMessage errorMessage);
 }

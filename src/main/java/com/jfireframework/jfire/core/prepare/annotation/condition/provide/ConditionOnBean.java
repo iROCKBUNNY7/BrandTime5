@@ -1,11 +1,12 @@
 package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnBean.OnBean;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,16 +26,16 @@ public @interface ConditionOnBean
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
-            String[]    beanTypes   = (String[]) annotation.getAttributes().get("value");
-            for (String beanType : beanTypes)
+            ValuePair[] beanTypes   =  annotation.getAttributes().get("value").getArray();
+            for (ValuePair beanType : beanTypes)
             {
                 Class<?> aClass;
                 try
                 {
-                    aClass = classLoader.loadClass(beanType);
+                    aClass = classLoader.loadClass(beanType.getClassName());
                 }
                 catch (ClassNotFoundException e)
                 {

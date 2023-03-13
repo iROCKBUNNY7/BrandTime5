@@ -1,18 +1,17 @@
 package com.jfireframework.context.test.function.beanannotest;
 
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
 
 public class Person2Condition implements Condition
 {
 
     @Override
-    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage)
+    public boolean match(ReadOnlyEnvironment readOnlyEnvironment, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
     {
         if ("pass".equals(readOnlyEnvironment.getProperty("person2")))
         {

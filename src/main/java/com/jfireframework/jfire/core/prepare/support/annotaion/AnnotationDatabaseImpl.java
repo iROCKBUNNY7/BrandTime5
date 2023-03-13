@@ -14,8 +14,8 @@ import java.util.Map;
 
 public class AnnotationDatabaseImpl implements AnnotationDatabase
 {
-    private Map<String, List<AnnotationInstance>> annotationOnClass  = new HashMap<String, List<AnnotationInstance>>();
-    private Map<Method, List<AnnotationInstance>> annotationOnMethod = new HashMap<Method, List<AnnotationInstance>>();
+    private Map<String, List<AnnotationMetadata>> annotationOnClass  = new HashMap<String, List<AnnotationMetadata>>();
+    private Map<Method, List<AnnotationMetadata>> annotationOnMethod = new HashMap<Method, List<AnnotationMetadata>>();
     private ClassLoader                           classLoader;
 
     public AnnotationDatabaseImpl(ClassLoader classLoader)
@@ -24,40 +24,24 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     }
 
     @Override
-    public List<AnnotationInstance> getAnnotaionOnClass(String className)
+    public List<AnnotationMetadata> getAnnotaionOnClass(String className)
     {
-        List<AnnotationInstance> list = annotationOnClass.get(className);
+        List<AnnotationMetadata> list = annotationOnClass.get(className);
         if (list == null)
         {
-            list = new ArrayList<AnnotationInstance>();
-            for (AnnotationMetadata metadata : BytecodeUtil.findAnnotationsOnClass(className.replace('.', '/'), classLoader))
-            {
-                if (metadata.isValid() == false || metadata.type().equals(DocumentedName) || metadata.type().equals(RetentionName) || metadata.type().equals(TargetName))
-                {
-                    continue;
-                }
-                list.add(new AnnotationInstanceImpl(classLoader, metadata, metadata.type()));
-            }
+            list = BytecodeUtil.findAnnotationsOnClass(className, classLoader);
             annotationOnClass.put(className, list);
         }
         return list;
     }
 
     @Override
-    public List<AnnotationInstance> getAnnotationOnMethod(Method method)
+    public List<AnnotationMetadata> getAnnotationOnMethod(Method method)
     {
-        List<AnnotationInstance> list = annotationOnMethod.get(method);
+        List<AnnotationMetadata> list = annotationOnMethod.get(method);
         if (list == null)
         {
-            list = new ArrayList<AnnotationInstance>();
-            for (AnnotationMetadata metadata : BytecodeUtil.findAnnotationsOnMethod(method, classLoader))
-            {
-                if (metadata.isValid() == false || metadata.type().equals(DocumentedName) || metadata.type().equals(RetentionName) || metadata.type().equals(TargetName))
-                {
-                    continue;
-                }
-                list.add(new AnnotationInstanceImpl(classLoader, metadata, metadata.type()));
-            }
+            list = BytecodeUtil.findAnnotationsOnMethod(method, classLoader);
             annotationOnMethod.put(method, list);
         }
         return list;
@@ -67,10 +51,26 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     public boolean isAnnotationPresentOnClass(String className, Class<? extends Annotation> ckass)
     {
         String                   replace          = ckass.getName().replace('.', '/');
-        List<AnnotationInstance> annotaionOnClass = getAnnotaionOnClass(className);
-        for (AnnotationInstance annotationInstance : annotaionOnClass)
+        List<AnnotationMetadata> annotaionOnClass = getAnnotaionOnClass(className);
+        for (AnnotationMetadata each : annotaionOnClass)
         {
-            if (annotationInstance.isAnnotationSelfOrPresent(replace))
+            if (isAnnotationSelfOrPresentOn(each, replace))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isAnnotationSelfOrPresentOn(AnnotationMetadata annotationMetadata, String typeName)
+    {
+        if (annotationMetadata.isAnnotation(typeName))
+        {
+            return true;
+        }
+        for (AnnotationMetadata each : annotationMetadata.getPresentAnnotations())
+        {
+            if (isAnnotationSelfOrPresentOn(each, typeName))
             {
                 return true;
             }
@@ -82,9 +82,9 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     public boolean isAnnotationPresentOnMethod(Method method, Class<? extends Annotation> ckass)
     {
         String replace = ckass.getName().replace('.', '/');
-        for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
+        for (AnnotationMetadata each : getAnnotationOnMethod(method))
         {
-            if (annotationInstance.isAnnotationSelfOrPresent(replace))
+            if (isAnnotationSelfOrPresentOn(each, replace))
             {
                 return true;
             }
@@ -93,25 +93,37 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
     }
 
     @Override
-    public List<AnnotationInstance> getAnnotations(String className, Class<? extends Annotation> ckass)
+    public List<AnnotationMetadata> getAnnotations(String className, Class<? extends Annotation> ckass)
     {
         String                   annotationResourceName = ckass.getName().replace('.', '/');
-        List<AnnotationInstance> list                   = new ArrayList<AnnotationInstance>();
-        for (AnnotationInstance annotaionOnClass : getAnnotaionOnClass(className))
+        List<AnnotationMetadata> list                   = new ArrayList<AnnotationMetadata>();
+        for (AnnotationMetadata each : getAnnotaionOnClass(className))
         {
-            annotaionOnClass.getAnnotations(annotationResourceName, list);
+            fill(each, annotationResourceName, list);
         }
         return list;
     }
 
+    private void fill(AnnotationMetadata annotationMetadata, String typeName, List<AnnotationMetadata> list)
+    {
+        if (annotationMetadata.isAnnotation(typeName))
+        {
+            list.add(annotationMetadata);
+        }
+        for (AnnotationMetadata each : annotationMetadata.getPresentAnnotations())
+        {
+            fill(each, typeName, list);
+        }
+    }
+
     @Override
-    public List<AnnotationInstance> getAnnotations(Method method, Class<? extends Annotation> ckass)
+    public List<AnnotationMetadata> getAnnotations(Method method, Class<? extends Annotation> ckass)
     {
         String                   annotationResourceName = ckass.getName().replace('.', '/');
-        List<AnnotationInstance> list                   = new ArrayList<AnnotationInstance>();
-        for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
+        List<AnnotationMetadata> list                   = new ArrayList<AnnotationMetadata>();
+        for (AnnotationMetadata each : getAnnotationOnMethod(method))
         {
-            annotationInstance.getAnnotations(annotationResourceName, list);
+            fill(each,annotationResourceName,list);
         }
         return list;
     }

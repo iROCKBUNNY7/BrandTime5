@@ -4,6 +4,7 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
@@ -15,7 +16,6 @@ import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
 import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.MethodBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
@@ -45,11 +45,11 @@ public class ConfigurationProcessor implements JfirePrepare
         for (String each : list)
         {
             errorMessage.clear();
-            List<AnnotationInstance> conditionalAnnotations = environment.getAnnotationDatabase().getAnnotations(each, Conditional.class);
+            List<AnnotationMetadata> conditionalAnnotations = environment.getAnnotationDatabase().getAnnotations(each, Conditional.class);
             if (!conditionalAnnotations.isEmpty())
             {
                 boolean pass = true;
-                for (AnnotationInstance conditional : conditionalAnnotations)
+                for (AnnotationMetadata conditional : conditionalAnnotations)
                 {
                     if (!matchCondition(environment, conditional, annotationDatabase.getAnnotaionOnClass(each), errorMessage))
                     {
@@ -82,7 +82,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 else
                 {
                     boolean pass = true;
-                    for (AnnotationInstance conditional : annotationDatabase.getAnnotations(method, Conditional.class))
+                    for (AnnotationMetadata conditional : annotationDatabase.getAnnotations(method, Conditional.class))
                     {
                         if (matchCondition(environment, conditional, annotationDatabase.getAnnotationOnMethod(method), errorMessage) == false)
                         {
@@ -159,9 +159,9 @@ public class ConfigurationProcessor implements JfirePrepare
             {
                 if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigBefore.class))
                 {
-                    AnnotationInstance configBefore = annotationDatabase.getAnnotations(entry.value, ConfigBefore.class).get(0);
+                    AnnotationMetadata configBefore = annotationDatabase.getAnnotations(entry.value, ConfigBefore.class).get(0);
                     SortList.SortEntry index        = entry.pre;
-                    String           value        = (String) configBefore.getAttributes().get("value");
+                    String             value        = configBefore.getAttributes().get("value").getStringValue();
                     while (index != null && index.value != value)
                     {
                         index = index.pre;
@@ -177,9 +177,9 @@ public class ConfigurationProcessor implements JfirePrepare
                 }
                 if (annotationDatabase.isAnnotationPresentOnClass(entry.value, ConfigAfter.class))
                 {
-                    AnnotationInstance configAfter = annotationDatabase.getAnnotations(entry.value, ConfigAfter.class).get(0);
+                    AnnotationMetadata configAfter = annotationDatabase.getAnnotations(entry.value, ConfigAfter.class).get(0);
                     SortList.SortEntry index       = entry.next;
-                  String           value       = (String) configAfter.getAttributes().get("value");
+                    String             value       = (String) configAfter.getAttributes().get("value").getStringValue();
                     while (index != null && index.value != value)
                     {
                         index = index.next;
@@ -281,23 +281,22 @@ public class ConfigurationProcessor implements JfirePrepare
      * @param errorMessage
      * @return
      */
-    private boolean matchCondition(Environment environment, AnnotationInstance conditional, List<AnnotationInstance> annotationsOnMember, ErrorMessage errorMessage)
+    private boolean matchCondition(Environment environment, AnnotationMetadata conditional, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
     {
-        boolean  match = true;
-        Object[] value = (Object[]) conditional.getAttributes().get("value");
+        boolean     match       = true;
+        ValuePair[] value       =  conditional.getAttributes().get("value").getArray();
         ClassLoader classLoader = environment.getClassLoader();
-        for (Object each : value)
+        for (ValuePair each : value)
         {
             try
             {
-                Condition instance = (Condition) (classLoader.loadClass((String) each)).newInstance();
+                Condition instance = (Condition) (classLoader.loadClass(each.getClassName())).newInstance();
                 if (instance.match(environment.readOnlyEnvironment(), annotationsOnMember, errorMessage) == false)
                 {
                     match = false;
                     break;
                 }
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 ReflectUtil.throwException(e);
             }
@@ -325,8 +324,7 @@ public class ConfigurationProcessor implements JfirePrepare
             environment.registerBeanDefinition(beanDefinition);
             logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
             return ckass;
-        }
-        catch (ClassNotFoundException e)
+        } catch (ClassNotFoundException e)
         {
             ReflectUtil.throwException(e);
             return null;

@@ -30,6 +30,7 @@ import org.junit.runners.Suite;
         ParamFieldTest.class, //
         PropertyPathImporterTest.class, //
         StarterTest.class, //
+        AnnodatationDatabaseTest.class,//
 })
 public class Coverage
 {

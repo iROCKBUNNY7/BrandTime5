@@ -1,9 +1,10 @@
 package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.jfire.core.Environment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,16 +27,16 @@ public @interface ConditionOnClass
         }
 
         @Override
-        protected boolean handleSelectAnnoType(Environment.ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(Environment.ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
-            String[]    value       = (String[]) annotation.getAttributes().get("value");
-            for (String each : value)
+            ValuePair[] value       = annotation.getAttributes().get("value").getArray();
+            for (ValuePair each : value)
             {
                 Class<?> aClass;
                 try
                 {
-                    aClass = classLoader.loadClass(each);
+                    aClass = classLoader.loadClass(each.getClassName());
                 }
                 catch (ClassNotFoundException e)
                 {

@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
@@ -17,7 +18,6 @@ import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
 import com.jfireframework.jfire.core.aop.notated.*;
 import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationInstance;
 import com.jfireframework.jfire.exception.CannotFindEnhanceFieldException;
 import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
@@ -49,8 +49,8 @@ public class AopEnhanceManager implements EnhanceManager
         {
             if (annotationDatabase.isAnnotationPresentOnClass(each.getType().getName(), EnhanceClass.class))
             {
-                List<AnnotationInstance> annotations = annotationDatabase.getAnnotations(each.getType().getName(), EnhanceClass.class);
-                String                   rule        = (String) annotations.get(0).getAttributes().get("value");
+                List<AnnotationMetadata> annotations = annotationDatabase.getAnnotations(each.getType().getName(), EnhanceClass.class);
+                String                   rule        = annotations.get(0).getAttributes().get("value").getStringValue();
                 for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
                 {
                     if (StringUtil.match(beanDefinition.getType().getName(), rule))
@@ -176,16 +176,7 @@ public class AopEnhanceManager implements EnhanceManager
 
     private String getRule(AnnotationDatabase annotationDatabase, Method enhanceMethod, Class<? extends Annotation> type)
     {
-        String rule                   = null;
-        String annotationResourceName = type.getName().replace('.', '/');
-        for (AnnotationInstance each : annotationDatabase.getAnnotationOnMethod(enhanceMethod))
-        {
-            if (each.isAnnotationSelfOrPresent(annotationResourceName))
-            {
-                rule = (String) each.getAnnotation(annotationResourceName).getAttributes().get("value");
-            }
-        }
-        return rule;
+        return annotationDatabase.getAnnotations(enhanceMethod, type).get(0).getAttributes().get("value").getStringValue();
     }
 
     private void generateProceedPointImplWithInvokeinternal(ClassModel classModel, String hostFieldName, Method method, String pointName, StringCache cache, String origin)
@@ -238,7 +229,7 @@ public class AopEnhanceManager implements EnhanceManager
     private void processAfterAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase,enhanceMethod,After.class);
+        String rule    = getRule(annotationDatabase, enhanceMethod, After.class);
         for (Method method : type.getMethods())
         {
             if (match(rule, method))
@@ -266,7 +257,7 @@ public class AopEnhanceManager implements EnhanceManager
     private void processAfterReturningAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase,enhanceMethod,AfterReturning.class);
+        String rule    = getRule(annotationDatabase, enhanceMethod, AfterReturning.class);
         for (Method method : type.getMethods())
         {
             if (method.getReturnType() != void.class && match(rule, method))
@@ -299,7 +290,7 @@ public class AopEnhanceManager implements EnhanceManager
     private void processAfterThrowableAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase,enhanceMethod,AfterThrowable.class);
+        String rule    = getRule(annotationDatabase, enhanceMethod, AfterThrowable.class);
         classModel.addImport(ReflectUtil.class);
         for (Method method : type.getMethods())
         {
@@ -341,7 +332,7 @@ public class AopEnhanceManager implements EnhanceManager
     private void processAroundAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase,enhanceMethod,Around.class);
+        String rule    = getRule(annotationDatabase, enhanceMethod, Around.class);
         for (Method method : type.getMethods())
         {
             if (match(rule, method))
