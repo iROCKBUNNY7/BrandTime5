@@ -1,7 +1,5 @@
 package com.jfireframework.jfire.core.aop;
 
-import java.lang.reflect.Method;
-
 /**
  * 方法连接点的抽象表示
  *
@@ -9,13 +7,34 @@ import java.lang.reflect.Method;
  */
 public interface ProceedPoint
 {
+    class MethodDescription
+    {
+        final String methodName;
+        Class<?>[] paramTypes;
+
+        public MethodDescription(String methodName, Class<?>[] paramTypes)
+        {
+            this.methodName = methodName;
+            this.paramTypes = paramTypes;
+        }
+
+        String methodName()
+        {
+            return methodName;
+        }
+
+        Class<?>[] getParamTypes()
+        {
+            return paramTypes;
+        }
+    }
 
     /**
      * 表示对目标方法的调用。在静态代码中作为继承方法被修改以实现对目标方法的调用
      *
      * @return
      */
-    Object invoke();
+    void invoke();
 
     /**
      * 返回目标方法的调用对象实例
@@ -29,7 +48,7 @@ public interface ProceedPoint
      *
      * @return
      */
-    Method getMethod();
+    MethodDescription getMethod();
 
     /**
      * 在异常增强中，返回原方法抛出的异常

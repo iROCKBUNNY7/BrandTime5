@@ -62,7 +62,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
     }
 
     @Override
-    public boolean isAnnotationPresent(String annotationResourceName)
+    public boolean isAnnotationSelfOrPresent(String annotationResourceName)
     {
         if (this.annotationResourceName.equals(annotationResourceName))
         {
@@ -70,7 +70,7 @@ public class AnnotationInstanceImpl implements AnnotationInstance
         }
         for (AnnotationInstance presentAnnotaion : getPresentAnnotaions())
         {
-            if (presentAnnotaion.isAnnotationPresent(annotationResourceName))
+            if (presentAnnotaion.isAnnotationSelfOrPresent(annotationResourceName))
             {
                 return true;
             }

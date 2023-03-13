@@ -70,7 +70,7 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
         List<AnnotationInstance> annotaionOnClass = getAnnotaionOnClass(className);
         for (AnnotationInstance annotationInstance : annotaionOnClass)
         {
-            if (annotationInstance.isAnnotationPresent(replace))
+            if (annotationInstance.isAnnotationSelfOrPresent(replace))
             {
                 return true;
             }
@@ -84,7 +84,7 @@ public class AnnotationDatabaseImpl implements AnnotationDatabase
         String replace = ckass.getName().replace('.', '/');
         for (AnnotationInstance annotationInstance : getAnnotationOnMethod(method))
         {
-            if (annotationInstance.isAnnotationPresent(replace))
+            if (annotationInstance.isAnnotationSelfOrPresent(replace))
             {
                 return true;
             }

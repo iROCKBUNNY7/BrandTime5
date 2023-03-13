@@ -10,8 +10,8 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
-import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
-import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
+import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
 import com.jfireframework.jfire.core.aop.notated.Transactional;
@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
-public class TransactionAopManager implements AopManager
+public class TransactionAopManager implements EnhanceManager
 {
     private BeanDefinition transactionBeandefinition;
 
@@ -48,7 +48,7 @@ public class TransactionAopManager implements AopManager
     }
 
     @Override
-    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         if (transactionBeandefinition == null)
         {
@@ -124,7 +124,7 @@ public class TransactionAopManager implements AopManager
             }
             classModel.putMethodModel(newOne);
         }
-        return new AopCallbackForBeanInstance()
+        return new EnhanceCallbackForBeanInstance()
         {
             @Override
             public void run(Object beanInstance)

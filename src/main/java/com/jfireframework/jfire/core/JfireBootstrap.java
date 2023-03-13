@@ -3,9 +3,9 @@ package com.jfireframework.jfire.core;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
-import com.jfireframework.jfire.core.aop.impl.DefaultAopManager;
+import com.jfireframework.jfire.core.aop.impl.AopEnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
 import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
@@ -27,10 +27,10 @@ import java.util.Map.Entry;
 
 public class JfireBootstrap
 {
-    private              Environment       environment;
-    private              Set<JfirePrepare> jfirePrepares = new HashSet<JfirePrepare>();
-    private              Set<AopManager>   aopManagers   = new HashSet<AopManager>();
-    private static final Logger            logger        = LoggerFactory.getLogger(JfireBootstrap.class);
+    private              Environment         environment;
+    private              Set<JfirePrepare>   jfirePrepares = new HashSet<JfirePrepare>();
+    private              Set<EnhanceManager> aopManagers   = new HashSet<EnhanceManager>();
+    private static final Logger              logger        = LoggerFactory.getLogger(JfireBootstrap.class);
 
     public JfireBootstrap()
     {
@@ -116,7 +116,7 @@ public class JfireBootstrap
 
     private void registerDefault()
     {
-        addAopManager(new DefaultAopManager());
+        addAopManager(new AopEnhanceManager());
         addAopManager(new TransactionAopManager());
         addAopManager(new CacheAopManager());
         addAopManager(new ValidateAopManager());
@@ -171,16 +171,16 @@ public class JfireBootstrap
 
     private void aopScan(Environment environment)
     {
-        LinkedList<AopManager> list = new LinkedList<AopManager>(this.aopManagers);
-        Collections.sort(list, new Comparator<AopManager>()
+        LinkedList<EnhanceManager> list = new LinkedList<EnhanceManager>(this.aopManagers);
+        Collections.sort(list, new Comparator<EnhanceManager>()
         {
             @Override
-            public int compare(AopManager o1, AopManager o2)
+            public int compare(EnhanceManager o1, EnhanceManager o2)
             {
                 return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
-        for (AopManager aopManager : list)
+        for (EnhanceManager aopManager : list)
         {
             aopManager.scan(environment);
         }
@@ -218,7 +218,7 @@ public class JfireBootstrap
         jfirePrepares.add(jfirePrepare);
     }
 
-    private void addAopManager(AopManager aopManager)
+    private void addAopManager(EnhanceManager aopManager)
     {
         aopManagers.add(aopManager);
     }

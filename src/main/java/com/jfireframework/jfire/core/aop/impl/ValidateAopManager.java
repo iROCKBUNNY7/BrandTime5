@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
+import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
@@ -9,8 +10,8 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
-import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
-import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
+import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.util.Utils;
 
 import javax.validation.Constraint;
@@ -21,7 +22,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-public class ValidateAopManager implements AopManager
+public class ValidateAopManager implements EnhanceManager
 {
     private BeanDefinition validatorBeandefinition;
 
@@ -48,7 +49,7 @@ public class ValidateAopManager implements AopManager
     }
 
     @Override
-    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         classModel.addInterface(SetJfireMethodValidator.class);
         AnnotationUtil annotationUtil    = Utils.ANNOTATION_UTIL;
@@ -72,7 +73,7 @@ public class ValidateAopManager implements AopManager
                 }
             }
         }
-        return new AopCallbackForBeanInstance()
+        return new EnhanceCallbackForBeanInstance()
         {
             @Override
             public void run(Object beanInstance)

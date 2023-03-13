@@ -12,8 +12,8 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.Environment;
-import com.jfireframework.jfire.core.aop.AopCallbackForBeanInstance;
-import com.jfireframework.jfire.core.aop.AopManager;
+import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
+import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheGet;
 import com.jfireframework.jfire.core.aop.notated.cache.CachePut;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CacheAopManager implements AopManager
+public class CacheAopManager implements EnhanceManager
 {
     private BeanDefinition cacheBeanDefinition;
 
@@ -55,7 +55,7 @@ public class CacheAopManager implements AopManager
     }
 
     @Override
-    public AopCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
     {
         classModel.addImport(Expression.class);
         classModel.addImport(HashMap.class);
@@ -89,7 +89,7 @@ public class CacheAopManager implements AopManager
                 processCachePut(classModel, cacheManagerFieldName, annotationUtil, method);
             }
         }
-        return new AopCallbackForBeanInstance()
+        return new EnhanceCallbackForBeanInstance()
         {
             @Override
             public void run(Object beanInstance)

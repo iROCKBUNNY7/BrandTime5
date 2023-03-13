@@ -23,7 +23,7 @@ public interface AnnotationInstance
      * @param annotationResourceName 注解类的资源名称，格式为aa/bb/cc
      * @return
      */
-    boolean isAnnotationPresent(String annotationResourceName);
+    boolean isAnnotationSelfOrPresent(String annotationResourceName);
 
     /**
      * 返回指定注解的实例。该方法会以循环的方式不断查询直到找到

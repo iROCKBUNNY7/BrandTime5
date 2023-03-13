@@ -39,8 +39,9 @@ public class AopTest
         JfireBootstrap jfireConfig = new JfireBootstrap(AopTtestScan.class);
         Jfire          jfire       = jfireConfig.start();
         Person         person      = jfire.getBean(Person.class);
-        assertEquals(0, person.testInts(new int[]{1, 2, 3}).length);
+        person.testInts(new int[]{1, 2, 3});
         assertEquals(1, person.invokeCount());
+
     }
 
     /**
@@ -77,6 +78,17 @@ public class AopTest
         Jfire          jfire       = jfireConfig.start();
         Person         person      = jfire.getBean(Person.class);
         assertEquals("林斌你好", person.myName("你好"));
+    }
+
+    @Test
+    public void testForVoidReturn()
+    {
+        JfireBootstrap bootstrap   = new JfireBootstrap(AopTtestScan.class);
+        Jfire          jfire       = bootstrap.start();
+        Person         person      = jfire.getBean(Person.class);
+        assertEquals(0, person.invokeCount());
+        person.testForVoidReturn();
+        assertEquals(2, person.invokeCount());
     }
 
     @Test

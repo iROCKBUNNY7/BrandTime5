@@ -31,9 +31,9 @@ public @interface ConditionOnProperty
         @Override
         protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationInstance annotation, ErrorMessage errorMessage)
         {
-            for (Object each : (Object[]) annotation.getAttributes().get("value"))
+            for (String each : (String[]) annotation.getAttributes().get("value"))
             {
-                if (readOnlyEnvironment.hasProperty((String) each) == false)
+                if (readOnlyEnvironment.hasProperty(each) == false)
                 {
                     errorMessage.addErrorMessage("缺少属性:" + each);
                     return false;

@@ -27,6 +27,12 @@
             <groupId>com.jfireframework</groupId>
             <artifactId>jfireEl</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.jfireframework</groupId>
+                    <artifactId>baseutil</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

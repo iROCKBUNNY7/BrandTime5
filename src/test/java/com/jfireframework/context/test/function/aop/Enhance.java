@@ -42,12 +42,11 @@ public class Enhance
     }
 
     @Around("testInts(int[])")
-    public String[] test(ProceedPoint point)
+    public void test(ProceedPoint point)
     {
         System.out.println("asdasd");
-        String[] origin = (String[]) point.invoke();
-        Assert.assertEquals(3, origin.length);
-        return new String[0];
+        point.invoke();
+        Assert.assertEquals(((int[]) point.getParams()[0]).length, ((String[]) point.getResult()).length);
     }
 
     @Before(value = "order()")
@@ -70,12 +69,20 @@ public class Enhance
     }
 
     @Around("myName(String)")
-    public String testMyname(ProceedPoint point)
+    public void testMyname(ProceedPoint point)
     {
         System.out.println("环绕增强钱");
-        String result = (String) point.invoke();
+        point.invoke();
         System.out.println("环绕增强后");
-        return result;
+    }
+
+    @Around("testForVoidReturn()")
+    public void testForVoidReturn(ProceedPoint point)
+    {
+        System.out.println("环绕增强钱");
+        point.invoke();
+        point.invoke();
+        System.out.println("环绕增强后");
     }
 
     @AfterThrowable("throwe(*)")

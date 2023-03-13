@@ -53,6 +53,11 @@ public class Person
         return name + word;
     }
 
+    public void testForVoidReturn()
+    {
+        invokeCount++;
+    }
+
     public void throwe()
     {
         invokeCount++;
