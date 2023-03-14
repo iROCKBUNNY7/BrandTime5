@@ -50,7 +50,7 @@ public class AopEnhanceManager implements EnhanceManager
             if (annotationDatabase.isAnnotationPresentOnClass(each.getType().getName(), EnhanceClass.class))
             {
                 List<AnnotationMetadata> annotations = annotationDatabase.getAnnotations(each.getType().getName(), EnhanceClass.class);
-                String                   rule        = annotations.get(0).getAttributes().get("value").getStringValue();
+                String                   rule        = annotations.get(0).getAttribyte("value").getStringValue();
                 for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
                 {
                     if (StringUtil.match(beanDefinition.getType().getName(), rule))
@@ -126,7 +126,8 @@ public class AopEnhanceManager implements EnhanceManager
                                     Field field = enhanceType.getDeclaredField(fieldName);
                                     field.setAccessible(true);
                                     fields[i] = field;
-                                } catch (Exception e)
+                                }
+                                catch (Exception e)
                                 {
                                     throw new CannotFindEnhanceFieldException(e);
                                 }
@@ -143,7 +144,8 @@ public class AopEnhanceManager implements EnhanceManager
                     try
                     {
                         field.set(beanInstance, injects[i].getBeanInstance());
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         e.printStackTrace();
                     }
@@ -176,7 +178,7 @@ public class AopEnhanceManager implements EnhanceManager
 
     private String getRule(AnnotationDatabase annotationDatabase, Method enhanceMethod, Class<? extends Annotation> type)
     {
-        return annotationDatabase.getAnnotations(enhanceMethod, type).get(0).getAttributes().get("value").getStringValue();
+        return annotationDatabase.getAnnotations(enhanceMethod, type).get(0).getAttribyte("value").getStringValue();
     }
 
     private void generateProceedPointImplWithInvokeinternal(ClassModel classModel, String hostFieldName, Method method, String pointName, StringCache cache, String origin)

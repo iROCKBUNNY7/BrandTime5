@@ -32,7 +32,7 @@ public @interface ConditionOnProperty
         @Override
         protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
         {
-            for (ValuePair each : annotation.getAttributes().get("value").getArray())
+            for (ValuePair each : annotation.getAttribyte("value").getArray())
             {
                 if (readOnlyEnvironment.hasProperty(each.getStringValue()) == false)
                 {

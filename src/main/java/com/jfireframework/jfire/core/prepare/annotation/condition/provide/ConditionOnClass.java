@@ -30,7 +30,7 @@ public @interface ConditionOnClass
         protected boolean handleSelectAnnoType(Environment.ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
-            ValuePair[] value       = annotation.getAttributes().get("value").getArray();
+            ValuePair[] value       = annotation.getAttribyte("value").getArray();
             for (ValuePair each : value)
             {
                 Class<?> aClass;

@@ -161,7 +161,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 {
                     AnnotationMetadata configBefore = annotationDatabase.getAnnotations(entry.value, ConfigBefore.class).get(0);
                     SortList.SortEntry index        = entry.pre;
-                    String             value        = configBefore.getAttributes().get("value").getStringValue();
+                    String             value        = configBefore.getAttribyte("value").getStringValue();
                     while (index != null && index.value != value)
                     {
                         index = index.pre;
@@ -179,7 +179,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 {
                     AnnotationMetadata configAfter = annotationDatabase.getAnnotations(entry.value, ConfigAfter.class).get(0);
                     SortList.SortEntry index       = entry.next;
-                    String             value       = (String) configAfter.getAttributes().get("value").getStringValue();
+                    String             value       = (String) configAfter.getAttribyte("value").getStringValue();
                     while (index != null && index.value != value)
                     {
                         index = index.next;
@@ -284,7 +284,7 @@ public class ConfigurationProcessor implements JfirePrepare
     private boolean matchCondition(Environment environment, AnnotationMetadata conditional, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
     {
         boolean     match       = true;
-        ValuePair[] value       =  conditional.getAttributes().get("value").getArray();
+        ValuePair[] value       =  conditional.getAttribyte("value").getArray();
         ClassLoader classLoader = environment.getClassLoader();
         for (ValuePair each : value)
         {
