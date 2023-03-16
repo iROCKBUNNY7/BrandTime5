@@ -1,7 +1,7 @@
 package com.jfireframework.jfire.core.resolver.impl;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
@@ -27,7 +27,7 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
     {
         try
         {
-            Object instance = hostBeanDefinition.getBeanInstance();
+            Object instance = hostBeanDefinition.getBean();
             if (paramsBeandefinition.length == 0)
             {
                 return method.invoke(instance);
@@ -38,7 +38,7 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
                 for (int i = 0; i < paramsBeandefinition.length; i++)
                 {
                     BeanDefinition beanDefinition = paramsBeandefinition[i];
-                    params[i] = beanDefinition.getBeanInstance();
+                    params[i] = beanDefinition.getBean();
                 }
                 return method.invoke(instance, params);
             }
@@ -49,7 +49,7 @@ public class MethodBeanInstanceResolver implements BeanInstanceResolver
     }
 
     @Override
-    public void init(Environment environment)
+    public void init(EnvironmentTmp environment)
     {
         hostBeanDefinition = environment.getBeanDefinition(method.getDeclaringClass());
         if (hostBeanDefinition == null)

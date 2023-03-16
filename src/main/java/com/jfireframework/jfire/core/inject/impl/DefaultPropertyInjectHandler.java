@@ -3,7 +3,7 @@ package com.jfireframework.jfire.core.inject.impl;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.exception.InjectTypeException;
@@ -23,7 +23,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     private Inject        inject;
 
     @Override
-    public void init(Field field, Environment environment)
+    public void init(Field field, EnvironmentTmp environment)
     {
         valueAccessor = new ValueAccessor(field);
         PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);

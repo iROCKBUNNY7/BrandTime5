@@ -2,7 +2,7 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     private static final int    offset        = directoryName.length();
 
     @Override
-    public void prepare(Environment environment)
+    public void prepare(EnvironmentTmp environment)
     {
         try
         {
@@ -74,7 +74,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
         return JfirePreparedConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
-    void registgerAutoConfigor(String className, Environment environment) throws ClassNotFoundException
+    void registgerAutoConfigor(String className, EnvironmentTmp environment) throws ClassNotFoundException
     {
         String traceId = TRACEID.currentTraceId();
         logger.debug("traceId:{} 发现配置类:{}", traceId, className);

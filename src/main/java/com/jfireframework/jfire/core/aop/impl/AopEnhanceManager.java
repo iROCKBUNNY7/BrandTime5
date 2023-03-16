@@ -12,7 +12,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
@@ -42,7 +42,7 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public void scan(Environment environment)
+    public void scan(EnvironmentTmp environment)
     {
         AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
         for (BeanDefinition each : environment.beanDefinitions().values())
@@ -63,7 +63,7 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, EnvironmentTmp environment, String hostFieldName)
     {
         PriorityQueue<BeanDefinition> queue              = findAspectClass(type, environment);
         List<String>                  fieldNames         = new ArrayList<String>();
@@ -143,7 +143,7 @@ public class AopEnhanceManager implements EnhanceManager
                     Field field = fields[i];
                     try
                     {
-                        field.set(beanInstance, injects[i].getBeanInstance());
+                        field.set(beanInstance, injects[i].getBean());
                     }
                     catch (Exception e)
                     {
@@ -411,7 +411,7 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, Environment environment)
+    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, EnvironmentTmp environment)
     {
         PriorityQueue<BeanDefinition> queue = new PriorityQueue<BeanDefinition>(10, new Comparator<BeanDefinition>()
         {

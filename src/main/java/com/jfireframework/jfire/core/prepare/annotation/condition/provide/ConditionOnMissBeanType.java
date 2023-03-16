@@ -3,7 +3,7 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnMissBeanType.OnMissBeanType;

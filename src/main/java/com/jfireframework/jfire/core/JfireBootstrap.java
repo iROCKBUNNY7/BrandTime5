@@ -4,8 +4,8 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
-import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
 import com.jfireframework.jfire.core.aop.impl.AopEnhanceManager;
+import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
 import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
 import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 
 public class JfireBootstrap
 {
-    private              Environment         environment;
+    private              EnvironmentTmp      environment;
     private              Set<JfirePrepare>   jfirePrepares = new HashSet<JfirePrepare>();
     private              Set<EnhanceManager> aopManagers   = new HashSet<EnhanceManager>();
     private static final Logger              logger        = LoggerFactory.getLogger(JfireBootstrap.class);
@@ -51,11 +51,11 @@ public class JfireBootstrap
     {
         if (classLoader != null)
         {
-            environment = new Environment(classLoader);
+            environment = new EnvironmentTmp(classLoader);
         }
         else
         {
-            environment = new Environment();
+            environment = new EnvironmentTmp();
         }
         environment.setAnnotationStore(bootStrapClass == null ? new Annotation[0] : bootStrapClass.getAnnotations());
         if (bootStrapClass != null && Utils.ANNOTATION_UTIL.isPresent(Configuration.class, bootStrapClass))
@@ -133,18 +133,18 @@ public class JfireBootstrap
         return jfire;
     }
 
-    private void awareContextInit(Environment environment)
+    private void awareContextInit(EnvironmentTmp environment)
     {
         for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
         {
             if (beanDefinition.isAwareContextInit())
             {
-                ((JfireAwareContextInited) beanDefinition.getBeanInstance()).awareContextInited(environment.readOnlyEnvironment());
+                ((JfireAwareContextInited) beanDefinition.getBean()).awareContextInited(environment.readOnlyEnvironment());
             }
         }
     }
 
-    private void invokeBeanDefinitionInitMethod(Environment environment)
+    private void invokeBeanDefinitionInitMethod(EnvironmentTmp environment)
     {
         for (Entry<String, BeanDefinition> entry : environment.beanDefinitions().entrySet())
         {
@@ -152,7 +152,7 @@ public class JfireBootstrap
         }
     }
 
-    private void prepare(Environment environment)
+    private void prepare(EnvironmentTmp environment)
     {
         LinkedList<JfirePrepare> list = new LinkedList<JfirePrepare>(this.jfirePrepares);
         Collections.sort(list, new Comparator<JfirePrepare>()
@@ -169,7 +169,7 @@ public class JfireBootstrap
         }
     }
 
-    private void aopScan(Environment environment)
+    private void aopScan(EnvironmentTmp environment)
     {
         LinkedList<EnhanceManager> list = new LinkedList<EnhanceManager>(this.aopManagers);
         Collections.sort(list, new Comparator<EnhanceManager>()

@@ -11,7 +11,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
@@ -31,7 +31,7 @@ public class CacheAopManager implements EnhanceManager
     private BeanDefinition cacheBeanDefinition;
 
     @Override
-    public void scan(Environment environment)
+    public void scan(EnvironmentTmp environment)
     {
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
@@ -55,7 +55,7 @@ public class CacheAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, EnvironmentTmp environment, String hostFieldName)
     {
         classModel.addImport(Expression.class);
         classModel.addImport(HashMap.class);
@@ -94,7 +94,7 @@ public class CacheAopManager implements EnhanceManager
             @Override
             public void run(Object beanInstance)
             {
-                ((SetCacheManager) beanInstance).setCacheManager((CacheManager) cacheBeanDefinition.getBeanInstance());
+                ((SetCacheManager) beanInstance).setCacheManager((CacheManager) cacheBeanDefinition.getBean());
             }
         };
     }

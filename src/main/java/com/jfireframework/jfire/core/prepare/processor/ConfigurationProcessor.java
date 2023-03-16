@@ -7,7 +7,7 @@ import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
@@ -33,7 +33,7 @@ public class ConfigurationProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
     @Override
-    public void prepare(Environment environment)
+    public void prepare(EnvironmentTmp environment)
     {
         AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
         List<String>       list               = new ArrayList<String>(environment.getCandidateConfiguration());
@@ -281,7 +281,7 @@ public class ConfigurationProcessor implements JfirePrepare
      * @param errorMessage
      * @return
      */
-    private boolean matchCondition(Environment environment, AnnotationMetadata conditional, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
+    private boolean matchCondition(EnvironmentTmp environment, AnnotationMetadata conditional, List<AnnotationMetadata> annotationsOnMember, ErrorMessage errorMessage)
     {
         boolean     match       = true;
         ValuePair[] value       =  conditional.getAttribyte("value").getArray();
@@ -304,7 +304,7 @@ public class ConfigurationProcessor implements JfirePrepare
         return match;
     }
 
-    private void registerMethodBeanDefinition(Method method, Environment environment)
+    private void registerMethodBeanDefinition(Method method, EnvironmentTmp environment)
     {
         Bean           bean                 = Utils.ANNOTATION_UTIL.getAnnotation(Bean.class, method);
         String         beanName             = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
@@ -314,7 +314,7 @@ public class ConfigurationProcessor implements JfirePrepare
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
     }
 
-    private Class<?> registerDeclaringClassBeanDefinition(String className, Environment environment)
+    private Class<?> registerDeclaringClassBeanDefinition(String className, EnvironmentTmp environment)
     {
         try
         {

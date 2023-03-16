@@ -9,7 +9,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
@@ -27,7 +27,7 @@ public class TransactionAopManager implements EnhanceManager
     private BeanDefinition transactionBeandefinition;
 
     @Override
-    public void scan(Environment environment)
+    public void scan(EnvironmentTmp environment)
     {
         for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
         {
@@ -48,7 +48,7 @@ public class TransactionAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, EnvironmentTmp environment, String hostFieldName)
     {
         if (transactionBeandefinition == null)
         {
@@ -129,7 +129,7 @@ public class TransactionAopManager implements EnhanceManager
             @Override
             public void run(Object beanInstance)
             {
-                ((SetTransactionManager) beanInstance).setTransactionManager((TransactionManager) transactionBeandefinition.getBeanInstance());
+                ((SetTransactionManager) beanInstance).setTransactionManager((TransactionManager) transactionBeandefinition.getBean());
             }
         };
     }

@@ -2,19 +2,17 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.PackageScan;
 import com.jfireframework.baseutil.TRACEID;
-import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
-import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +29,13 @@ public class ComponentScanProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
     @Override
-    public void prepare(Environment environment)
+    public void prepare(JfireContext jfireContext)
     {
-        if (environment.isAnnotationPresent(ComponentScan.class))
+        AnnotationContext bootStarpClassAnnotationContext = jfireContext.getEnv().getBootStarpClassAnnotationContext();
+        if (bootStarpClassAnnotationContext.isAnnotationPresent(ComponentScan.class))
         {
-            List<String>    classNames = new LinkedList<String>();
-            ComponentScan[] scans      = environment.getAnnotations(ComponentScan.class);
+            List<String>        classNames = new LinkedList<String>();
+            List<ComponentScan> scans      = bootStarpClassAnnotationContext.getAnnotations(ComponentScan.class);
             for (ComponentScan componentScan : scans)
             {
                 for (String each : componentScan.value())
@@ -44,9 +43,6 @@ public class ComponentScanProcessor implements JfirePrepare
                     Collections.addAll(classNames, PackageScan.scan(each));
                 }
             }
-            ClassLoader        classLoader        = environment.getClassLoader();
-            AnnotationUtil     annotationUtil     = Utils.ANNOTATION_UTIL;
-            AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
             for (String each : classNames)
             {
                 try

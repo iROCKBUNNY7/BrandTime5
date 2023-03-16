@@ -1,7 +1,7 @@
 package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
@@ -86,7 +86,7 @@ public class ParamFieldTest
     {
 
         @Override
-        public void prepare(Environment environment)
+        public void prepare(EnvironmentTmp environment)
         {
             environment.putProperty("f1", "1,2");
             environment.putProperty("f2", "aaa");

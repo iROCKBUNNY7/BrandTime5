@@ -4,7 +4,7 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.CanBeNull;
 import com.jfireframework.jfire.core.inject.notated.MapKeyMethodName;
@@ -20,12 +20,12 @@ import java.util.*;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
-    private Environment   environment;
-    private Inject        inject;
-    private ValueAccessor valueAccessor;
+    private EnvironmentTmp environment;
+    private Inject         inject;
+    private ValueAccessor  valueAccessor;
 
     @Override
-    public void init(Field field, Environment environment)
+    public void init(Field field, EnvironmentTmp environment)
     {
         if (field.getType().isPrimitive())
         {
@@ -82,7 +82,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         public void inject(Object instance)
         {
-            Object value = beanDefinition.getBeanInstance();
+            Object value = beanDefinition.getBean();
             try
             {
                 valueAccessor.setObject(instance, value);
@@ -139,7 +139,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         {
             if (beanDefinition != null)
             {
-                Object value = beanDefinition.getBeanInstance();
+                Object value = beanDefinition.getBean();
                 try
                 {
                     valueAccessor.setObject(instance, value);
@@ -206,7 +206,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 }
                 for (BeanDefinition each : beanDefinitions)
                 {
-                    value.add(each.getBeanInstance());
+                    value.add(each.getBean());
                 }
             } catch (InjectValueException e)
             {
@@ -275,7 +275,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                     case METHOD:
                         for (BeanDefinition each : beanDefinitions)
                         {
-                            Object entryValue = each.getBeanInstance();
+                            Object entryValue = each.getBean();
                             Object entryKey   = method.invoke(entryValue);
                             value.put(entryKey, entryValue);
                         }
@@ -283,7 +283,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                     case BEAN_NAME:
                         for (BeanDefinition each : beanDefinitions)
                         {
-                            Object entryValue = each.getBeanInstance();
+                            Object entryValue = each.getBean();
                             String entryKey   = each.getBeanName();
                             value.put(entryKey, entryValue);
                         }

@@ -6,9 +6,9 @@ import java.lang.annotation.Annotation;
 
 public class Jfire
 {
-    private final Environment environment;
+    private final EnvironmentTmp environment;
 
-    protected Jfire(Environment environment)
+    protected Jfire(EnvironmentTmp environment)
     {
         this.environment = environment;
     }
@@ -21,7 +21,7 @@ public class Jfire
         {
             throw new BeanDefinitionCanNotFindException(ckass);
         }
-        return (T) beanDefinition.getBeanInstance();
+        return (T) beanDefinition.getBean();
     }
 
     @SuppressWarnings("unchecked")
@@ -32,7 +32,7 @@ public class Jfire
         {
             throw new BeanDefinitionCanNotFindException(beanName);
         }
-        return (T) beanDefinition.getBeanInstance();
+        return (T) beanDefinition.getBean();
     }
 
     public <T extends Annotation> T getAnnotation(Class<T> type)

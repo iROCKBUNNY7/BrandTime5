@@ -1,7 +1,7 @@
 package com.jfireframework.jfire.core.aop;
 
 import com.jfireframework.baseutil.smc.model.ClassModel;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,7 +27,7 @@ public interface EnhanceManager
      *
      * @param environment
      */
-    void scan(Environment environment);
+    void scan(EnvironmentTmp environment);
 
     /**
      * 执行增强操作
@@ -37,7 +37,7 @@ public interface EnhanceManager
      * @param environment   环境
      * @param hostFieldName 被增强类实例
      */
-    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName);
+    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, EnvironmentTmp environment, String hostFieldName);
 
     /**
      * 该AOP生效顺序。数字越小生效越快
@@ -53,6 +53,6 @@ public interface EnhanceManager
          *
          * @param instance
          */
-        void setAopHost(Object instance, Environment environment);
+        void setAopHost(Object instance, EnvironmentTmp environment);
     }
 }

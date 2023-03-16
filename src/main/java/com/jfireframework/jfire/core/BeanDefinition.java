@@ -34,28 +34,7 @@ import java.util.*;
 
 public class BeanDefinition
 {
-    // 多实例标记
-    private static final int                              PROTOTYPE          = 1 << 0;
-    private static final int                          AWARE_CONTEXT_INIT = 1 << 1;
-    // 如果是单例的情况，后续只会使用该实例
-    private volatile     Object                       cachedSingtonInstance;
-    /******/
-    // 该Bean配置的状态
-    private              int                              state              = 0;
-    // 该Bean的类
-    private              Class<?>                         type;
-    // 增强后的类，如果没有增强标记，该属性为空
-    private              Class<?>                         enhanceType;
-    private              Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
-    private              EnhanceManager[]                 orderedAopManagers;
-    private              EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
-    private              String                           beanName;
-    // 标注@PostConstruct的方法
-    private              Method                           postConstructMethod;
-    private              BeanInstanceResolver             resolver;
-    private              InjectHandler[]                  injectHandlers;
-    private              Environment                      environment;
-    public static final  ThreadLocal<Map<String, Object>> tmpBeanInstanceMap = new ThreadLocal<Map<String, Object>>()
+    public static final ThreadLocal<Map<String, Object>> tmpBeanInstanceMap = new ThreadLocal<Map<String, Object>>()
     {
         @Override
         protected java.util.Map<String, Object> initialValue()
@@ -63,19 +42,46 @@ public class BeanDefinition
             return new HashMap<String, Object>();
         }
     };
+    private             boolean                          prototype;
+    private             boolean                          awareContextInit;
+    // 如果是单例的情况，后续只会使用该实例
+    private volatile    Object                           cachedSingtonInstance;
+    /******/
+    // 该Bean的类
+    private             Class<?>                         type;
+    // 增强后的类，如果没有增强标记，该属性为空
+    private             Class<?>                         enhanceType;
+    private             Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
+    private             EnhanceManager[]                 orderedAopManagers;
+    private             EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
+    private             String                           beanName;
+    // 标注@PostConstruct的方法
+    private             Method                           postConstructMethod;
+    private             BeanInstanceResolver             resolver;
+    private             InjectHandler[]                  injectHandlers;
+    private             EnvironmentTmp                   environment;
 
-    public BeanDefinition(String beanName, Class<?> type, boolean prototype)
+    public BeanDefinition(BeanDescriptor beanDescriptor)
     {
-        this.beanName = beanName;
-        this.type = type;
-        setPrototype(prototype);
+        this.beanName = beanDescriptor.beanName();
+        this.type = beanDescriptor.type() == BeanDescriptor.DescriptorType.CLASS ? beanDescriptor.getClass() : beanDescriptor.getDescriptorMethod().getReturnType();
+        setPrototype(beanDescriptor.isPrototype());
         if (JfireAwareContextInited.class.isAssignableFrom(type))
         {
-            setAwareContextInit();
+            setAwareContextInit(true);
         }
     }
 
-    public void init(Environment environment)
+    public BeanDefinition(String beanName, Class<?> type, Object beanInstance)
+    {
+        this.beanName = beanName;
+        this.type = type;
+        cachedSingtonInstance = beanInstance;
+        setPrototype(false);
+        setAwareContextInit(false);
+    }
+
+    public void init(EnvironmentTmp environment)
     {
         this.environment = environment;
         initPostConstructMethod();
@@ -93,7 +99,7 @@ public class BeanDefinition
         }
     }
 
-    private void initEnhance(Environment environment)
+    private void initEnhance(EnvironmentTmp environment)
     {
         if (aopManagers.size() == 0)
         {
@@ -136,7 +142,8 @@ public class BeanDefinition
         try
         {
             enhanceType = compiler.compile(classModel);
-        } catch (Throwable e)
+        }
+        catch (Throwable e)
         {
             throw new EnhanceException(e);
         }
@@ -144,7 +151,7 @@ public class BeanDefinition
 
     private void addEnvironmentField(ClassModel classModel)
     {
-        FieldModel fieldModel = new FieldModel(Environment.ENVIRONMENT_FIELD_NAME, Environment.class, classModel);
+        FieldModel fieldModel = new FieldModel(EnvironmentTmp.ENVIRONMENT_FIELD_NAME, EnvironmentTmp.class, classModel);
         classModel.addField(fieldModel);
     }
 
@@ -182,9 +189,9 @@ public class BeanDefinition
         MethodModel setAopHost = new MethodModel(classModel);
         setAopHost.setAccessLevel(AccessLevel.PUBLIC);
         setAopHost.setMethodName("setAopHost");
-        setAopHost.setParamterTypes(Object.class, Environment.class);
+        setAopHost.setParamterTypes(Object.class, EnvironmentTmp.class);
         setAopHost.setReturnType(void.class);
-        setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getReferenceName(type, classModel) + ")$0;\r\n" + Environment.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
+        setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getReferenceName(type, classModel) + ")$0;\r\n" + EnvironmentTmp.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
         classModel.putMethodModel(setAopHost);
     }
 
@@ -236,7 +243,7 @@ public class BeanDefinition
      *
      * @param environment
      */
-    private void initInjectHandlers(Environment environment)
+    private void initInjectHandlers(EnvironmentTmp environment)
     {
         if (type.isInterface() == false)
         {
@@ -252,7 +259,8 @@ public class BeanDefinition
                         InjectHandler newInstance = customDiHanlder.value().newInstance();
                         newInstance.init(each, environment);
                         list.add(newInstance);
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         throw new RuntimeException(e);
                     }
@@ -278,7 +286,7 @@ public class BeanDefinition
         }
     }
 
-    private void initEnvironmentForResolver(Environment environment)
+    private void initEnvironmentForResolver(EnvironmentTmp environment)
     {
         resolver.init(environment);
     }
@@ -306,7 +314,7 @@ public class BeanDefinition
      *
      * @return
      */
-    public Object getBeanInstance()
+    public Object getBean()
     {
         if (isPropertype())
         {
@@ -351,7 +359,8 @@ public class BeanDefinition
                 {
                     each.run(instance);
                 }
-            } catch (Throwable e)
+            }
+            catch (Throwable e)
             {
                 throw new NewBeanInstanceException(e);
             }
@@ -373,7 +382,8 @@ public class BeanDefinition
             try
             {
                 postConstructMethod.invoke(instance);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new PostConstructMethodException(e);
             }
@@ -420,14 +430,14 @@ public class BeanDefinition
         return set.toArray(new Field[set.size()]);
     }
 
-    public void setPrototype(boolean flag)
+    public void setPrototype(boolean prototype)
     {
-        state = flag ? state | PROTOTYPE : state & (~PROTOTYPE);
+        this.prototype = prototype;
     }
 
-    private void setAwareContextInit()
+    private void setAwareContextInit(boolean awareContextInit)
     {
-        state |= AWARE_CONTEXT_INIT;
+        this.awareContextInit = awareContextInit;
     }
 
     private boolean isPropertype()

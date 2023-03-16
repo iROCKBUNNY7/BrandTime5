@@ -2,14 +2,13 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.collection.StringCache;
-import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.util.Utils;
@@ -27,7 +26,7 @@ public class ValidateAopManager implements EnhanceManager
     private BeanDefinition validatorBeandefinition;
 
     @Override
-    public void scan(Environment environment)
+    public void scan(EnvironmentTmp environment)
     {
         AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
         for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
@@ -49,7 +48,7 @@ public class ValidateAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, Environment environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, EnvironmentTmp environment, String hostFieldName)
     {
         classModel.addInterface(SetJfireMethodValidator.class);
         AnnotationUtil annotationUtil    = Utils.ANNOTATION_UTIL;
@@ -78,7 +77,7 @@ public class ValidateAopManager implements EnhanceManager
             @Override
             public void run(Object beanInstance)
             {
-                ((SetJfireMethodValidator) beanInstance).setJfireMethodValidator((JfireMethodValidator) validatorBeandefinition.getBeanInstance());
+                ((SetJfireMethodValidator) beanInstance).setJfireMethodValidator((JfireMethodValidator) validatorBeandefinition.getBean());
             }
         };
     }
@@ -90,7 +89,7 @@ public class ValidateAopManager implements EnhanceManager
      * @param validateFieldName
      * @param method
      */
-    private void processValidateReturnValue(ClassModel classModel, Environment environment, String hostFieldName, String validateFieldName, Method method)
+    private void processValidateReturnValue(ClassModel classModel, EnvironmentTmp environment, String hostFieldName, String validateFieldName, Method method)
     {
         MethodModelKey key    = new MethodModelKey(method);
         MethodModel    origin = classModel.removeMethodModel(key);
@@ -100,7 +99,7 @@ public class ValidateAopManager implements EnhanceManager
         int         sequence = environment.registerMethod(method);
         cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
         cache.append(validateFieldName).append(".validateReturnValue(").append(hostFieldName).append(",")//
-                .append(Environment.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),result);\r\n")//
+                .append(EnvironmentTmp.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),result);\r\n")//
                 .append("return result;\r\n");
         MethodModel methodModel = new MethodModel(method, classModel);
         methodModel.setBody(cache.toString());
@@ -114,12 +113,12 @@ public class ValidateAopManager implements EnhanceManager
      * @param validateFieldName
      * @param method
      */
-    private void processValidateParamter(ClassModel classModel, Environment environment, String hostFieldName, String validateFieldName, Method method)
+    private void processValidateParamter(ClassModel classModel, EnvironmentTmp environment, String hostFieldName, String validateFieldName, Method method)
     {
         StringCache cache    = new StringCache();
         int         sequence = environment.registerMethod(method);
         cache.append(validateFieldName).append(".validateParameters(").append(hostFieldName).append(",")//
-                .append(Environment.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),")//
+                .append(EnvironmentTmp.ENVIRONMENT_FIELD_NAME).append(".getMethod(").append(sequence).append("),")//
                 .append("new Object[]{");
         int length = method.getParameterTypes().length;
         for (int i = 0; i < length; i++)

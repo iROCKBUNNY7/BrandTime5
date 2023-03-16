@@ -2,7 +2,7 @@ package com.jfireframework.jfire.core.resolver.impl;
 
 import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import com.jfireframework.jfire.util.Utils;
@@ -29,12 +29,12 @@ public class LoadByBeanInstanceResolver implements BeanInstanceResolver
     @Override
     public Object buildInstance()
     {
-        Object beanInstance = factoryBeanDefinition.getBeanInstance();
+        Object beanInstance = factoryBeanDefinition.getBean();
         return ((BeanLoadFactory) beanInstance).load(ckass);
     }
 
     @Override
-    public void init(Environment environment)
+    public void init(EnvironmentTmp environment)
     {
         factoryBeanDefinition = environment.getBeanDefinition(factoryBeanName);
         if (factoryBeanDefinition == null)

@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function.base.data;
 
-import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
 import com.jfireframework.jfire.core.JfireAwareContextInited;
 
 import javax.annotation.Resource;

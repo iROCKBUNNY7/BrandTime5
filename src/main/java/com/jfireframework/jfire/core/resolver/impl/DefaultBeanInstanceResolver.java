@@ -1,6 +1,6 @@
 package com.jfireframework.jfire.core.resolver.impl;
 
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
 
@@ -26,7 +26,7 @@ public class DefaultBeanInstanceResolver implements BeanInstanceResolver
     }
 
     @Override
-    public void init(Environment environment)
+    public void init(EnvironmentTmp environment)
     {
         // TODO Auto-generated method stub
     }

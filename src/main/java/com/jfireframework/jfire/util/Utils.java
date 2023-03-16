@@ -3,7 +3,6 @@ package com.jfireframework.jfire.util;
 import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.anno.AnnotationUtil;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 
 import java.io.File;
@@ -14,8 +13,6 @@ import java.nio.charset.Charset;
 
 public class Utils
 {
-    public static final AnnotationUtil ANNOTATION_UTIL = new AnnotationUtil();
-
     public static IniFile processPath(String path)
     {
         InputStream inputStream = null;

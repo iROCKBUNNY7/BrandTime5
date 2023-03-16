@@ -1,6 +1,6 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.jfire.core.Environment.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
 
 /**
  * 容器初始化完毕后被调用

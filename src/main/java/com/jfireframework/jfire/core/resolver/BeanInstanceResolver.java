@@ -1,6 +1,6 @@
 package com.jfireframework.jfire.core.resolver;
 
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 
 public interface BeanInstanceResolver
 {
@@ -16,5 +16,5 @@ public interface BeanInstanceResolver
      *
      * @param environment
      */
-    void init(Environment environment);
+    void init(EnvironmentTmp environment);
 }

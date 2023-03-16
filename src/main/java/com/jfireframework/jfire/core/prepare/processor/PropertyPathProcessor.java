@@ -1,7 +1,7 @@
 package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.IniReader;
-import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
@@ -11,7 +11,7 @@ public class PropertyPathProcessor implements JfirePrepare
 {
 
     @Override
-    public void prepare(Environment environment)
+    public void prepare(EnvironmentTmp environment)
     {
         if (environment.isAnnotationPresent(PropertyPath.class))
         {

@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function.aliastest;
 
-import com.jfireframework.baseutil.anno.OverridesAttribute;
+import com.jfireframework.baseutil.bytecode.support.OverridesAttribute;
 
 import javax.annotation.Resource;
 import java.lang.annotation.Retention;
