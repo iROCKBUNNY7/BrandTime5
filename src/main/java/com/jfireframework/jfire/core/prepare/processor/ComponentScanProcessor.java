@@ -1,11 +1,21 @@
 package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.PackageScan;
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
+import com.jfireframework.baseutil.bytecode.ClassFile;
+import com.jfireframework.baseutil.bytecode.ClassFileParser;
+import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
+import com.jfireframework.baseutil.bytecode.util.BytecodeUtil;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.JfireContext;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
+import com.jfireframework.jfire.core.beanfactory.DefaultClassBeanFactory;
+import com.jfireframework.jfire.core.beanfactory.SelectBeanFactory;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
@@ -43,44 +53,73 @@ public class ComponentScanProcessor implements JfirePrepare
                     Collections.addAll(classNames, PackageScan.scan(each));
                 }
             }
+            ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+            AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
+            boolean                  addNew                   = false;
             for (String each : classNames)
             {
+                String resourceName = each.replace('.', '/');
                 try
                 {
-                    if (annotationDatabase.isAnnotation(each))
+                    byte[]    bytecode  = BytecodeUtil.loadBytecode(classLoader, resourceName);
+                    ClassFile classFile = new ClassFileParser(bytecode).parse();
+                    if (classFile.isAnnotation())
                     {
                         continue;
                     }
-                    if (annotationDatabase.isAnnotationPresentOnClass(each, Resource.class))
+                    AnnotationContext annotationContext = annotationContextFactory.get(resourceName, classLoader);
+                    if (annotationContext.isAnnotationPresent(Resource.class))
                     {
-                        Class<?> ckass = classLoader.loadClass(each);
-                        logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
-                        Resource             resource  = annotationUtil.getAnnotation(Resource.class, ckass);
-                        String               beanName  = resource.name().equals("") ? ckass.getName() : resource.name();
-                        boolean              prototype = resource.shareable() == false;
-                        BeanInstanceResolver resolver;
-                        if (annotationUtil.isPresent(LoadByBeanInstanceResolver.LoadBy.class, ckass))
+                        Class<?>       ckass     = classLoader.loadClass(each);
+                        Resource       resource  = annotationContext.getAnnotation(Resource.class);
+                        String         beanName  = resource.name().equals("") ? ckass.getName() : resource.name();
+                        boolean        prototype = resource.shareable() == false;
+                        BeanDescriptor beanDescriptor;
+                        if (annotationContext.isAnnotationPresent(SelectBeanFactory.class))
                         {
-                            resolver = new LoadByBeanInstanceResolver(ckass);
+                            SelectBeanFactory selectBeanFactory = annotationContext.getAnnotation(SelectBeanFactory.class);
+                            if (StringUtil.isNotBlank(selectBeanFactory.value()))
+                            {
+                                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.value());
+                            }
+                            else if (selectBeanFactory.beanFactoryType() != null)
+                            {
+                                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.beanFactoryType());
+                            }
+                            else
+                            {
+                                throw new IllegalArgumentException();
+                            }
                         }
                         else
                         {
-                            resolver = new DefaultBeanInstanceResolver(ckass);
+                            beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, DefaultClassBeanFactory.class);
                         }
-                        BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype);
-                        beanDefinition.setBeanInstanceResolver(resolver);
-                        environment.registerBeanDefinition(beanDefinition);
+                        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
+                        if (jfireContext.registerBeanDefinition(beanDefinition))
+                        {
+                            logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
+                            addNew = true;
+                        }
                     }
-                    else if (annotationDatabase.isAnnotationPresentOnClass(each, Configuration.class))
+                    else if (annotationContext.isAnnotationPresent(Configuration.class))
                     {
-                        logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
-                        environment.registerCandidateConfiguration(each);
+                        Class<?> ckass = classLoader.loadClass(each);
+                        if (jfireContext.registerConfiguration(ckass))
+                        {
+                            logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
+                            addNew = true;
+                        }
                     }
                 }
-                catch (ClassNotFoundException e)
+                catch (Throwable e)
                 {
                     ReflectUtil.throwException(e);
                 }
+            }
+            if (addNew)
+            {
+                jfireContext.refresh();
             }
         }
     }

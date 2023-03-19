@@ -8,6 +8,7 @@ import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
 import com.jfireframework.jfire.core.EnvironmentTmp;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Condition;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
@@ -33,7 +34,7 @@ public class ConfigurationProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
     @Override
-    public void prepare(EnvironmentTmp environment)
+    public void prepare(JfireContext jfireContext)
     {
         AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
         List<String>       list               = new ArrayList<String>(environment.getCandidateConfiguration());

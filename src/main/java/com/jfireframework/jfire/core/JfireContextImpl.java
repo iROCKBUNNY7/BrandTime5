@@ -1,9 +1,12 @@
 package com.jfireframework.jfire.core;
 
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.bytecode.support.SupportOverrideAttributeAnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfireframework.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfireframework.jfire.core.beanfactory.DefaultMethodBeanFactory;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
@@ -33,7 +36,7 @@ public class JfireContextImpl implements JfireContext
 
     private void registerDefaultMethodBeanFatory()
     {
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(DefaultMethodBeanFactory.class, "defaultMethodBeanFactory", false);
+        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(DefaultMethodBeanFactory.class, "defaultMethodBeanFactory", false, DefaultClassBeanFactory.class);
         BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
@@ -47,7 +50,7 @@ public class JfireContextImpl implements JfireContext
     private void registerDefaultBeanFactory()
     {
         BeanFactory    beanFactory    = new DefaultClassBeanFactory(annotationContextFactory);
-        BeanDefinition beanDefinition = new BeanDefinition(beanFactory.getClass().getName(), DefaultClassBeanFactory.class, beanFactory);
+        BeanDefinition beanDefinition = new BeanDefinition(DefaultClassBeanFactory.class.getName(), DefaultClassBeanFactory.class, beanFactory);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
 
@@ -94,7 +97,7 @@ public class JfireContextImpl implements JfireContext
     @Override
     public boolean registerConfiguration(Class<?> ckass)
     {
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false);
+        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
         if (beanDefinitionMap.containsKey(beanDescriptor.beanName()))
         {
             return false;
@@ -154,6 +157,12 @@ public class JfireContextImpl implements JfireContext
     }
 
     @Override
+    public AnnotationContextFactory getAnnotationContextFactory()
+    {
+        return annotationContextFactory;
+    }
+
+    @Override
     public void init()
     {
     }
@@ -161,15 +170,24 @@ public class JfireContextImpl implements JfireContext
     @Override
     public BeanFactory getBeanFactory(BeanDescriptor beanDescriptor)
     {
-        for (BeanDefinition each : beanFactoryBeanDefinitions)
+        if (StringUtil.isNotBlank(beanDescriptor.selectedBeanFactoryBeanName()))
         {
-            BeanFactory beanFactory = (BeanFactory) each.getBean();
-            if (beanFactory.match(beanDescriptor))
-            {
-                return beanFactory;
-            }
+            return getBean(beanDescriptor.selectedBeanFactoryBeanName());
         }
-        throw new IllegalArgumentException("没有找到合适的BeanFactory");
+        if (beanDescriptor.selectedBeanFactoryBeanClass() != null)
+        {
+            return (BeanFactory) getBean(beanDescriptor.selectedBeanFactoryBeanClass());
+        }
+        else
+        {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    @Override
+    public Environment getEnv()
+    {
+        return environment;
     }
 
     @Override

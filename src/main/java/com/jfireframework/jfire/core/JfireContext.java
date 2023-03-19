@@ -1,6 +1,8 @@
 package com.jfireframework.jfire.core;
 
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 
 public interface JfireContext extends ApplicationContext
@@ -38,6 +40,8 @@ public interface JfireContext extends ApplicationContext
     boolean registerJfirePrepare(Class<? extends JfirePrepare> ckass);
 
     boolean registerEnhanceManager(Class<? extends EnhanceManager> ckass);
+
+    AnnotationContextFactory getAnnotationContextFactory();
 
     ////
     void init();

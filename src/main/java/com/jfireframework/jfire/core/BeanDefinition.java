@@ -13,6 +13,7 @@ import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.EnhanceManager.SetHost;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
 import com.jfireframework.jfire.core.aop.ProceedPointImpl;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
 import com.jfireframework.jfire.core.inject.impl.DefaultDependencyInjectHandler;

@@ -1,10 +1,9 @@
-package com.jfireframework.jfire.core;
+package com.jfireframework.jfire.core.beandescriptor;
 
 import java.lang.reflect.Method;
 
 public interface BeanDescriptor
 {
-    DescriptorType type();
 
     Class<?> getDescriptorClass();
 
@@ -14,8 +13,7 @@ public interface BeanDescriptor
 
     boolean isPrototype();
 
-    enum DescriptorType
-    {
-        METHOD, CLASS
-    }
+    String selectedBeanFactoryBeanName();
+
+    Class<?> selectedBeanFactoryBeanClass();
 }

@@ -4,7 +4,7 @@ import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.ApplicationContext;
-import com.jfireframework.jfire.core.BeanDescriptor;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.BeanFactory;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
