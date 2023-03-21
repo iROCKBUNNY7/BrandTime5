@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
 import com.jfireframework.baseutil.smc.compiler.CompileHelper;
@@ -60,12 +61,19 @@ public class BeanDefinition
     private             Method                           postConstructMethod;
     private             BeanInstanceResolver             resolver;
     private             InjectHandler[]                  injectHandlers;
-    private             EnvironmentTmp                   environment;
+    private             JfireContext                     jfireContext;
 
     public BeanDefinition(BeanDescriptor beanDescriptor)
     {
         this.beanName = beanDescriptor.beanName();
-        this.type = beanDescriptor.type() == BeanDescriptor.DescriptorType.CLASS ? beanDescriptor.getClass() : beanDescriptor.getDescriptorMethod().getReturnType();
+        if (beanDescriptor.getDescriptorClass() != null)
+        {
+            type = beanDescriptor.getDescriptorClass();
+        }
+        else
+        {
+            type = beanDescriptor.getDescriptorMethod().getReturnType();
+        }
         setPrototype(beanDescriptor.isPrototype());
         if (JfireAwareContextInited.class.isAssignableFrom(type))
         {
@@ -82,13 +90,13 @@ public class BeanDefinition
         setAwareContextInit(false);
     }
 
-    public void init(EnvironmentTmp environment)
+    public void init(JfireContext jfireContext)
     {
-        this.environment = environment;
+        this.jfireContext = jfireContext;
         initPostConstructMethod();
-        initInjectHandlers(environment);
-        initEnvironmentForResolver(environment);
-        initEnhance(environment);
+        initInjectHandlers();
+        initEnvironmentForResolver();
+        initEnhance();
         initAwareContextInit();
     }
 
@@ -96,11 +104,11 @@ public class BeanDefinition
     {
         if (JfireAwareContextInited.class.isAssignableFrom(type))
         {
-            setAwareContextInit();
+            setAwareContextInit(true);
         }
     }
 
-    private void initEnhance(EnvironmentTmp environment)
+    private void initEnhance()
     {
         if (aopManagers.size() == 0)
         {
@@ -210,15 +218,16 @@ public class BeanDefinition
     {
         if (type.isInterface() == false)
         {
-            Class<?> type = this.type;
-            boolean  find = false;
+            Class<?>                 type                     = this.type;
+            boolean                  find                     = false;
+            AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
             while (type != Object.class)
             {
                 for (Method each : type.getDeclaredMethods())
                 {
                     if (each.getParameterTypes().length == 0)
                     {
-                        if (Utils.ANNOTATION_UTIL.isPresent(PostConstruct.class, each))
+                        if (annotationContextFactory.get(each, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(PostConstruct.class))
                         {
                             postConstructMethod = each;
                             postConstructMethod.setAccessible(true);
@@ -241,24 +250,21 @@ public class BeanDefinition
 
     /**
      * 初始化属性注入处理器
-     *
-     * @param environment
      */
-    private void initInjectHandlers(EnvironmentTmp environment)
+    private void initInjectHandlers()
     {
         if (type.isInterface() == false)
         {
-            List<InjectHandler> list           = new LinkedList<InjectHandler>();
-            AnnotationUtil      annotationUtil = Utils.ANNOTATION_UTIL;
+            List<InjectHandler> list = new LinkedList<InjectHandler>();
             for (Field each : getAllFields(type))
             {
-                if (annotationUtil.isPresent(CustomInjectHanlder.class, each))
+                if (each.isAnnotationPresent(CustomInjectHanlder.class))
                 {
-                    CustomInjectHanlder customDiHanlder = annotationUtil.getAnnotation(CustomInjectHanlder.class, each);
+                    CustomInjectHanlder customDiHanlder = each.getAnnotation(CustomInjectHanlder.class);
                     try
                     {
                         InjectHandler newInstance = customDiHanlder.value().newInstance();
-                        newInstance.init(each, environment);
+                        newInstance.init(each, jfireContext);
                         list.add(newInstance);
                     }
                     catch (Exception e)
@@ -266,16 +272,16 @@ public class BeanDefinition
                         throw new RuntimeException(e);
                     }
                 }
-                else if (annotationUtil.isPresent(Resource.class, each))
+                else if (each.isAnnotationPresent(Resource.class))
                 {
                     DefaultDependencyInjectHandler injectHandler = new DefaultDependencyInjectHandler();
-                    injectHandler.init(each, environment);
+                    injectHandler.init(each, jfireContext);
                     list.add(injectHandler);
                 }
-                else if (annotationUtil.isPresent(PropertyRead.class, each))
+                else if (each.isAnnotationPresent(PropertyRead.class))
                 {
                     DefaultPropertyInjectHandler injectHandler = new DefaultPropertyInjectHandler();
-                    injectHandler.init(each, environment);
+                    injectHandler.init(each, jfireContext);
                     list.add(injectHandler);
                 }
             }
@@ -287,7 +293,7 @@ public class BeanDefinition
         }
     }
 
-    private void initEnvironmentForResolver(EnvironmentTmp environment)
+    private void initEnvironmentForResolver()
     {
         resolver.init(environment);
     }
@@ -339,6 +345,11 @@ public class BeanDefinition
         }
     }
 
+    private boolean isPropertype()
+    {
+        return prototype;
+    }
+
     private Object buildInstance()
     {
         Map<String, Object> map       = tmpBeanInstanceMap.get();
@@ -353,7 +364,7 @@ public class BeanDefinition
             try
             {
                 SetHost newInstance = (SetHost) enhanceType.newInstance();
-                newInstance.setAopHost(resolver.buildInstance(), environment);
+                newInstance.setAopHost(resolver.buildInstance(), jfirecon);
                 instance = newInstance;
                 map.put(beanName, instance);
                 for (EnhanceCallbackForBeanInstance each : enhanceCallbackForBeanInstances)
@@ -439,16 +450,6 @@ public class BeanDefinition
     private void setAwareContextInit(boolean awareContextInit)
     {
         this.awareContextInit = awareContextInit;
-    }
-
-    private boolean isPropertype()
-    {
-        return (state & PROTOTYPE) != 0;
-    }
-
-    public boolean isAwareContextInit()
-    {
-        return (state & AWARE_CONTEXT_INIT) != 0;
     }
 
     public String getBeanName()

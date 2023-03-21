@@ -1,7 +1,9 @@
 package com.jfireframework.jfire.core.aop;
 
 import com.jfireframework.baseutil.smc.model.ClassModel;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.EnvironmentTmp;
+import com.jfireframework.jfire.core.JfireContext;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,20 +26,18 @@ public interface EnhanceManager
 
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，则将自身放入其AopManager集合中。 该方法仅会在环境初始化时调用一次
-     *
-     * @param environment
      */
-    void scan(EnvironmentTmp environment);
+    void scan(ApplicationContext applicationContext);
 
     /**
      * 执行增强操作
      *
-     * @param classModel    为增强类创建的ClassModel
-     * @param type          被增强类
-     * @param environment   环境
-     * @param hostFieldName 被增强类实例
+     * @param classModel         为增强类创建的ClassModel
+     * @param type               被增强类
+     * @param applicationContext 上下文
+     * @param hostFieldName      被增强类实例
      */
-    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, EnvironmentTmp environment, String hostFieldName);
+    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext applicationContext, String hostFieldName);
 
     /**
      * 该AOP生效顺序。数字越小生效越快
@@ -45,14 +45,13 @@ public interface EnhanceManager
      * @return
      */
     int order();
-
-    interface SetHost
-    {
-        /**
-         * 设置被代理的实例
-         *
-         * @param instance
-         */
-        void setAopHost(Object instance, EnvironmentTmp environment);
-    }
+//    interface SetHost
+//    {
+//        /**
+//         * 设置被代理的实例
+//         *
+//         * @param instance
+//         */
+//        void setAopHost(Object instance, ApplicationContext applicationContext);
+//    }
 }

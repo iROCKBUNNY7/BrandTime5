@@ -2,7 +2,8 @@ package com.jfireframework.jfire.core.aop.impl;
 
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.TRACEID;
-import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.baseutil.smc.SmcHelper;
@@ -11,15 +12,13 @@ import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
 import com.jfireframework.jfire.core.aop.notated.*;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
 import com.jfireframework.jfire.exception.CannotFindEnhanceFieldException;
-import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +41,17 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public void scan(EnvironmentTmp environment)
+    public void scan(ApplicationContext applicationContext)
     {
-        AnnotationDatabase annotationDatabase = environment.getAnnotationDatabase();
-        for (BeanDefinition each : environment.beanDefinitions().values())
+        AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+        for (BeanDefinition each : applicationContext.getAllBeanDefinitions())
         {
-            if (annotationDatabase.isAnnotationPresentOnClass(each.getType().getName(), EnhanceClass.class))
+            AnnotationContext annotationContext = annotationContextFactory.get(each.getType(), classLoader);
+            if (annotationContext.isAnnotationPresent(EnhanceClass.class))
             {
-                List<AnnotationMetadata> annotations = annotationDatabase.getAnnotations(each.getType().getName(), EnhanceClass.class);
-                String                   rule        = annotations.get(0).getAttribyte("value").getStringValue();
-                for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
+                String rule = annotationContext.getAnnotationMetadata(EnhanceClass.class).getAttribyte("value").getStringValue();
+                for (BeanDefinition beanDefinition : applicationContext.getAllBeanDefinitions())
                 {
                     if (StringUtil.match(beanDefinition.getType().getName(), rule))
                     {
@@ -63,12 +63,13 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, EnvironmentTmp environment, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, ApplicationContext applicationContext, String hostFieldName)
     {
-        PriorityQueue<BeanDefinition> queue              = findAspectClass(type, environment);
-        List<String>                  fieldNames         = new ArrayList<String>();
-        List<BeanDefinition>          injects            = new ArrayList<BeanDefinition>();
-        AnnotationDatabase            annotationDatabase = environment.getAnnotationDatabase();
+        PriorityQueue<BeanDefinition> queue                    = findAspectClass(type, applicationContext);
+        List<String>                  fieldNames               = new ArrayList<String>();
+        List<BeanDefinition>          injects                  = new ArrayList<BeanDefinition>();
+        AnnotationContextFactory      annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        ClassLoader                   classLoader              = Thread.currentThread().getContextClassLoader();
         for (BeanDefinition each : queue)
         {
             String fieldName = "enhance_" + fieldNameCounter.getAndIncrement();
@@ -78,25 +79,26 @@ public class AopEnhanceManager implements EnhanceManager
             classModel.addField(fieldModel);
             for (Method enhanceMethod : each.getType().getMethods())
             {
-                if (annotationDatabase.isAnnotationPresentOnMethod(enhanceMethod, Before.class))
+                AnnotationContext annotationContext = annotationContextFactory.get(enhanceMethod, classLoader);
+                if (annotationContext.isAnnotationPresent(Before.class))
                 {
-                    processBeforeAdvice(classModel, type, annotationDatabase, hostFieldName, fieldName, enhanceMethod);
+                    processBeforeAdvice(classModel, type, annotationContext, hostFieldName, fieldName, enhanceMethod);
                 }
-                else if (annotationDatabase.isAnnotationPresentOnMethod(enhanceMethod, After.class))
+                else if (annotationContext.isAnnotationPresent( After.class))
                 {
-                    processAfterAdvice(classModel, type, annotationDatabase, hostFieldName, fieldName, enhanceMethod);
+                    processAfterAdvice(classModel, type, annotationContext, hostFieldName, fieldName, enhanceMethod);
                 }
-                else if (annotationDatabase.isAnnotationPresentOnMethod(enhanceMethod, AfterReturning.class))
+                else if (annotationContext.isAnnotationPresent( AfterReturning.class))
                 {
-                    processAfterReturningAdvice(classModel, type, annotationDatabase, hostFieldName, fieldName, enhanceMethod);
+                    processAfterReturningAdvice(classModel, type, annotationContext, hostFieldName, fieldName, enhanceMethod);
                 }
-                else if (annotationDatabase.isAnnotationPresentOnMethod(enhanceMethod, AfterThrowable.class))
+                else if (annotationContext.isAnnotationPresent( AfterThrowable.class))
                 {
-                    processAfterThrowableAdvice(classModel, type, annotationDatabase, hostFieldName, fieldName, enhanceMethod);
+                    processAfterThrowableAdvice(classModel, type, annotationContext, hostFieldName, fieldName, enhanceMethod);
                 }
-                else if (annotationDatabase.isAnnotationPresentOnMethod(enhanceMethod, Around.class))
+                else if (annotationContext.isAnnotationPresent( Around.class))
                 {
-                    processAroundAdvice(classModel, type, annotationDatabase, hostFieldName, fieldName, enhanceMethod);
+                    processAroundAdvice(classModel, type, annotationContext, hostFieldName, fieldName, enhanceMethod);
                 }
             }
         }
@@ -154,10 +156,10 @@ public class AopEnhanceManager implements EnhanceManager
         };
     }
 
-    private void processBeforeAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
+    private void processBeforeAdvice(ClassModel classModel, Class<?> type, AnnotationContext annotationContext, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase, enhanceMethod, Before.class);
+        String rule    = getRule(annotationContext, enhanceMethod, Before.class);
         for (Method method : type.getMethods())
         {
             if (match(rule, method))
@@ -176,9 +178,9 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private String getRule(AnnotationDatabase annotationDatabase, Method enhanceMethod, Class<? extends Annotation> type)
+    private String getRule(AnnotationContext annotationContext, Method enhanceMethod, Class<? extends Annotation> type)
     {
-        return annotationDatabase.getAnnotations(enhanceMethod, type).get(0).getAttribyte("value").getStringValue();
+        return annotationContext.getAnnotationMetadata(type).getAttribyte("value").getStringValue();
     }
 
     private void generateProceedPointImplWithInvokeinternal(ClassModel classModel, String hostFieldName, Method method, String pointName, StringCache cache, String origin)
@@ -228,10 +230,10 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private void processAfterAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
+    private void processAfterAdvice(ClassModel classModel, Class<?> type, AnnotationContext annotationContext, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase, enhanceMethod, After.class);
+        String rule    = getRule(annotationContext, enhanceMethod, After.class);
         for (Method method : type.getMethods())
         {
             if (match(rule, method))
@@ -256,10 +258,10 @@ public class AopEnhanceManager implements EnhanceManager
         cache.append(fieldName).append(".").append(enhanceMethod.getName()).append("(").append(pointName).append(");\r\n");
     }
 
-    private void processAfterReturningAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
+    private void processAfterReturningAdvice(ClassModel classModel, Class<?> type, AnnotationContext annotationContext, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase, enhanceMethod, AfterReturning.class);
+        String rule    = getRule(annotationContext, enhanceMethod, AfterReturning.class);
         for (Method method : type.getMethods())
         {
             if (method.getReturnType() != void.class && match(rule, method))
@@ -289,10 +291,10 @@ public class AopEnhanceManager implements EnhanceManager
         return "point_" + fieldNameCounter.getAndIncrement();
     }
 
-    private void processAfterThrowableAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
+    private void processAfterThrowableAdvice(ClassModel classModel, Class<?> type, AnnotationContext annotationContext, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase, enhanceMethod, AfterThrowable.class);
+        String rule    = getRule(annotationContext, enhanceMethod, AfterThrowable.class);
         classModel.addImport(ReflectUtil.class);
         for (Method method : type.getMethods())
         {
@@ -331,10 +333,10 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private void processAroundAdvice(ClassModel classModel, Class<?> type, AnnotationDatabase annotationDatabase, String hostFieldName, String fieldName, Method enhanceMethod)
+    private void processAroundAdvice(ClassModel classModel, Class<?> type, AnnotationContext annotationContext, String hostFieldName, String fieldName, Method enhanceMethod)
     {
         String traceId = TRACEID.currentTraceId();
-        String rule    = getRule(annotationDatabase, enhanceMethod, Around.class);
+        String rule    = getRule(annotationContext, enhanceMethod, Around.class);
         for (Method method : type.getMethods())
         {
             if (match(rule, method))
@@ -411,24 +413,27 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, EnvironmentTmp environment)
+    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, ApplicationContext applicationContext)
     {
+        final ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+        final AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
         PriorityQueue<BeanDefinition> queue = new PriorityQueue<BeanDefinition>(10, new Comparator<BeanDefinition>()
         {
 
             @Override
             public int compare(BeanDefinition o1, BeanDefinition o2)
             {
-                int order1 = Utils.ANNOTATION_UTIL.getAnnotation(EnhanceClass.class, o1.getType()).order();
-                int order2 = Utils.ANNOTATION_UTIL.getAnnotation(EnhanceClass.class, o2.getType()).order();
+                int order1 = annotationContextFactory.get(o1.getType(), classLoader).getAnnotation(EnhanceClass.class).order();
+                int order2 = annotationContextFactory.get(o2.getType(), classLoader).getAnnotation(EnhanceClass.class).order();
                 return order1 - order2;
             }
         });
-        for (BeanDefinition each : environment.beanDefinitions().values())
+        for (BeanDefinition each : applicationContext.getAllBeanDefinitions())
         {
-            if (Utils.ANNOTATION_UTIL.isPresent(EnhanceClass.class, each.getType()))
+            AnnotationContext annotationContext = annotationContextFactory.get(each.getType(), classLoader);
+            if (annotationContext.isAnnotationPresent(EnhanceClass.class))
             {
-                String rule = Utils.ANNOTATION_UTIL.getAnnotation(EnhanceClass.class, each.getType()).value();
+                String rule = annotationContext.getAnnotation(EnhanceClass.class).value();
                 if (StringUtil.match(type.getName(), rule))
                 {
                     queue.add(each);

@@ -13,7 +13,7 @@ public class AddPropertyProcessor implements JfirePrepare
 {
 
     @Override
-    public void prepare(JfireContext jfireContext)
+    public boolean prepare(JfireContext jfireContext)
     {
         Environment       environment                     = jfireContext.getEnv();
         AnnotationContext bootStarpClassAnnotationContext = environment.getBootStarpClassAnnotationContext();
@@ -34,6 +34,7 @@ public class AddPropertyProcessor implements JfirePrepare
                 }
             }
         }
+        return true;
     }
 
     public int order()

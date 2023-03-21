@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core;
 
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.bytecode.support.SupportOverrideAttributeAnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
@@ -9,30 +10,27 @@ import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfireframework.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfireframework.jfire.core.beanfactory.DefaultMethodBeanFactory;
+import com.jfireframework.jfire.core.beanfactory.SelectBeanFactory;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
+import com.jfireframework.jfire.core.prepare.annotation.Import;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfireel.template.parser.impl.ElseParser;
 
+import javax.annotation.Resource;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class JfireContextImpl implements JfireContext
 {
-    protected Map<String, BeanDefinition>                   beanDefinitionMap             = new HashMap<String, BeanDefinition>();
-    protected ConcurrentMap<Class<?>, List<BeanDefinition>> classToBeanDefinitionsMap     = new ConcurrentHashMap<Class<?>, List<BeanDefinition>>();
+    protected Map<String, BeanDefinition>                   beanDefinitionMap         = new HashMap<String, BeanDefinition>();
+    protected ConcurrentMap<Class<?>, List<BeanDefinition>> classToBeanDefinitionsMap = new ConcurrentHashMap<Class<?>, List<BeanDefinition>>();
     private   Environment                                   environment;
-    private   AnnotationContextFactory                      annotationContextFactory      = new SupportOverrideAttributeAnnotationContextFactory();
-    private   Set<BeanDefinition>                           configurationBeanDefinitions  = new HashSet<BeanDefinition>();
-    private   Set<BeanDefinition>                           jfirePrepareBeanDefinitions   = new HashSet<BeanDefinition>();
-    private   Set<BeanDefinition>                           enhanceManagerBeanDefinitions = new HashSet<BeanDefinition>();
-    private   Set<BeanDefinition>                           beanFactoryBeanDefinitions    = new HashSet<BeanDefinition>();
-
-    public JfireContextImpl()
-    {
-        registerApplicationContext();
-        registerDefaultBeanFactory();
-        registerAnnotationContextFactory();
-        registerDefaultMethodBeanFatory();
-    }
+    private   AnnotationContextFactory                      annotationContextFactory  = new SupportOverrideAttributeAnnotationContextFactory();
+    private   Set<Class<?>>                                 configurationClassSet;
+    private   Set<Class<?>>                                 jfirePrepareClassSet;
+    private   Set<Class<?>>                                 enhanceManagerClassSet;
 
     private void registerDefaultMethodBeanFatory()
     {
@@ -63,10 +61,47 @@ public class JfireContextImpl implements JfireContext
     @Override
     public void refresh()
     {
-        List<JfirePrepare> jfirePrepares = new ArrayList<JfirePrepare>();
-        for (BeanDefinition each : jfirePrepareBeanDefinitions)
+        beanDefinitionMap.clear();
+        registerApplicationContext();
+        registerDefaultBeanFactory();
+        registerAnnotationContextFactory();
+        registerDefaultMethodBeanFatory();
+        boolean hasNewJfirePrepareOrConfigurationClass = false;
+        for (Class<?> each : configurationClassSet)
         {
-            jfirePrepares.add((JfirePrepare) each.getBean());
+            AnnotationContext annotationContext = annotationContextFactory.get(each, Thread.currentThread().getContextClassLoader());
+            if (annotationContext.isAnnotationPresent(Import.class))
+            {
+                List<Import> imports = annotationContext.getAnnotations(Import.class);
+                for (Import anImport : imports)
+                {
+                    for (Class<?> importClass : anImport.value())
+                    {
+                        int registerClass = registerClass(importClass);
+                        if (registerClass == 1 || registerClass == 2)
+                        {
+                            hasNewJfirePrepareOrConfigurationClass = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (hasNewJfirePrepareOrConfigurationClass)
+        {
+            refresh();
+            return;
+        }
+        List<JfirePrepare> jfirePrepares = new ArrayList<JfirePrepare>();
+        for (Class<?> each : jfirePrepareClassSet)
+        {
+            try
+            {
+                jfirePrepares.add((JfirePrepare) each.newInstance());
+            }
+            catch (Throwable e)
+            {
+                ReflectUtil.throwException(e);
+            }
         }
         Collections.sort(jfirePrepares, new Comparator<JfirePrepare>()
         {
@@ -78,14 +113,74 @@ public class JfireContextImpl implements JfireContext
         });
         for (JfirePrepare each : jfirePrepares)
         {
-            each.prepare(this);
+            if (each.prepare(this) == false)
+            {
+                break;
+            }
         }
     }
 
     @Override
-    public int importClass(Class<?> ckass)
+    public int registerClass(Class<?> ckass)
     {
-        return 0;
+        if (JfirePrepare.class.isAssignableFrom(ckass))
+        {
+            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? 1 : -1;
+        }
+        else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
+        {
+            return registerConfiguration(ckass) ? 2 : -1;
+        }
+        else if (EnhanceManager.class.isAssignableFrom(ckass))
+        {
+            return registerEnhanceManager((Class<? extends EnhanceManager>) ckass) ? 3 : -1;
+        }
+        else
+        {
+            return registerBean(ckass) ? 4 : -1;
+        }
+    }
+
+    @Override
+    public boolean registerBean(Class<?> ckass)
+    {
+        AnnotationContext annotationContext = annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader());
+        String            beanName;
+        boolean           prototype;
+        if (annotationContext.isAnnotationPresent(Resource.class))
+        {
+            Resource resource = annotationContext.getAnnotation(Resource.class);
+            beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : ckass.getName();
+            prototype = resource.shareable();
+        }
+        else
+        {
+            beanName = ckass.getName();
+            prototype = false;
+        }
+        BeanDescriptor beanDescriptor;
+        if (annotationContext.isAnnotationPresent(SelectBeanFactory.class))
+        {
+            SelectBeanFactory selectBeanFactory = annotationContext.getAnnotation(SelectBeanFactory.class);
+            if (StringUtil.isNotBlank(selectBeanFactory.value()))
+            {
+                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.value());
+            }
+            else if (selectBeanFactory.beanFactoryType() != Object.class)
+            {
+                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.beanFactoryType());
+            }
+            else
+            {
+                throw new IllegalArgumentException("类:" + ckass.getName() + "上的注解：SelectBeanFactory缺少正确的属性值");
+            }
+        }
+        else
+        {
+            beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, DefaultClassBeanFactory.class);
+        }
+        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
+        return registerBeanDefinition(beanDefinition);
     }
 
     @Override
@@ -97,63 +192,19 @@ public class JfireContextImpl implements JfireContext
     @Override
     public boolean registerConfiguration(Class<?> ckass)
     {
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
-        if (beanDefinitionMap.containsKey(beanDescriptor.beanName()))
-        {
-            return false;
-        }
-        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
-        beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
-        configurationBeanDefinitions.add(beanDefinition);
-        return true;
+        return configurationClassSet.add(ckass);
     }
 
     @Override
     public boolean registerJfirePrepare(Class<? extends JfirePrepare> ckass)
     {
-        try
-        {
-            JfirePrepare   jfirePrepare   = ckass.newInstance();
-            BeanDefinition beanDefinition = new BeanDefinition(ckass.getName(), ckass, jfirePrepare);
-            if (beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition) == null)
-            {
-                jfirePrepareBeanDefinitions.add(beanDefinition);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        catch (Throwable e)
-        {
-            ReflectUtil.throwException(e);
-            return false;
-        }
+        return jfirePrepareClassSet.add(ckass);
     }
 
     @Override
     public boolean registerEnhanceManager(Class<? extends EnhanceManager> ckass)
     {
-        try
-        {
-            EnhanceManager enhanceManager = ckass.newInstance();
-            BeanDefinition beanDefinition = new BeanDefinition(ckass.getName(), ckass, enhanceManager);
-            if (beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition) == null)
-            {
-                enhanceManagerBeanDefinitions.add(beanDefinition);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        catch (Throwable e)
-        {
-            ReflectUtil.throwException(e);
-            return false;
-        }
+        return enhanceManagerClassSet.add(ckass);
     }
 
     @Override
@@ -165,6 +216,18 @@ public class JfireContextImpl implements JfireContext
     @Override
     public void init()
     {
+    }
+
+    @Override
+    public List<BeanDefinition> getAllBeanDefinitions()
+    {
+        return null;
+    }
+
+    @Override
+    public BeanDefinition getBeanDefinition(Class<?> ckass)
+    {
+        return null;
     }
 
     @Override
@@ -197,7 +260,7 @@ public class JfireContextImpl implements JfireContext
         return (E) beanDefinitions.get(0).getBean();
     }
 
-    private <E> List<BeanDefinition> getBeanDefinitions(Class<E> ckass)
+    public List<BeanDefinition> getBeanDefinitions(Class<?> ckass)
     {
         List<BeanDefinition> beanDefinitions = classToBeanDefinitionsMap.get(ckass);
         if (beanDefinitions == null)

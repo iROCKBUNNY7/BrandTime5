@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.core.inject;
 
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.EnvironmentTmp;
 
 import java.lang.annotation.ElementType;
@@ -22,7 +23,7 @@ public interface InjectHandler
         Class<InjectHandler> value();
     }
 
-    void init(Field field, EnvironmentTmp environment);
+    void init(Field field, ApplicationContext applicationContext);
 
     void inject(Object instance);
 }

@@ -57,19 +57,4 @@ public class DefaultMethodBeanFactory implements BeanFactory
         }
     }
 
-    @Override
-    public boolean match(BeanDescriptor beanDescriptor)
-    {
-        if (beanDescriptor.type() != BeanDescriptor.DescriptorType.METHOD)
-        {
-            return false;
-        }
-        Method            descriptorMethod  = beanDescriptor.getDescriptorMethod();
-        AnnotationContext annotationContext = annotationContextFactory.get(descriptorMethod, descriptorMethod.getDeclaringClass().getClassLoader());
-        if (annotationContext.isAnnotationPresent(Bean.class) == false)
-        {
-            return false;
-        }
-        return true;
-    }
 }

@@ -20,10 +20,6 @@ public class DefaultClassBeanFactory implements BeanFactory
     @Override
     public <E> E getBean(BeanDescriptor beanDescriptor)
     {
-        if (beanDescriptor.type() != BeanDescriptor.DescriptorType.CLASS)
-        {
-            throw new IllegalArgumentException();
-        }
         try
         {
             return (E) beanDescriptor.getDescriptorClass().newInstance();
@@ -35,22 +31,4 @@ public class DefaultClassBeanFactory implements BeanFactory
         }
     }
 
-    @Override
-    public boolean match(BeanDescriptor beanDescriptor)
-    {
-        if (beanDescriptor.type() == BeanDescriptor.DescriptorType.METHOD)
-        {
-            return false;
-        }
-        Class<?> descriptorClass = beanDescriptor.getDescriptorClass();
-        if (descriptorClass.isInterface() || Modifier.isAbstract(descriptorClass.getModifiers()))
-        {
-            return false;
-        }
-        if (annotationContextFactory.get(descriptorClass, descriptorClass.getClassLoader()).isAnnotationPresent(Resource.class) == false)
-        {
-            return false;
-        }
-        return true;
-    }
 }
