@@ -2,7 +2,7 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.core.EnvironmentTmp;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
@@ -22,12 +22,13 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     private static final int    offset        = directoryName.length();
 
     @Override
-    public void prepare(EnvironmentTmp environment)
+    public boolean prepare(JfireContext jfireContext)
     {
         try
         {
-            ClassLoader      classLoader = environment.getClassLoader();
-            Enumeration<URL> resources   = classLoader.getResources(directoryName);
+            ClassLoader      classLoader         = Thread.currentThread().getContextClassLoader();
+            Enumeration<URL> resources           = classLoader.getResources(directoryName);
+            boolean          hasNewConfiguration = false;
             while (resources.hasMoreElements())
             {
                 URL url = resources.nextElement();
@@ -42,7 +43,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
                         if (nextElement.getName().startsWith(directoryName) && nextElement.isDirectory() == false)
                         {
                             String value = nextElement.getName().substring(offset);
-                            registgerAutoConfigor(value, environment);
+                            hasNewConfiguration = registgerAutoConfigor(value, jfireContext);
                         }
                     }
                 }
@@ -56,15 +57,26 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
                             if (each.isDirectory() == false)
                             {
                                 String value = each.getName();
-                                registgerAutoConfigor(value, environment);
+                                hasNewConfiguration = registgerAutoConfigor(value, jfireContext);
                             }
                         }
                     }
                 }
             }
-        } catch (Exception e)
+            if (hasNewConfiguration)
+            {
+                jfireContext.refresh();
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        catch (Exception e)
         {
             ReflectUtil.throwException(e);
+            return false;
         }
     }
 
@@ -74,11 +86,11 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
         return JfirePreparedConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
-    void registgerAutoConfigor(String className, EnvironmentTmp environment) throws ClassNotFoundException
+    boolean registgerAutoConfigor(String className, JfireContext jfireContext) throws ClassNotFoundException
     {
         String traceId = TRACEID.currentTraceId();
         logger.debug("traceId:{} 发现配置类:{}", traceId, className);
-        Class<?> configor = environment.getClassLoader().loadClass(className);
-        environment.registerCandidateConfiguration(className);
+        Class<?> configor = Thread.currentThread().getContextClassLoader().loadClass(className);
+        return jfireContext.registerConfiguration(configor);
     }
 }

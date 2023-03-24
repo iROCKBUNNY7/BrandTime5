@@ -12,19 +12,15 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.EnvironmentTmp;
-import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionState;
 import com.jfireframework.jfire.core.aop.notated.Transactional;
-import com.jfireframework.jfire.util.Utils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.List;
 
 public class TransactionAopManager implements EnhanceManager
 {

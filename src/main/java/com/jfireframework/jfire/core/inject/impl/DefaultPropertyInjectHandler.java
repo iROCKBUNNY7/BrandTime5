@@ -3,7 +3,6 @@ package com.jfireframework.jfire.core.inject.impl;
 import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
-import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.exception.InjectTypeException;

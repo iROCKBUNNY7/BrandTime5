@@ -3,6 +3,7 @@ package com.jfireframework.jfire.core;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ApplicationContext
@@ -19,9 +20,9 @@ public interface ApplicationContext
 
     AnnotationContextFactory getAnnotationContextFactory();
 
-    void init();
+    void start();
 
-    List<BeanDefinition> getAllBeanDefinitions();
+    Collection<BeanDefinition> getAllBeanDefinitions();
 
     BeanDefinition getBeanDefinition(Class<?> ckass);
 

@@ -1,7 +1,6 @@
 package com.jfireframework.context.test.function.validate;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.aop.support.validate.JfireMethodValidatorImpl;
 import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;

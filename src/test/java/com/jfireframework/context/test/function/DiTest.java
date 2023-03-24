@@ -1,7 +1,6 @@
 package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.CanBeNull;
 import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;

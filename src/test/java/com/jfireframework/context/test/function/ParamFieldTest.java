@@ -1,8 +1,6 @@
 package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.EnvironmentTmp;
-import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;

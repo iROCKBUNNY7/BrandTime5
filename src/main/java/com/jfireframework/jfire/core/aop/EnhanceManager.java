@@ -2,8 +2,6 @@ package com.jfireframework.jfire.core.aop;
 
 import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.jfire.core.ApplicationContext;
-import com.jfireframework.jfire.core.EnvironmentTmp;
-import com.jfireframework.jfire.core.JfireContext;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,13 +43,14 @@ public interface EnhanceManager
      * @return
      */
     int order();
-//    interface SetHost
-//    {
-//        /**
-//         * 设置被代理的实例
-//         *
-//         * @param instance
-//         */
-//        void setAopHost(Object instance, ApplicationContext applicationContext);
-//    }
+
+    interface SetHost
+    {
+        /**
+         * 设置被代理的实例
+         *
+         * @param instance
+         */
+        void setAopHost(Object instance);
+    }
 }

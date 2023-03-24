@@ -1,7 +1,6 @@
 package com.jfireframework.jfire.core.inject;
 
 import com.jfireframework.jfire.core.ApplicationContext;
-import com.jfireframework.jfire.core.EnvironmentTmp;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

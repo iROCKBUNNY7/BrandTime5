@@ -1,10 +1,10 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
+import com.jfireframework.baseutil.smc.compiler.CompileHelper;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
-import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 
+import javax.tools.JavaCompiler;
 import java.util.Collection;
 
 public interface JfireContext extends ApplicationContext
@@ -32,6 +32,7 @@ public interface JfireContext extends ApplicationContext
 
     /**
      * 解析Ckass，并且生成一个Bean定义。
+     *
      * @param ckass
      * @return
      */
@@ -69,4 +70,8 @@ public interface JfireContext extends ApplicationContext
     boolean registerEnhanceManager(Class<? extends EnhanceManager> ckass);
 
     Collection<Class<?>> getConfigurationClassSet();
+
+    void setJavaCompiler(JavaCompiler javaCompiler);
+
+    CompileHelper getCompileHelper();
 }

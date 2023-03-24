@@ -7,7 +7,7 @@ import com.jfireframework.jfire.core.aop.notated.EnhanceClass;
 import javax.annotation.Resource;
 
 @Resource
-@EnhanceClass("com.jfire.*.init*")
+@EnhanceClass("com.jfire.*.start*")
 public class Enhance
 {
     @Before("initage()")

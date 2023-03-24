@@ -2,7 +2,8 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
-import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnAnnotation.OnAnnotation;
@@ -26,10 +27,11 @@ public @interface ConditionOnAnnotation
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
-            ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
-            ValuePair[] value       =  annotation.getAttribyte("value").getArray();
+            ClassLoader       classLoader                     = Thread.currentThread().getContextClassLoader();
+            ValuePair[]       value                           = metadata.getAttribyte("value").getArray();
+            AnnotationContext bootStarpClassAnnotationContext = applicationContext.getEnv().getBootStarpClassAnnotationContext();
             for (ValuePair each : value)
             {
                 Class<?> aClass;
@@ -42,9 +44,9 @@ public @interface ConditionOnAnnotation
                     errorMessage.addErrorMessage("注解:" + each + "不存在于类路径");
                     return false;
                 }
-                if (readOnlyEnvironment.isAnnotationPresent((Class<? extends Annotation>) aClass)==false)
+                if (bootStarpClassAnnotationContext.isAnnotationPresent((Class<? extends Annotation>) aClass) == false)
                 {
-                    errorMessage.addErrorMessage("注解:"+each+"没有标注在启动类上");
+                    errorMessage.addErrorMessage("注解:" + each + "没有标注在启动类上");
                     return false;
                 }
             }

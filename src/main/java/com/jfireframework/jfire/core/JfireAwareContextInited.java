@@ -1,7 +1,5 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
-
 /**
  * 容器初始化完毕后被调用
  *
@@ -15,5 +13,5 @@ public interface JfireAwareContextInited
      *
      * @author 林斌(eric @ jfire.cn)
      */
-    void awareContextInited(ReadOnlyEnvironment readOnlyEnvironment);
+    void awareContextInited(ApplicationContext applicationContext);
 }

@@ -1,11 +1,17 @@
 package com.jfireframework.jfire.core;
 
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.bytecode.support.SupportOverrideAttributeAnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.baseutil.smc.compiler.CompileHelper;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
+import com.jfireframework.jfire.core.aop.impl.AopEnhanceManager;
+import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
+import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
+import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
 import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfireframework.jfire.core.beanfactory.DefaultClassBeanFactory;
@@ -14,11 +20,11 @@ import com.jfireframework.jfire.core.beanfactory.SelectBeanFactory;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.Import;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
-import com.jfireframework.jfireel.template.parser.impl.ElseParser;
+import com.jfireframework.jfire.core.prepare.processor.ConfigurationProcessor;
 
 import javax.annotation.Resource;
+import javax.tools.JavaCompiler;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,8 +35,10 @@ public class JfireContextImpl implements JfireContext
     private   Environment                                   environment;
     private   AnnotationContextFactory                      annotationContextFactory  = new SupportOverrideAttributeAnnotationContextFactory();
     private   Set<Class<?>>                                 configurationClassSet;
-    private   Set<Class<?>>                                 jfirePrepareClassSet;
-    private   Set<Class<?>>                                 enhanceManagerClassSet;
+    private   Set<Class<? extends JfirePrepare>>            jfirePrepareClassSet;
+    private   Set<Class<? extends EnhanceManager>>          enhanceManagerClassSet;
+    private   JavaCompiler                                  javaCompiler;
+    private   CompileHelper                                 compileHelper;
 
     private void registerDefaultMethodBeanFatory()
     {
@@ -66,7 +74,12 @@ public class JfireContextImpl implements JfireContext
         registerDefaultBeanFactory();
         registerAnnotationContextFactory();
         registerDefaultMethodBeanFatory();
-        boolean hasNewJfirePrepareOrConfigurationClass = false;
+        registerEnhanceManager(AopEnhanceManager.class);
+        registerEnhanceManager(TransactionAopManager.class);
+        registerEnhanceManager(CacheAopManager.class);
+        registerEnhanceManager(ValidateAopManager.class);
+        registerJfirePrepare(ConfigurationProcessor.class);
+        boolean needRefresh = false;
         for (Class<?> each : configurationClassSet)
         {
             AnnotationContext annotationContext = annotationContextFactory.get(each, Thread.currentThread().getContextClassLoader());
@@ -78,15 +91,15 @@ public class JfireContextImpl implements JfireContext
                     for (Class<?> importClass : anImport.value())
                     {
                         int registerClass = registerClass(importClass);
-                        if (registerClass == 1 || registerClass == 2)
+                        if (registerClass == 1 || registerClass == 2 || registerClass == 3)
                         {
-                            hasNewJfirePrepareOrConfigurationClass = true;
+                            needRefresh = true;
                         }
                     }
                 }
             }
         }
-        if (hasNewJfirePrepareOrConfigurationClass)
+        if (needRefresh)
         {
             refresh();
             return;
@@ -208,26 +221,106 @@ public class JfireContextImpl implements JfireContext
     }
 
     @Override
+    public Collection<Class<?>> getConfigurationClassSet()
+    {
+        return configurationClassSet;
+    }
+
+    @Override
+    public void setJavaCompiler(JavaCompiler javaCompiler)
+    {
+        this.javaCompiler = javaCompiler;
+    }
+
+    @Override
+    public CompileHelper getCompileHelper()
+    {
+        if (compileHelper != null)
+        {
+            return compileHelper;
+        }
+        compileHelper = javaCompiler == null ? new CompileHelper() : new CompileHelper(Thread.currentThread().getContextClassLoader(), javaCompiler);
+        return compileHelper;
+    }
+
+    @Override
     public AnnotationContextFactory getAnnotationContextFactory()
     {
         return annotationContextFactory;
     }
 
     @Override
-    public void init()
+    public void start()
     {
+        TRACEID.newTraceId();
+        refresh();
+        aopScan();
+        invokeBeanDefinitionInitMethod();
+        awareContextInit();
+    }
+
+    private void awareContextInit()
+    {
+        for (BeanDefinition beanDefinition : beanDefinitionMap.values())
+        {
+            ((JfireAwareContextInited) beanDefinition.getBean()).awareContextInited(this);
+        }
+    }
+
+    private void invokeBeanDefinitionInitMethod()
+    {
+        for (BeanDefinition beanDefinition : beanDefinitionMap.values())
+        {
+            beanDefinition.init(this);
+        }
+    }
+
+    private void aopScan()
+    {
+        LinkedList<EnhanceManager> list = new LinkedList<EnhanceManager>();
+        for (Class<? extends EnhanceManager> each : enhanceManagerClassSet)
+        {
+            try
+            {
+                list.add(each.newInstance());
+            }
+            catch (Throwable e)
+            {
+                ReflectUtil.throwException(e);
+            }
+        }
+        Collections.sort(list, new Comparator<EnhanceManager>()
+        {
+            @Override
+            public int compare(EnhanceManager o1, EnhanceManager o2)
+            {
+                return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
+            }
+        });
+        for (EnhanceManager aopManager : list)
+        {
+            aopManager.scan(this);
+        }
     }
 
     @Override
-    public List<BeanDefinition> getAllBeanDefinitions()
+    public Collection<BeanDefinition> getAllBeanDefinitions()
     {
-        return null;
+        return beanDefinitionMap.values();
     }
 
     @Override
     public BeanDefinition getBeanDefinition(Class<?> ckass)
     {
-        return null;
+        List<BeanDefinition> beanDefinitions = getBeanDefinitions(ckass);
+        if (beanDefinitions.isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            return beanDefinitions.get(0);
+        }
     }
 
     @Override

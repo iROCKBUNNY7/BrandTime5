@@ -1,8 +1,9 @@
 package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
+import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
-import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnProperty.OnProperty;
@@ -30,11 +31,11 @@ public @interface ConditionOnProperty
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
-            for (ValuePair each : annotation.getAttribyte("value").getArray())
+            for (ValuePair each : metadata.getAttribyte("value").getArray())
             {
-                if (readOnlyEnvironment.hasProperty(each.getStringValue()) == false)
+                if (StringUtil.isNotBlank(applicationContext.getEnv().getProperty(each.getStringValue())) == false)
                 {
                     errorMessage.addErrorMessage("缺少属性:" + each);
                     return false;

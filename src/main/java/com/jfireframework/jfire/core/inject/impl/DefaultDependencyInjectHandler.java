@@ -1,10 +1,10 @@
 package com.jfireframework.jfire.core.inject.impl;
 
 import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.EnvironmentTmp;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.CanBeNull;
 import com.jfireframework.jfire.core.inject.notated.MapKeyMethodName;
@@ -20,18 +20,18 @@ import java.util.*;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
-    private EnvironmentTmp environment;
-    private Inject         inject;
-    private ValueAccessor  valueAccessor;
+    private ApplicationContext applicationContext;
+    private Inject             inject;
+    private ValueAccessor      valueAccessor;
 
     @Override
-    public void init(Field field, EnvironmentTmp environment)
+    public void init(Field field, ApplicationContext applicationContext)
     {
         if (field.getType().isPrimitive())
         {
             throw new UnsupportedOperationException("基础类型无法执行注入操作");
         }
-        this.environment = environment;
+        this.applicationContext = applicationContext;
         valueAccessor = new ValueAccessor(field);
         Class<?> fieldType = field.getType();
         if (Map.class.isAssignableFrom(fieldType))
@@ -69,10 +69,11 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         InstacenInject()
         {
-            Field          field          = valueAccessor.getField();
-            AnnotationUtil annotationUtil = Utils.ANNOTATION_UTIL;
-            Resource       resource       = annotationUtil.getAnnotation(Resource.class, field);
-            String         beanName       = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
+            Field                    field                    = valueAccessor.getField();
+            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+            annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader()).get;
+            Resource resource = annotationUtil.getAnnotation(Resource.class, field);
+            String   beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
             beanDefinition = environment.getBeanDefinition(beanName);
             if (beanDefinition == null)
             {
@@ -86,7 +87,8 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             try
             {
                 valueAccessor.setObject(instance, value);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new InjectValueException(e);
             }
@@ -143,7 +145,8 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 try
                 {
                     valueAccessor.setObject(instance, value);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     throw new InjectValueException(e);
                 }
@@ -208,10 +211,12 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 {
                     value.add(each.getBean());
                 }
-            } catch (InjectValueException e)
+            }
+            catch (InjectValueException e)
             {
                 throw e;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new InjectValueException(e);
             }
@@ -247,7 +252,8 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 try
                 {
                     method = rawType.getMethod(methodName);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     throw new MapKeyMethodCanNotFindException(methodName, rawType, e);
                 }
@@ -291,7 +297,8 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                     default:
                         break;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new InjectValueException(e);
             }

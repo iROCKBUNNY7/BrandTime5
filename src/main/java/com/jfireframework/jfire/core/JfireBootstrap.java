@@ -1,36 +1,14 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.baseutil.StringUtil;
-import com.jfireframework.baseutil.TRACEID;
-import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.core.aop.EnhanceManager;
-import com.jfireframework.jfire.core.aop.impl.AopEnhanceManager;
-import com.jfireframework.jfire.core.aop.impl.CacheAopManager;
-import com.jfireframework.jfire.core.aop.impl.TransactionAopManager;
-import com.jfireframework.jfire.core.aop.impl.ValidateAopManager;
-import com.jfireframework.jfire.core.prepare.JfirePrepare;
-import com.jfireframework.jfire.core.prepare.annotation.Import;
-import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
-import com.jfireframework.jfire.core.prepare.processor.ConfigurationProcessor;
-import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
-import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
-import com.jfireframework.jfire.core.resolver.impl.OutterObjectBeanInstanceResolver;
-import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.tools.JavaCompiler;
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.Map.Entry;
 
 public class JfireBootstrap
 {
-    private              EnvironmentTmp      environment;
-    private              Set<JfirePrepare>   jfirePrepares = new HashSet<JfirePrepare>();
-    private              Set<EnhanceManager> aopManagers   = new HashSet<EnhanceManager>();
-    private static final Logger              logger        = LoggerFactory.getLogger(JfireBootstrap.class);
+    private static final Logger       logger       = LoggerFactory.getLogger(JfireBootstrap.class);
+    private              JfireContext jfireContext = new JfireContextImpl();
 
     public JfireBootstrap()
     {
@@ -51,175 +29,21 @@ public class JfireBootstrap
     {
         if (classLoader != null)
         {
-            environment = new EnvironmentTmp(classLoader);
-        }
-        else
-        {
-            environment = new EnvironmentTmp();
-        }
-        environment.setAnnotationStore(bootStrapClass == null ? new Annotation[0] : bootStrapClass.getAnnotations());
-        if (bootStrapClass != null && Utils.ANNOTATION_UTIL.isPresent(Configuration.class, bootStrapClass))
-        {
-            environment.registerCandidateConfiguration(bootStrapClass.getName());
+            Thread.currentThread().setContextClassLoader(classLoader);
         }
         if (compiler != null)
         {
-            environment.setJavaCompiler(compiler);
+            jfireContext.setJavaCompiler(compiler);
+        }
+        if (bootStrapClass != null)
+        {
+            jfireContext.registerConfiguration(bootStrapClass);
         }
     }
 
-    public Jfire start()
+    public ApplicationContext start()
     {
-        TRACEID.newTraceId();
-        Jfire jfire = registerJfireInstance();
-        registerDefault();
-        processImport();
-        prepare(environment);
-        aopScan(environment);
-        invokeBeanDefinitionInitMethod(environment);
-        awareContextInit(environment);
-        return jfire;
-    }
-
-    private void processImport()
-    {
-        String traceId = TRACEID.currentTraceId();
-        for (Import annotation : environment.getAnnotations(Import.class))
-        {
-            for (Class<?> each : annotation.value())
-            {
-                if (JfirePrepare.class.isAssignableFrom(each))
-                {
-                    try
-                    {
-                        logger.debug("traceId:{} 导入一个预处理器:{}", traceId, each.getName());
-                        addJfirePrepare((JfirePrepare) each.newInstance());
-                    }
-                    catch (Exception e)
-                    {
-                        ReflectUtil.throwException(e);
-                    }
-                }
-                else if (Utils.ANNOTATION_UTIL.isPresent(Configuration.class, each))
-                {
-                    logger.debug("traceId:{} 发现一个候选配置类:{}", traceId, each.getName());
-                    environment.registerCandidateConfiguration(each.getName());
-                }
-                else if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, each))
-                {
-                    logger.debug("traceId:{} 发现一个Bean:{}", traceId, each.getName());
-                    register(each);
-                }
-            }
-        }
-    }
-
-    private void registerDefault()
-    {
-        addAopManager(new AopEnhanceManager());
-        addAopManager(new TransactionAopManager());
-        addAopManager(new CacheAopManager());
-        addAopManager(new ValidateAopManager());
-        addJfirePrepare(new ConfigurationProcessor());
-    }
-
-    private Jfire registerJfireInstance()
-    {
-        Jfire                jfire          = new Jfire(environment);
-        BeanDefinition       beanDefinition = new BeanDefinition(Jfire.class.getName(), Jfire.class, false);
-        BeanInstanceResolver resolver       = new OutterObjectBeanInstanceResolver(jfire);
-        beanDefinition.setBeanInstanceResolver(resolver);
-        register(beanDefinition);
-        return jfire;
-    }
-
-    private void awareContextInit(EnvironmentTmp environment)
-    {
-        for (BeanDefinition beanDefinition : environment.beanDefinitions().values())
-        {
-            if (beanDefinition.isAwareContextInit())
-            {
-                ((JfireAwareContextInited) beanDefinition.getBean()).awareContextInited(environment.readOnlyEnvironment());
-            }
-        }
-    }
-
-    private void invokeBeanDefinitionInitMethod(EnvironmentTmp environment)
-    {
-        for (Entry<String, BeanDefinition> entry : environment.beanDefinitions().entrySet())
-        {
-            entry.getValue().init(environment);
-        }
-    }
-
-    private void prepare(EnvironmentTmp environment)
-    {
-        LinkedList<JfirePrepare> list = new LinkedList<JfirePrepare>(this.jfirePrepares);
-        Collections.sort(list, new Comparator<JfirePrepare>()
-        {
-            @Override
-            public int compare(JfirePrepare o1, JfirePrepare o2)
-            {
-                return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
-            }
-        });
-        for (JfirePrepare jfirePrepare : list)
-        {
-            jfirePrepare.prepare(environment);
-        }
-    }
-
-    private void aopScan(EnvironmentTmp environment)
-    {
-        LinkedList<EnhanceManager> list = new LinkedList<EnhanceManager>(this.aopManagers);
-        Collections.sort(list, new Comparator<EnhanceManager>()
-        {
-            @Override
-            public int compare(EnhanceManager o1, EnhanceManager o2)
-            {
-                return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
-            }
-        });
-        for (EnhanceManager aopManager : list)
-        {
-            aopManager.scan(environment);
-        }
-    }
-
-    public void register(BeanDefinition beanDefinition)
-    {
-        beanDefinition.check();
-        environment.registerBeanDefinition(beanDefinition);
-    }
-
-    public void register(Class<?> ckass)
-    {
-        if (Utils.ANNOTATION_UTIL.isPresent(Resource.class, ckass))
-        {
-            Resource       resource       = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, ckass);
-            String         beanName       = StringUtil.isNotBlank(resource.name()) ? resource.name() : ckass.getName();
-            boolean        prototype      = !resource.shareable();
-            BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype);
-            beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ckass));
-            environment.registerBeanDefinition(beanDefinition);
-        }
-    }
-
-    public void addProperties(Properties properties)
-    {
-        for (Entry<Object, Object> entry : properties.entrySet())
-        {
-            environment.putProperty((String) entry.getKey(), (String) entry.getValue());
-        }
-    }
-
-    private void addJfirePrepare(JfirePrepare jfirePrepare)
-    {
-        jfirePrepares.add(jfirePrepare);
-    }
-
-    private void addAopManager(EnhanceManager aopManager)
-    {
-        aopManagers.add(aopManager);
+        jfireContext.start();
+        return jfireContext;
     }
 }

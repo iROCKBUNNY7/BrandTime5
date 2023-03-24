@@ -20,7 +20,6 @@ import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
-import com.jfireframework.jfire.core.resolver.impl.MethodBeanInstanceResolver;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -318,7 +317,6 @@ public class ConfigurationProcessor implements JfirePrepare
         String         beanName             = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
         BeanDescriptor beanDescriptor       = new MethodBeanDescriptor(method, beanName, bean.prototype());
         BeanDefinition methodBeanDefinition = new BeanDefinition(beanDescriptor);
-        methodBeanDefinition.setBeanInstanceResolver(new MethodBeanInstanceResolver(method));
         jfireContext.registerBeanDefinition(methodBeanDefinition);
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
     }

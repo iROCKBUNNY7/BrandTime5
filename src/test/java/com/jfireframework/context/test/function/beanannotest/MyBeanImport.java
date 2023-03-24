@@ -1,6 +1,5 @@
 package com.jfireframework.context.test.function.beanannotest;
 
-import com.jfireframework.jfire.core.Jfire;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 

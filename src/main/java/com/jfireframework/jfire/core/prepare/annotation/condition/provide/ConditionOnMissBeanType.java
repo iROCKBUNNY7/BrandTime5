@@ -2,8 +2,7 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
-import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.EnvironmentTmp.ReadOnlyEnvironment;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnMissBeanType.OnMissBeanType;
@@ -26,10 +25,10 @@ public @interface ConditionOnMissBeanType
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ReadOnlyEnvironment readOnlyEnvironment, AnnotationMetadata annotation, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
-            ClassLoader classLoader = readOnlyEnvironment.getClassLoader();
-            ValuePair[] value       =  annotation.getAttribyte("value").getArray();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            ValuePair[] value       = metadata.getAttribyte("value").getArray();
             for (ValuePair each : value)
             {
                 Class<?> aClass;
@@ -41,18 +40,9 @@ public @interface ConditionOnMissBeanType
                 {
                     continue;
                 }
-                boolean match = false;
-                for (BeanDefinition beanDefinition : readOnlyEnvironment.beanDefinitions())
+                if (applicationContext.getBeanDefinition(aClass) != null)
                 {
-                    if (aClass.isAssignableFrom(beanDefinition.getType()))
-                    {
-                        match = true;
-                        break;
-                    }
-                }
-                if (match)
-                {
-                    errorMessage.addErrorMessage("已经存在类型:"+each+"的Bean");
+                    errorMessage.addErrorMessage("已经存在类型:" + each + "的Bean");
                     return false;
                 }
             }

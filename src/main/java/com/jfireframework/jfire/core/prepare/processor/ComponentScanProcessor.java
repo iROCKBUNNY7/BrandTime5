@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,65 +32,62 @@ public class ComponentScanProcessor implements JfirePrepare
     @Override
     public boolean prepare(JfireContext jfireContext)
     {
-        AnnotationContext bootStarpClassAnnotationContext = jfireContext.getEnv().getBootStarpClassAnnotationContext();
-        if (bootStarpClassAnnotationContext.isAnnotationPresent(ComponentScan.class))
+        AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
+        Collection<Class<?>>     configurationClassSet    = jfireContext.getConfigurationClassSet();
+        ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+        List<String>             classNames               = new LinkedList<String>();
+        for (Class<?> each : configurationClassSet)
         {
-            List<String>        classNames = new LinkedList<String>();
-            List<ComponentScan> scans      = bootStarpClassAnnotationContext.getAnnotations(ComponentScan.class);
-            for (ComponentScan componentScan : scans)
+            AnnotationContext annotationContext = annotationContextFactory.get(each, classLoader);
+            if (annotationContext.isAnnotationPresent(ComponentScan.class))
             {
-                for (String each : componentScan.value())
+                ComponentScan componentScan = annotationContext.getAnnotation(ComponentScan.class);
+                for (String scanPath : componentScan.value())
                 {
-                    Collections.addAll(classNames, PackageScan.scan(each));
+                    Collections.addAll(classNames, PackageScan.scan(scanPath));
                 }
             }
-            ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
-            AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
-            boolean                  needRefresh              = false;
-            for (String each : classNames)
+        }
+        boolean needRefresh = false;
+        for (String each : classNames)
+        {
+            String resourceName = each.replace('.', '/');
+            try
             {
-                String resourceName = each.replace('.', '/');
-                try
+                byte[]    bytecode  = BytecodeUtil.loadBytecode(classLoader, resourceName);
+                ClassFile classFile = new ClassFileParser(bytecode).parse();
+                if (classFile.isAnnotation())
                 {
-                    byte[]    bytecode  = BytecodeUtil.loadBytecode(classLoader, resourceName);
-                    ClassFile classFile = new ClassFileParser(bytecode).parse();
-                    if (classFile.isAnnotation())
+                    continue;
+                }
+                AnnotationContext annotationContext = annotationContextFactory.get(resourceName, classLoader);
+                if (annotationContext.isAnnotationPresent(Resource.class))
+                {
+                    Class<?> ckass = classLoader.loadClass(each);
+                    if (jfireContext.registerBean(ckass))
                     {
-                        continue;
-                    }
-                    AnnotationContext annotationContext = annotationContextFactory.get(resourceName, classLoader);
-                    if (annotationContext.isAnnotationPresent(Resource.class))
-                    {
-                        Class<?> ckass = classLoader.loadClass(each);
-                        if (jfireContext.registerBean(ckass))
-                        {
-                            logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
-                        }
-                    }
-                    else if (annotationContext.isAnnotationPresent(Configuration.class))
-                    {
-                        Class<?> ckass = classLoader.loadClass(each);
-                        if (jfireContext.registerConfiguration(ckass))
-                        {
-                            logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
-                            needRefresh = true;
-                        }
+                        logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
                     }
                 }
-                catch (Throwable e)
+                else if (annotationContext.isAnnotationPresent(Configuration.class))
                 {
-                    ReflectUtil.throwException(e);
+                    Class<?> ckass = classLoader.loadClass(each);
+                    if (jfireContext.registerConfiguration(ckass))
+                    {
+                        logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
+                        needRefresh = true;
+                    }
                 }
             }
-            if (needRefresh)
+            catch (Throwable e)
             {
-                jfireContext.refresh();
-                return false;
+                ReflectUtil.throwException(e);
             }
-            else
-            {
-                return true;
-            }
+        }
+        if (needRefresh)
+        {
+            jfireContext.refresh();
+            return false;
         }
         else
         {

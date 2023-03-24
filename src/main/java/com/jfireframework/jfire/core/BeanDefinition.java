@@ -1,6 +1,5 @@
 package com.jfireframework.jfire.core;
 
-import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.collection.StringCache;
 import com.jfireframework.baseutil.smc.SmcHelper;
@@ -20,12 +19,9 @@ import com.jfireframework.jfire.core.inject.InjectHandler.CustomInjectHanlder;
 import com.jfireframework.jfire.core.inject.impl.DefaultDependencyInjectHandler;
 import com.jfireframework.jfire.core.inject.impl.DefaultPropertyInjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
-import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
 import com.jfireframework.jfire.exception.EnhanceException;
-import com.jfireframework.jfire.exception.IncompleteBeanDefinitionException;
 import com.jfireframework.jfire.exception.NewBeanInstanceException;
 import com.jfireframework.jfire.exception.PostConstructMethodException;
-import com.jfireframework.jfire.util.Utils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -53,18 +49,20 @@ public class BeanDefinition
     private             Class<?>                         type;
     // 增强后的类，如果没有增强标记，该属性为空
     private             Class<?>                         enhanceType;
-    private             Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
-    private             EnhanceManager[]                 orderedAopManagers;
-    private             EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
-    private             String                           beanName;
+    private Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
+    private EnhanceManager[]                 orderedAopManagers;
+    private EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
+    private String                           beanName;
     // 标注@PostConstruct的方法
-    private             Method                           postConstructMethod;
-    private             BeanInstanceResolver             resolver;
-    private             InjectHandler[]                  injectHandlers;
-    private             JfireContext                     jfireContext;
+    private Method                           postConstructMethod;
+    private InjectHandler[]                  injectHandlers;
+    private JfireContext                     jfireContext;
+    private BeanDescriptor                   beanDescriptor;
+    private BeanFactory                      beanFactory;
 
     public BeanDefinition(BeanDescriptor beanDescriptor)
     {
+        this.beanDescriptor = beanDescriptor;
         this.beanName = beanDescriptor.beanName();
         if (beanDescriptor.getDescriptorClass() != null)
         {
@@ -93,11 +91,14 @@ public class BeanDefinition
     public void init(JfireContext jfireContext)
     {
         this.jfireContext = jfireContext;
-        initPostConstructMethod();
-        initInjectHandlers();
-        initEnvironmentForResolver();
-        initEnhance();
-        initAwareContextInit();
+        if (cachedSingtonInstance == null)
+        {
+            beanFactory = jfireContext.getBeanFactory(beanDescriptor);
+            initPostConstructMethod();
+            initInjectHandlers();
+            initEnhance();
+            initAwareContextInit();
+        }
     }
 
     private void initAwareContextInit()
@@ -138,16 +139,15 @@ public class BeanDefinition
         classModel.addImport(ProceedPointImpl.class);
         classModel.addImport(ProceedPoint.class);
         classModel.addImport(Object.class);
-        addEnvironmentField(classModel);
         String hostFieldName = "host_" + EnhanceManager.fieldNameCounter.getAndIncrement();
         addHostField(classModel, hostFieldName);
         addSetAopHostMethod(classModel, hostFieldName);
         addInvokeHostPublicMethod(classModel, hostFieldName);
         for (int i = 0; i < orderedAopManagers.length; i++)
         {
-            enhanceCallbackForBeanInstances[i] = orderedAopManagers[i].enhance(classModel, type, environment, hostFieldName);
+            enhanceCallbackForBeanInstances[i] = orderedAopManagers[i].enhance(classModel, type, jfireContext, hostFieldName);
         }
-        CompileHelper compiler = environment.getCompileHelper();
+        CompileHelper compiler = jfireContext.getCompileHelper();
         try
         {
             enhanceType = compiler.compile(classModel);
@@ -156,12 +156,6 @@ public class BeanDefinition
         {
             throw new EnhanceException(e);
         }
-    }
-
-    private void addEnvironmentField(ClassModel classModel)
-    {
-        FieldModel fieldModel = new FieldModel(EnvironmentTmp.ENVIRONMENT_FIELD_NAME, EnvironmentTmp.class, classModel);
-        classModel.addField(fieldModel);
     }
 
     private void addInvokeHostPublicMethod(ClassModel classModel, String hostFieldName)
@@ -198,9 +192,9 @@ public class BeanDefinition
         MethodModel setAopHost = new MethodModel(classModel);
         setAopHost.setAccessLevel(AccessLevel.PUBLIC);
         setAopHost.setMethodName("setAopHost");
-        setAopHost.setParamterTypes(Object.class, EnvironmentTmp.class);
+        setAopHost.setParamterTypes(Object.class);
         setAopHost.setReturnType(void.class);
-        setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getReferenceName(type, classModel) + ")$0;\r\n" + EnvironmentTmp.ENVIRONMENT_FIELD_NAME + "=$1;\r\n");
+        setAopHost.setBody(hostFieldName + " = (" + SmcHelper.getReferenceName(type, classModel) + ")$0;");
         classModel.putMethodModel(setAopHost);
     }
 
@@ -293,11 +287,6 @@ public class BeanDefinition
         }
     }
 
-    private void initEnvironmentForResolver()
-    {
-        resolver.init(environment);
-    }
-
     public BeanDefinition setBeanName(String beanName)
     {
         this.beanName = beanName;
@@ -307,12 +296,6 @@ public class BeanDefinition
     public BeanDefinition setType(Class<?> type)
     {
         this.type = type;
-        return this;
-    }
-
-    public BeanDefinition setBeanInstanceResolver(BeanInstanceResolver resolver)
-    {
-        this.resolver = resolver;
         return this;
     }
 
@@ -364,7 +347,7 @@ public class BeanDefinition
             try
             {
                 SetHost newInstance = (SetHost) enhanceType.newInstance();
-                newInstance.setAopHost(resolver.buildInstance(), jfirecon);
+                newInstance.setAopHost(beanFactory.getBean(beanDescriptor));
                 instance = newInstance;
                 map.put(beanName, instance);
                 for (EnhanceCallbackForBeanInstance each : enhanceCallbackForBeanInstances)
@@ -379,7 +362,7 @@ public class BeanDefinition
         }
         if (instance == null)
         {
-            instance = resolver.buildInstance();
+            instance = beanFactory.getBean(beanDescriptor);
             map.put(beanName, instance);
         }
         if (injectHandlers.length != 0)
@@ -465,21 +448,5 @@ public class BeanDefinition
     public void addAopManager(EnhanceManager aopManager)
     {
         aopManagers.add(aopManager);
-    }
-
-    public void check()
-    {
-        if (beanName == null)
-        {
-            throw new IncompleteBeanDefinitionException("beanName没有赋值");
-        }
-        if (resolver == null)
-        {
-            throw new IncompleteBeanDefinitionException("BeanInstanceResolver没有赋值");
-        }
-        if (type == null)
-        {
-            throw new IncompleteBeanDefinitionException("类型没有赋值");
-        }
     }
 }
