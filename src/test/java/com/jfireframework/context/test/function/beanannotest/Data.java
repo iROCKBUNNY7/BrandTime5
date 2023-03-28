@@ -1,5 +1,6 @@
 package com.jfireframework.context.test.function.beanannotest;
 
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
@@ -20,10 +21,10 @@ public class Data
     {
 
         @Override
-        public void prepare(EnvironmentTmp environment)
+        public boolean prepare(JfireContext context)
         {
-            environment.putProperty("name", "linbin");
-//			environment.putProperty("person2", "pass");
+            context.getEnv().putProperty("name", "linbin");
+            return true;
         }
 
         @Override

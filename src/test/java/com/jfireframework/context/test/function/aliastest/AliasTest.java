@@ -1,6 +1,9 @@
 package com.jfireframework.context.test.function.aliastest;
 
-import com.jfireframework.baseutil.anno.AnnotationUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
+import com.jfireframework.baseutil.bytecode.support.SupportOverrideAttributeAnnotationContextFactory;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Assert;
@@ -27,14 +30,14 @@ public class AliasTest
     @Test
     public void test() throws NoSuchMethodException, SecurityException, NoSuchFieldException
     {
-        AnnotationUtil annotationUtil = new AnnotationUtil();
-        Resource       resource       = annotationUtil.getAnnotation(Resource.class, AliasTest.class);
+        AnnotationContextFactory annotationContextFactory = new SupportOverrideAttributeAnnotationContextFactory();
+        Resource                 resource                 = annotationContextFactory.get(AliasTest.class, Thread.currentThread().getContextClassLoader()).getAnnotation(Resource.class);
         Assert.assertTrue(resource.shareable());
         Method     method     = AliasTest.class.getMethod("take");
-        InitMethod initMethod = annotationUtil.getAnnotation(InitMethod.class, method);
+        InitMethod initMethod = annotationContextFactory.get(method).getAnnotation(InitMethod.class);
         assertEquals("ss", initMethod.name());
         Field field = AliasTest.class.getDeclaredField("bi");
-        resource = annotationUtil.getAnnotation(Resource.class, field);
+        resource = annotationContextFactory.get(field).getAnnotation(Resource.class);
         assertEquals("demo", resource.name());
     }
 
@@ -48,9 +51,8 @@ public class AliasTest
     @Test
     public void test2()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(aliasCompopntScan.class);
-        Jfire          jfire       = jfireConfig.start();
-        SingleDemo     demo        = jfire.getBean("demo");
+        ApplicationContext context = new AnnotatedApplicationContext(aliasCompopntScan.class);
+        SingleDemo         demo    = context.getBean("demo");
         assertFalse(demo == null);
     }
 }

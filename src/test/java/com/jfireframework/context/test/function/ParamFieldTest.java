@@ -1,10 +1,12 @@
 package com.jfireframework.context.test.function;
 
-import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.Environment;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.Import;
-import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,13 +54,10 @@ public class ParamFieldTest
     @Test
     public void test()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(ForProperty.class);
-        jfireConfig.register(ParamFieldTest.class);
-        BeanDefinition beanDefinition = new BeanDefinition("xx", ForProperty.class, false);
-        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForProperty.class));
-        jfireConfig.register(beanDefinition);
-        Jfire          jfire = jfireConfig.start();
-        ParamFieldTest data  = jfire.getBean(ParamFieldTest.class);
+        ApplicationContext context = new AnnotatedApplicationContext(ForProperty.class);
+        context.register(ParamFieldTest.class);
+        context.register(ForProperty.class);
+        ParamFieldTest data  = context.getBean(ParamFieldTest.class);
         Assert.assertArrayEquals(new int[]{1, 2}, data.f1);
         Assert.assertEquals("aaa", data.f2);
         Assert.assertEquals(1, data.f3.intValue());
@@ -83,8 +82,9 @@ public class ParamFieldTest
     {
 
         @Override
-        public void prepare(EnvironmentTmp environment)
+        public boolean prepare(JfireContext context)
         {
+            Environment environment = context.getEnv();
             environment.putProperty("f1", "1,2");
             environment.putProperty("f2", "aaa");
             environment.putProperty("f3", "1");
@@ -99,6 +99,7 @@ public class ParamFieldTest
             environment.putProperty("f12", "xx,rr");
             environment.putProperty("f13", ParamFieldTest.class.getName());
             environment.putProperty("f14", "test1");
+            return true;
         }
 
         @Override

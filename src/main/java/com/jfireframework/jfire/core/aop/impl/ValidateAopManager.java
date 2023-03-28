@@ -10,6 +10,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 
@@ -27,7 +28,7 @@ public class ValidateAopManager implements EnhanceManager
     private BeanDefinition validatorBeandefinition;
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(JfireContext applicationContext)
     {
         AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -47,12 +48,12 @@ public class ValidateAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, JfireContext applicationContext, String hostFieldName)
     {
         classModel.addInterface(SetJfireMethodValidator.class);
         String validateFieldName = generateValidatorField(classModel);
         String methodMapField    = generateMethodMapField(classModel);
-        generateSetJfireMethodValidatorMethod(classModel, validateFieldName,methodMapField);
+        generateSetJfireMethodValidatorMethod(classModel, validateFieldName, methodMapField);
         AnnotationContextFactory  annotationContextFactory = applicationContext.getAnnotationContextFactory();
         ClassLoader               classLoader              = Thread.currentThread().getContextClassLoader();
         final Map<String, Method> methodMap                = new HashMap<String, Method>();
@@ -67,12 +68,12 @@ public class ValidateAopManager implements EnhanceManager
             {
                 if (hasConstraintBeforeMethodExecute(method, annotationContext))
                 {
-                    String methodName = processValidateParamter(classModel, applicationContext, hostFieldName, validateFieldName, method,methodMapField);
+                    String methodName = processValidateParamter(classModel, applicationContext, hostFieldName, validateFieldName, method, methodMapField);
                     methodMap.put(methodName, method);
                 }
                 if (hasConstraintOnReturnValue(method))
                 {
-                    String methodName = processValidateReturnValue(classModel, applicationContext, hostFieldName, validateFieldName, method,methodMapField);
+                    String methodName = processValidateReturnValue(classModel, applicationContext, hostFieldName, validateFieldName, method, methodMapField);
                     methodMap.put(methodName, method);
                 }
             }
@@ -82,7 +83,13 @@ public class ValidateAopManager implements EnhanceManager
             @Override
             public void run(Object beanInstance)
             {
-                ((SetJfireMethodValidator) beanInstance).setJfireMethodValidator((JfireMethodValidator) validatorBeandefinition.getBean(), methodMap);
+                JfireMethodValidator jfireMethodValidator = (JfireMethodValidator) validatorBeandefinition.getBean();
+                System.out.println(jfireMethodValidator.getClass());
+                for (Map.Entry<String, Method> each : methodMap.entrySet())
+                {
+                    System.out.println(each.getKey() + ":" + each.getValue());
+                }
+                ((SetJfireMethodValidator) beanInstance).setJfireMethodValidator(jfireMethodValidator, methodMap);
             }
         };
     }
@@ -102,17 +109,17 @@ public class ValidateAopManager implements EnhanceManager
      * @param method
      * @return
      */
-    private String processValidateReturnValue(ClassModel classModel, ApplicationContext applicationContext, String hostFieldName, String validateFieldName, Method method,String methodMapField)
+    private String processValidateReturnValue(ClassModel classModel, ApplicationContext applicationContext, String hostFieldName, String validateFieldName, Method method, String methodMapField)
     {
         MethodModelKey key    = new MethodModelKey(method);
         MethodModel    origin = classModel.removeMethodModel(key);
         origin.setMethodName(origin.getMethodName() + "_" + methodNameCounter.getAndIncrement());
         classModel.putMethodModel(origin);
-        StringCache cache           = new StringCache();
+        StringCache cache      = new StringCache();
         String      mehtodName = "validateMethod_$" + fieldNameCounter.getAndIncrement();
         cache.append(method.getReturnType().getSimpleName()).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
         cache.append(validateFieldName).append(".validateReturnValue(").append(hostFieldName).append(",")//
-                .append(methodMapField).append(".get("+mehtodName+"),result);\r\n")//
+                .append(methodMapField).append(".get(\"" + mehtodName + "\"),result);\r\n")//
                 .append("return result;\r\n");
         MethodModel methodModel = new MethodModel(method, classModel);
         methodModel.setBody(cache.toString());
@@ -126,12 +133,12 @@ public class ValidateAopManager implements EnhanceManager
      * @param validateFieldName
      * @param method
      */
-    private String processValidateParamter(ClassModel classModel, ApplicationContext applicationContext, String hostFieldName, String validateFieldName, Method method,String methodMapField)
+    private String processValidateParamter(ClassModel classModel, ApplicationContext applicationContext, String hostFieldName, String validateFieldName, Method method, String methodMapField)
     {
-        StringCache cache           = new StringCache();
+        StringCache cache      = new StringCache();
         String      methodName = "validateMethod_$" + fieldNameCounter.getAndIncrement();
         cache.append(validateFieldName).append(".validateParameters(").append(hostFieldName).append(",(java.lang.reflect.Method)")//
-                .append(methodMapField).append(".get("+methodName+")),")//
+                .append(methodMapField).append(".get(\"" + methodName + "\"),")//
                 .append("new Object[]{");
         int length = method.getParameterTypes().length;
         for (int i = 0; i < length; i++)
@@ -161,7 +168,6 @@ public class ValidateAopManager implements EnhanceManager
         return fieldName;
     }
 
-
     /**
      * @param classModel
      * @param validateFieldName
@@ -171,10 +177,9 @@ public class ValidateAopManager implements EnhanceManager
         MethodModel methodModel = new MethodModel(classModel);
         methodModel.setAccessLevel(AccessLevel.PUBLIC);
         methodModel.setMethodName("setJfireMethodValidator");
-        methodModel.setParamterTypes(JfireMethodValidator.class);
+        methodModel.setParamterTypes(JfireMethodValidator.class, Map.class);
         methodModel.setReturnType(void.class);
-        methodModel.setBody(validateFieldName + " = $0;\r\n");
-        methodModel.setBody(methodMapField + " = $1;\r\n");
+        methodModel.setBody(validateFieldName + " = $0;\r\n" + methodMapField + " = $1;\r\n");
         classModel.putMethodModel(methodModel);
     }
 
@@ -192,10 +197,10 @@ public class ValidateAopManager implements EnhanceManager
                 {
                     return true;
                 }
-            }
-            if (annotationContext.isAnnotationPresent(Constraint.class))
-            {
-                return true;
+                if (annotation.annotationType().isAnnotationPresent(Constraint.class))
+                {
+                    return true;
+                }
             }
         }
         return false;

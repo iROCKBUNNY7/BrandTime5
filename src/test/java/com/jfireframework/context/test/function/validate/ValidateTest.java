@@ -1,9 +1,8 @@
 package com.jfireframework.context.test.function.validate;
 
-import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.aop.support.validate.JfireMethodValidatorImpl;
-import com.jfireframework.jfire.core.resolver.BeanInstanceResolver;
-import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,20 +14,17 @@ public class ValidateTest
     @Test
     public void test_2()
     {
-        JfireBootstrap       config         = new JfireBootstrap();
-        BeanDefinition       beanDefinition = new BeanDefinition(JfireMethodValidatorImpl.class.getName(), JfireMethodValidatorImpl.class, false);
-        BeanInstanceResolver resolver       = new DefaultBeanInstanceResolver(JfireMethodValidatorImpl.class);
-        beanDefinition.setBeanInstanceResolver(resolver);
-        config.register(beanDefinition);
-        config.register(Person.class);
-        Jfire  jfire  = config.start();
-        Person person = jfire.getBean(Person.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(JfireMethodValidatorImpl.class);
+        context.register(Person.class);
+        Person person = context.getBean(Person.class);
         User   user   = new User();
         try
         {
             person.sayHello(user);
             Assert.fail();
-        } catch (ValidationException e)
+        }
+        catch (ValidationException e)
         {
             Assert.assertEquals("sayHello.0.name,", e.getMessage());
         }
@@ -36,7 +32,8 @@ public class ValidateTest
         {
             person.sayHello2(null);
             Assert.fail();
-        } catch (ValidationException e)
+        }
+        catch (ValidationException e)
         {
             Assert.assertEquals("sayHello2.0,", e.getMessage());
         }

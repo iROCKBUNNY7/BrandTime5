@@ -12,6 +12,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.impl.transaction.TransactionManager;
@@ -27,7 +28,7 @@ public class TransactionAopManager implements EnhanceManager
     private BeanDefinition transactionBeandefinition;
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(JfireContext applicationContext)
     {
         AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -47,7 +48,7 @@ public class TransactionAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, JfireContext applicationContext, String hostFieldName)
     {
         if (transactionBeandefinition == null)
         {

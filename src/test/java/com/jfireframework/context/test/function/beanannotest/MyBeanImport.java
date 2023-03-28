@@ -1,5 +1,8 @@
 package com.jfireframework.context.test.function.beanannotest;
 
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 
@@ -9,14 +12,23 @@ import javax.annotation.Resource;
 public class MyBeanImport
 {
     @Resource
-    private Jfire jfire;
+    private ApplicationContext context;
 
     @Bean(name = "person6")
-    public Object importBean()
+    public Person importBean()
     {
-        MyImport import1 = jfire.getAnnotation(MyImport.class);
-        Person   person  = new Person();
-        person.setName(import1.name());
-        return person;
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
+        for (Class<?> each : context.getConfigurationClassSet())
+        {
+            AnnotationContext annotationContext = annotationContextFactory.get(each);
+            if (annotationContext.isAnnotationPresent(MyImport.class))
+            {
+                MyImport myImport = annotationContext.getAnnotation(MyImport.class);
+                Person   person   = new Person();
+                person.setName(myImport.name());
+                return person;
+            }
+        }
+        return null;
     }
 }

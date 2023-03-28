@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core.prepare;
 
 import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 
 public interface JfirePrepare
 {
@@ -9,7 +10,7 @@ public interface JfirePrepare
      *
      * @return
      */
-    boolean prepare(ApplicationContext applicationContext);
+    boolean prepare(JfireContext context);
 
     int order();
 }

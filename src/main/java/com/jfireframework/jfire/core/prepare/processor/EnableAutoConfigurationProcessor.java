@@ -2,6 +2,7 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
@@ -87,9 +88,16 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
 
     boolean registgerAutoConfigor(String className, JfireContext jfireContext) throws ClassNotFoundException
     {
-        String traceId = TRACEID.currentTraceId();
-        logger.debug("traceId:{} 发现配置类:{}", traceId, className);
+        String   traceId  = TRACEID.currentTraceId();
         Class<?> configor = Thread.currentThread().getContextClassLoader().loadClass(className);
-        return jfireContext.registerConfiguration(configor);
+        if (jfireContext.registerConfiguration(configor))
+        {
+            logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

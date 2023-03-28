@@ -2,6 +2,8 @@ package com.jfireframework.context.test.function.cachetest;
 
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,12 +12,12 @@ public class CacheTest
     @Test
     public void test()
     {
-        JfireBootstrap config = new JfireBootstrap();
-        config.register(CacheTarget.class);
-        config.register(DemoCache.class);
-        config.register(CacheManagerTest.class);
-        Jfire       jfire       = config.start();
-        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(CacheTarget.class);
+        context.register(DemoCache.class);
+        context.register(CacheManagerTest.class);
+        context.refresh();
+        CacheTarget cacheTarget = context.getBean(CacheTarget.class);
         House       house       = cacheTarget.get(1);
         House       second      = cacheTarget.get(1);
         Assert.assertFalse(house == second);
@@ -47,12 +49,12 @@ public class CacheTest
     @Test
     public void test_2()
     {
-        JfireBootstrap config = new JfireBootstrap();
-        config.register(CacheTarget.class);
-        config.register(DemoCache.class);
-        config.register(CacheManagerTest.class);
-        Jfire       jfire       = config.start();
-        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(CacheTarget.class);
+        context.register(DemoCache.class);
+        context.register(CacheManagerTest.class);
+        context.refresh();
+        CacheTarget cacheTarget = context.getBean(CacheTarget.class);
         House       house       = cacheTarget.get2(6);
         House       second      = cacheTarget.get2(6);
         Assert.assertTrue(house == second);
@@ -64,12 +66,12 @@ public class CacheTest
     @Test
     public void test_3()
     {
-        JfireBootstrap config = new JfireBootstrap();
-        config.register(CacheTarget.class);
-        config.register(DemoCache.class);
-        config.register(CacheManagerTest.class);
-        Jfire       jfire       = config.start();
-        CacheTarget cacheTarget = jfire.getBean(CacheTarget.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(CacheTarget.class);
+        context.register(DemoCache.class);
+        context.register(CacheManagerTest.class);
+        context.refresh();
+        CacheTarget cacheTarget = context.getBean(CacheTarget.class);
         House       house       = cacheTarget.get3(6);
         House       second      = cacheTarget.get3(6);
         Assert.assertTrue(house == second);
@@ -81,12 +83,12 @@ public class CacheTest
     @Test
     public void test_4()
     {
-        JfireBootstrap config = new JfireBootstrap();
-        config.register(CacheTarget.class);
-        config.register(DemoCache.class);
-        config.register(CacheManagerTest.class);
-        Jfire         jfire       = config.start();
-        CacheTarget   cacheTarget = jfire.getBean(CacheTarget.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(CacheTarget.class);
+        context.register(DemoCache.class);
+        context.register(CacheManagerTest.class);
+        context.refresh();
+        CacheTarget   cacheTarget = context.getBean(CacheTarget.class);
         MutablePerson person      = new MutablePerson();
         person.setAge(18);
         House house  = cacheTarget.get4(person);

@@ -14,6 +14,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.ProceedPoint;
@@ -41,17 +42,17 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(JfireContext context)
     {
-        AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
-        for (BeanDefinition each : applicationContext.getAllBeanDefinitions())
+        for (BeanDefinition each : context.getAllBeanDefinitions())
         {
             AnnotationContext annotationContext = annotationContextFactory.get(each.getType(), classLoader);
             if (annotationContext.isAnnotationPresent(EnhanceClass.class))
             {
                 String rule = annotationContext.getAnnotationMetadata(EnhanceClass.class).getAttribyte("value").getStringValue();
-                for (BeanDefinition beanDefinition : applicationContext.getAllBeanDefinitions())
+                for (BeanDefinition beanDefinition : context.getAllBeanDefinitions())
                 {
                     if (StringUtil.match(beanDefinition.getType().getName(), rule))
                     {
@@ -63,7 +64,7 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, ApplicationContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, JfireContext applicationContext, String hostFieldName)
     {
         PriorityQueue<BeanDefinition> queue                    = findAspectClass(type, applicationContext);
         List<String>                  fieldNames               = new ArrayList<String>();
@@ -413,7 +414,7 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, ApplicationContext applicationContext)
+    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, JfireContext applicationContext)
     {
         final ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         final AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();

@@ -1,8 +1,8 @@
 package com.jfireframework.context.test.function;
 
-import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.inject.notated.CanBeNull;
-import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,7 +17,7 @@ public class DiTest
 
     }
 
-    @Resource
+    @Resource(name = "di")
     public static class ForDi1 implements forDi
     {
 
@@ -57,12 +57,11 @@ public class DiTest
     @Test
     public void test()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.register(ForDi1.class);
-        jfireConfig.register(ForDi2.class);
-        jfireConfig.register(Holder.class);
-        Jfire  jfire  = jfireConfig.start();
-        Holder holder = jfire.getBean(Holder.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(ForDi1.class);
+        context.register(ForDi2.class);
+        context.register(Holder.class);
+        Holder holder = context.getBean(Holder.class);
         Assert.assertEquals(2, holder.f.size());
     }
 
@@ -72,13 +71,10 @@ public class DiTest
     @Test
     public void test_2()
     {
-        JfireBootstrap jfireConfig    = new JfireBootstrap();
-        BeanDefinition beanDefinition = new BeanDefinition("di", ForDi1.class, false);
-        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(ForDi1.class));
-        jfireConfig.register(beanDefinition);
-        jfireConfig.register(Holder2.class);
-        Jfire   jfire  = jfireConfig.start();
-        Holder2 holder = jfire.getBean(Holder2.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(ForDi1.class);
+        context.register(Holder2.class);
+        Holder2 holder = context.getBean(Holder2.class);
         Assert.assertNotNull(holder.di);
     }
 
@@ -88,10 +84,9 @@ public class DiTest
     @Test
     public void test_3()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.register(Holder3.class);
-        Jfire   jfire  = jfireConfig.start();
-        Holder3 holder = jfire.getBean(Holder3.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(Holder3.class);
+        Holder3 holder = context.getBean(Holder3.class);
         Assert.assertNull(holder.di);
     }
 }

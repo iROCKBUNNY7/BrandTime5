@@ -3,9 +3,10 @@ package com.jfireframework.context.test.function.base;
 import com.jfireframework.context.test.function.base.data.House;
 import com.jfireframework.context.test.function.base.data.ImmutablePerson;
 import com.jfireframework.context.test.function.base.data.MutablePerson;
-import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.context.test.function.loader.Home;
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
-import com.jfireframework.jfire.core.resolver.impl.DefaultBeanInstanceResolver;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,51 +30,40 @@ public class ContextTest
     @Test
     public void testConstruction()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(ContextTestScan.class);
-        baseTest(jfireConfig.start());
+        ApplicationContext context = new AnnotatedApplicationContext(ContextTestScan.class);
+        baseTest(context);
     }
 
-    private void baseTest(Jfire jfire)
+    private void baseTest(ApplicationContext context)
     {
-        ImmutablePerson immutablePerson = jfire.getBean(ImmutablePerson.class);
-        ImmutablePerson person2         = jfire.getBean(ImmutablePerson.class.getName());
+        ImmutablePerson immutablePerson = context.getBean(ImmutablePerson.class);
+        ImmutablePerson person2         = context.getBean(ImmutablePerson.class.getName());
         assertEquals(immutablePerson, person2);
-        MutablePerson mutablePerson  = jfire.getBean(MutablePerson.class);
-        MutablePerson mutablePerson2 = jfire.getBean(MutablePerson.class);
+        MutablePerson mutablePerson  = context.getBean(MutablePerson.class);
+        MutablePerson mutablePerson2 = context.getBean(MutablePerson.class);
         assertNotEquals(mutablePerson, mutablePerson2);
         logger.debug(mutablePerson.getHome().getName());
         assertEquals(mutablePerson.getHome(), immutablePerson.getHome());
-        assertEquals("林斌的房子", jfire.getBean(House.class).getName());
+        assertEquals("林斌的房子", context.getBean(House.class).getName());
     }
 
     @Test
     public void testDirect()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap();
-        jfireConfig.register(House.class);
-        jfireConfig.register(MutablePerson.class);
-        jfireConfig.register(ImmutablePerson.class);
-        baseTest(jfireConfig.start());
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(House.class);
+        context.register(MutablePerson.class);
+        context.register(ImmutablePerson.class);
+        context.refresh();
+        baseTest(context);
     }
 
-    @Test
-    public void testDirect2()
-    {
-        JfireBootstrap jfireConfig    = new JfireBootstrap();
-        BeanDefinition beanDefinition = new BeanDefinition(House.class.getName(), House.class, false);
-        beanDefinition.setBeanInstanceResolver(new DefaultBeanInstanceResolver(House.class));
-        jfireConfig.register(beanDefinition);
-        jfireConfig.register(MutablePerson.class);
-        jfireConfig.register(ImmutablePerson.class);
-        baseTest(jfireConfig.start());
-    }
 
     @Test
     public void testInit2()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(ContextTestScan.class);
-        Jfire          jfire       = jfireConfig.start();
-        assertEquals("林斌的房子", jfire.getBean(House.class).getName());
-        assertEquals("林斌的房子", ((House) jfire.getBean(House.class.getName())).getName());
+        ApplicationContext context = new AnnotatedApplicationContext(ContextTestScan.class);
+        assertEquals("林斌的房子", context.getBean(House.class).getName());
+        assertEquals("林斌的房子", ((House) context.getBean(House.class.getName())).getName());
     }
 }

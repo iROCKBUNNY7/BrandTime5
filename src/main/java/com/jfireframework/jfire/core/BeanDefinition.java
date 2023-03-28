@@ -8,7 +8,6 @@ import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
-import com.jfireframework.jfire.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.EnhanceManager.SetHost;
@@ -49,17 +48,18 @@ public class BeanDefinition
     // 该Bean的类
     private             Class<?>                         type;
     // 增强后的类，如果没有增强标记，该属性为空
-    private             Class<?>             enhanceType;
-    private Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
-    private EnhanceManager[]                 orderedAopManagers;
-    private EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
-    private String                           beanName;
+    private             Class<?>                         enhanceType;
+    private             Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
+    private             EnhanceManager[]                 orderedAopManagers;
+    private             EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
+    private             String                           beanName;
     // 标注@PostConstruct的方法
-    private Method                           postConstructMethod;
-    private InjectHandler[]                  injectHandlers;
-    private JfireContext                     jfireContext;
-    private BeanDescriptor                   beanDescriptor;
-    private BeanFactory                      beanFactory;
+    private             Method                           postConstructMethod;
+    private             InjectHandler[]                  injectHandlers;
+    private             JfireContext                     jfireContext;
+    private             BeanDescriptor                   beanDescriptor;
+    private             BeanFactory                      beanFactory;
+    private             BeanDefinition                   beanFactoryBeanDefinition;
 
     public BeanDefinition(BeanDescriptor beanDescriptor)
     {
@@ -94,7 +94,7 @@ public class BeanDefinition
         this.jfireContext = jfireContext;
         if (cachedSingtonInstance == null)
         {
-            beanFactory = jfireContext.getBeanFactory(beanDescriptor);
+            beanFactoryBeanDefinition = jfireContext.getBeanFactory(beanDescriptor);
             initPostConstructMethod();
             initInjectHandlers();
             initEnhance();
@@ -334,8 +334,12 @@ public class BeanDefinition
         return prototype;
     }
 
-    private Object buildInstance()
+    private synchronized Object buildInstance()
     {
+        if (beanFactory == null)
+        {
+            beanFactory = (BeanFactory) beanFactoryBeanDefinition.getBean();
+        }
         Map<String, Object> map       = tmpBeanInstanceMap.get();
         boolean             cleanMark = map.isEmpty();
         Object              instance  = map.get(beanName);

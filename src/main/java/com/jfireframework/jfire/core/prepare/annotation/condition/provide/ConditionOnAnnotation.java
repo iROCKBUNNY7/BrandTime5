@@ -5,6 +5,7 @@ import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnAnnotation.OnAnnotation;
@@ -29,12 +30,12 @@ public @interface ConditionOnAnnotation
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(JfireContext context, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
             ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
             ValuePair[]              value                    = metadata.getAttribyte("value").getArray();
-            Collection<Class<?>>     configurationClassSet    = applicationContext.getConfigurationClassSet();
-            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+            Collection<Class<?>>     configurationClassSet    = context.getConfigurationClassSet();
+            AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
             for (ValuePair each : value)
             {
                 Class<? extends Annotation> aClass;
@@ -65,5 +66,6 @@ public @interface ConditionOnAnnotation
             }
             return true;
         }
+
     }
 }

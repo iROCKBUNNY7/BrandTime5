@@ -2,7 +2,7 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
-import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 
@@ -27,7 +27,7 @@ public @interface ConditionOnClass
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ApplicationContext readOnlyEnvironment, AnnotationMetadata metadata, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(JfireContext context, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             ValuePair[] value       = metadata.getAttribyte("value").getArray();

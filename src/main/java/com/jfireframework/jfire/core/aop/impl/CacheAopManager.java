@@ -13,6 +13,7 @@ import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
 import com.jfireframework.baseutil.smc.model.MethodModel.MethodModelKey;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.notated.cache.CacheDelete;
@@ -31,7 +32,7 @@ public class CacheAopManager implements EnhanceManager
     private BeanDefinition cacheBeanDefinition;
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(JfireContext applicationContext)
     {
         AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -57,7 +58,7 @@ public class CacheAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, JfireContext applicationContext, String hostFieldName)
     {
         classModel.addImport(Expression.class);
         classModel.addImport(HashMap.class);

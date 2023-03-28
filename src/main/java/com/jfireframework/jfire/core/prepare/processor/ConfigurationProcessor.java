@@ -8,6 +8,7 @@ import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.MethodBeanDescriptor;
@@ -68,7 +69,8 @@ public class ConfigurationProcessor implements JfirePrepare
                     continue;
                 }
             }
-            Class<?> ckass = registerConfigurationBeanDefinition(each, jfireContext);
+            jfireContext.registerBean(each);
+            Class<?> ckass = each;
             for (Method method : ckass.getDeclaredMethods())
             {
                 AnnotationContext annotationContextOnMethod = annotationContextFactory.get(method, classLoader);
@@ -101,7 +103,7 @@ public class ConfigurationProcessor implements JfirePrepare
                     {
                         for (String error : errorMessage.getList())
                         {
-                            logger.debug("traceId:{} 配置类:{}不符合条件:{}", each, error, TRACEID.currentTraceId());
+                            logger.debug("traceId:{} 配置类:{}不符合条件:{}", TRACEID.currentTraceId(), each, error);
                         }
                     }
                 }

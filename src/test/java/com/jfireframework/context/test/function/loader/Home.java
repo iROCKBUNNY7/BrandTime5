@@ -1,11 +1,11 @@
 package com.jfireframework.context.test.function.loader;
 
-import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver.LoadBy;
+import com.jfireframework.jfire.core.beanfactory.SelectBeanFactory;
 
 import javax.annotation.Resource;
 
 @Resource
-@LoadBy(factoryBeanName = "allLoader")
+@SelectBeanFactory("allLoader")
 public interface Home
 {
     int getLength();

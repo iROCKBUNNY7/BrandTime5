@@ -4,8 +4,8 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
-import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.CanBeNull;
 import com.jfireframework.jfire.core.inject.notated.MapKeyMethodName;
@@ -20,18 +20,18 @@ import java.util.*;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
-    private ApplicationContext applicationContext;
-    private Inject             inject;
-    private ValueAccessor      valueAccessor;
+    private JfireContext  context;
+    private Inject        inject;
+    private ValueAccessor valueAccessor;
 
     @Override
-    public void init(Field field, ApplicationContext applicationContext)
+    public void init(Field field, JfireContext context)
     {
         if (field.getType().isPrimitive())
         {
             throw new UnsupportedOperationException("基础类型无法执行注入操作");
         }
-        this.applicationContext = applicationContext;
+        this.context = context;
         valueAccessor = new ValueAccessor(field);
         Class<?> fieldType = field.getType();
         if (Map.class.isAssignableFrom(fieldType))
@@ -70,11 +70,11 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         InstacenInject()
         {
             Field                    field                    = valueAccessor.getField();
-            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+            AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
             AnnotationContext        annotationContext        = annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader());
             Resource                 resource                 = annotationContext.getAnnotation(Resource.class);
             String                   beanName                 = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
-            beanDefinition = applicationContext.getBeanDefinition(beanName);
+            beanDefinition = context.getBeanDefinition(beanName);
             if (beanDefinition == null && annotationContext.isAnnotationPresent(CanBeNull.class) == false)
             {
                 throw new InjectValueException("无法找到属性:" + field.getDeclaringClass().getSimpleName() + "." + field.getName() + "可以注入的bean，需要的bean名称:" + beanName);
@@ -103,13 +103,13 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         {
             Field                    field                    = valueAccessor.getField();
             Class<?>                 fieldType                = field.getType();
-            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+            AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
             AnnotationContext        annotationContext        = annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader());
             Resource                 resource                 = annotationContext.getAnnotation(Resource.class);
             // 如果定义了名称，就寻找特定名称的Bean
             if (StringUtil.isNotBlank(resource.name()))
             {
-                beanDefinition = applicationContext.getBeanDefinition(resource.name());
+                beanDefinition = context.getBeanDefinition(resource.name());
                 if (beanDefinition == null && annotationContext.isAnnotationPresent(CanBeNull.class) == false)
                 {
                     throw new BeanDefinitionCanNotFindException(resource.name());
@@ -117,7 +117,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
             }
             else
             {
-                List<BeanDefinition> list = applicationContext.getBeanDefinitions(fieldType);
+                List<BeanDefinition> list = context.getBeanDefinitions(fieldType);
                 if (list.size() > 1)
                 {
                     throw new BeanDefinitionCanNotFindException(list, fieldType);
@@ -173,7 +173,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
             Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-            List<BeanDefinition> list    = applicationContext.getBeanDefinitions(rawType);
+            List<BeanDefinition> list    = context.getBeanDefinitions(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
             if (List.class.isAssignableFrom(field.getType()))
             {
@@ -245,9 +245,9 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
             Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[1];
-            List<BeanDefinition> list    = applicationContext.getBeanDefinitions(rawType);
+            List<BeanDefinition> list    = context.getBeanDefinitions(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
-            AnnotationContext annotationContext = applicationContext.getAnnotationContextFactory().get(field, Thread.currentThread().getContextClassLoader());
+            AnnotationContext annotationContext = context.getAnnotationContextFactory().get(field, Thread.currentThread().getContextClassLoader());
             if (annotationContext.isAnnotationPresent(MapKeyMethodName.class))
             {
                 mapKeyType = MapKeyType.METHOD;

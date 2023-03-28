@@ -4,6 +4,7 @@ import com.jfireframework.baseutil.StringUtil;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnProperty.OnProperty;
@@ -31,7 +32,7 @@ public @interface ConditionOnProperty
         }
 
         @Override
-        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(JfireContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
             for (ValuePair each : metadata.getAttribyte("value").getArray())
             {

@@ -1,15 +1,15 @@
 package com.jfireframework.context.test.function.loader;
 
-import com.jfireframework.jfire.core.resolver.impl.LoadByBeanInstanceResolver.BeanLoadFactory;
+import com.jfireframework.jfire.core.BeanFactory;
+import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Resource(name = "allLoader")
-public class AllLoader implements BeanLoadFactory
+public class AllLoader implements BeanFactory
 {
-    private Class<?>           ckass;
     private Map<Class, Object> holder = new HashMap<Class, Object>();
 
     public AllLoader()
@@ -34,10 +34,9 @@ public class AllLoader implements BeanLoadFactory
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> T load(Class<T> ckass)
+    public <E> E getBean(BeanDescriptor beanDescriptor)
     {
-        return (T) holder.get(ckass);
+        return (E) holder.get(beanDescriptor.getDescriptorClass());
     }
 }

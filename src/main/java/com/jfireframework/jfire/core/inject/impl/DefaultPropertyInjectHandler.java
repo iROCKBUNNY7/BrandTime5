@@ -6,6 +6,7 @@ import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.exception.InjectTypeException;
@@ -24,7 +25,7 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     private Inject        inject;
 
     @Override
-    public void init(Field field, ApplicationContext applicationContext)
+    public void init(Field field, JfireContext applicationContext)
     {
         valueAccessor = new ValueAccessor(field);
         AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();

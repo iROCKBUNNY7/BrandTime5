@@ -1,5 +1,7 @@
 package com.jfireframework.context.test.function;
 
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
@@ -34,10 +36,9 @@ public class PropertyPathImporterTest
     @Test
     public void test()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(Test1.class);
-        jfireConfig.register(PropertyPathImporterTest.class);
-        Jfire                    jfire = jfireConfig.start();
-        PropertyPathImporterTest test  = jfire.getBean(PropertyPathImporterTest.class);
+        ApplicationContext context = new AnnotatedApplicationContext(Test1.class);
+        context.register(PropertyPathImporterTest.class);
+        PropertyPathImporterTest test = context.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }
 
@@ -47,10 +48,9 @@ public class PropertyPathImporterTest
     @Test
     public void test2()
     {
-        JfireBootstrap jfireConfig = new JfireBootstrap(Test2.class);
-        jfireConfig.register(PropertyPathImporterTest.class);
-        Jfire                    jfire = jfireConfig.start();
-        PropertyPathImporterTest test  = jfire.getBean(PropertyPathImporterTest.class);
+        ApplicationContext context = new AnnotatedApplicationContext(Test2.class);
+        context.register(PropertyPathImporterTest.class);
+        PropertyPathImporterTest test = context.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
     }
 }

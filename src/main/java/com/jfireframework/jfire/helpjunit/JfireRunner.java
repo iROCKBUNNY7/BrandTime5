@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.helpjunit;
 
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
 import com.jfireframework.jfire.core.ApplicationContext;
 import org.junit.rules.RunRules;
 import org.junit.rules.TestRule;
@@ -67,8 +68,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
 
     protected Object createTest()
     {
-        JfireBootstrap     jfireBootstrap     = new JfireBootstrap(klass);
-        ApplicationContext applicationContext = jfireBootstrap.start();
-        return applicationContext.getBean(klass);
+        ApplicationContext context = new AnnotatedApplicationContext(klass);
+        return context.getBean(klass);
     }
 }

@@ -1,5 +1,6 @@
 package com.jfireframework.context.test.function;
 
+import com.jfireframework.jfire.core.AnnotatedApplicationContext;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
@@ -128,13 +129,12 @@ public class ConfigurationOrderTest
     @Test
     public void test()
     {
-        JfireBootstrap     bootstrap = new JfireBootstrap(ConfigurationOrderTest.class);
-        ApplicationContext jfire     = bootstrap.start();
-        Assert.assertEquals(1, ((Person) jfire.getBean("person")).getAge());
-        Assert.assertEquals(2, ((Person) jfire.getBean("person2")).getAge());
-        Assert.assertEquals(3, ((Person) jfire.getBean("person3")).getAge());
-        Assert.assertEquals(4, ((Person) jfire.getBean("person4")).getAge());
-        Assert.assertEquals(5, ((Person) jfire.getBean("person5")).getAge());
+        ApplicationContext context = new AnnotatedApplicationContext(ConfigurationOrderTest.class);
+        Assert.assertEquals(1, ((Person) context.getBean("person")).getAge());
+        Assert.assertEquals(2, ((Person) context.getBean("person2")).getAge());
+        Assert.assertEquals(3, ((Person) context.getBean("person3")).getAge());
+        Assert.assertEquals(4, ((Person) context.getBean("person4")).getAge());
+        Assert.assertEquals(5, ((Person) context.getBean("person5")).getAge());
         Assert.assertEquals(5, count.get());
     }
 }
