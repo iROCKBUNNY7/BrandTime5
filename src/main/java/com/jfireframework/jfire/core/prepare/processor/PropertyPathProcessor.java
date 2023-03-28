@@ -2,13 +2,11 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
-import com.jfireframework.jfire.core.JfireContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import com.jfireframework.jfire.util.Utils;
-
-import java.util.List;
 
 public class PropertyPathProcessor implements JfirePrepare
 {
@@ -16,18 +14,22 @@ public class PropertyPathProcessor implements JfirePrepare
     @Override
     public boolean prepare(JfireContext jfireContext)
     {
-        AnnotationContext bootStarpClassAnnotationContext = jfireContext.getEnv().getBootStarpClassAnnotationContext();
-        if (bootStarpClassAnnotationContext.isAnnotationPresent(PropertyPath.class))
+        ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+        AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
+        for (Class<?> each : jfireContext.getConfigurationClassSet())
         {
-            List<PropertyPath> annotations = bootStarpClassAnnotationContext.getAnnotations(PropertyPath.class);
-            for (PropertyPath propertyPath : annotations)
+            AnnotationContext annotationContext = annotationContextFactory.get(each, classLoader);
+            if (annotationContext.isAnnotationPresent(PropertyPath.class))
             {
-                for (String path : propertyPath.value())
+                for (PropertyPath propertyPath : annotationContext.getAnnotations(PropertyPath.class))
                 {
-                    IniReader.IniFile iniFile = Utils.processPath(path);
-                    for (String each : iniFile.keySet())
+                    for (String path : propertyPath.value())
                     {
-                        jfireContext.getEnv().putProperty(each, iniFile.getValue(each));
+                        IniReader.IniFile iniFile = Utils.processPath(path);
+                        for (String property : iniFile.keySet())
+                        {
+                            jfireContext.getEnv().putProperty(property, iniFile.getValue(property));
+                        }
                     }
                 }
             }

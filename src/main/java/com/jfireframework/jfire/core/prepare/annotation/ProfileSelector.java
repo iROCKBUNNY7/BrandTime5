@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Import(ProfileSelectorProcessor.class)
 public @interface ProfileSelector
 {
-    String protocol() default "file:";
+    String protocol() default "file";
 
     String prefix() default "application_";
 

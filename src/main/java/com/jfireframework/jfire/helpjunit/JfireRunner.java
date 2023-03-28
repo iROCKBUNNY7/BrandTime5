@@ -1,7 +1,6 @@
 package com.jfireframework.jfire.helpjunit;
 
 import com.jfireframework.jfire.core.ApplicationContext;
-import com.jfireframework.jfire.core.JfireBootstrap;
 import org.junit.rules.RunRules;
 import org.junit.rules.TestRule;
 import org.junit.runners.BlockJUnit4ClassRunner;

@@ -3,6 +3,7 @@ package com.jfireframework.jfire.core.prepare.annotation.condition.provide;
 import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfireframework.baseutil.bytecode.annotation.ValuePair;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
@@ -11,6 +12,7 @@ import com.jfireframework.jfire.core.prepare.annotation.condition.provide.Condit
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collection;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(OnAnnotation.class)
@@ -29,24 +31,35 @@ public @interface ConditionOnAnnotation
         @Override
         protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
-            ClassLoader       classLoader                     = Thread.currentThread().getContextClassLoader();
-            ValuePair[]       value                           = metadata.getAttribyte("value").getArray();
-            AnnotationContext bootStarpClassAnnotationContext = applicationContext.getEnv().getBootStarpClassAnnotationContext();
+            ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+            ValuePair[]              value                    = metadata.getAttribyte("value").getArray();
+            Collection<Class<?>>     configurationClassSet    = applicationContext.getConfigurationClassSet();
+            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
             for (ValuePair each : value)
             {
-                Class<?> aClass;
+                Class<? extends Annotation> aClass;
                 try
                 {
-                    aClass = classLoader.loadClass(each.getClassName());
+                    aClass = (Class<? extends Annotation>) classLoader.loadClass(each.getClassName());
                 }
                 catch (ClassNotFoundException e)
                 {
                     errorMessage.addErrorMessage("注解:" + each + "不存在于类路径");
                     return false;
                 }
-                if (bootStarpClassAnnotationContext.isAnnotationPresent((Class<? extends Annotation>) aClass) == false)
+                boolean has = false;
+                for (Class<?> configurationClass : configurationClassSet)
                 {
-                    errorMessage.addErrorMessage("注解:" + each + "没有标注在启动类上");
+                    AnnotationContext annotationContext = annotationContextFactory.get(configurationClass, classLoader);
+                    if (annotationContext.isAnnotationPresent(aClass))
+                    {
+                        has = true;
+                        break;
+                    }
+                }
+                if (has == false)
+                {
+                    errorMessage.addErrorMessage("注解:" + each + "没有标注在配置类上");
                     return false;
                 }
             }

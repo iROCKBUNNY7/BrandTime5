@@ -1,6 +1,6 @@
 package com.jfireframework.context.test.function;
 
-import com.jfireframework.jfire.core.JfireBootstrap;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
@@ -128,8 +128,8 @@ public class ConfigurationOrderTest
     @Test
     public void test()
     {
-        JfireBootstrap bootstrap = new JfireBootstrap(ConfigurationOrderTest.class);
-        Jfire          jfire     = bootstrap.start();
+        JfireBootstrap     bootstrap = new JfireBootstrap(ConfigurationOrderTest.class);
+        ApplicationContext jfire     = bootstrap.start();
         Assert.assertEquals(1, ((Person) jfire.getBean("person")).getAge());
         Assert.assertEquals(2, ((Person) jfire.getBean("person2")).getAge());
         Assert.assertEquals(3, ((Person) jfire.getBean("person3")).getAge());

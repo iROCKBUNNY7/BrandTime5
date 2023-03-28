@@ -1,7 +1,6 @@
 package com.jfireframework.context.test.function;
 
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.Import;

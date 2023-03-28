@@ -8,6 +8,7 @@ import com.jfireframework.baseutil.smc.model.ClassModel;
 import com.jfireframework.baseutil.smc.model.FieldModel;
 import com.jfireframework.baseutil.smc.model.MethodModel;
 import com.jfireframework.baseutil.smc.model.MethodModel.AccessLevel;
+import com.jfireframework.jfire.JfireContext;
 import com.jfireframework.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.aop.EnhanceManager.SetHost;
@@ -48,7 +49,7 @@ public class BeanDefinition
     // 该Bean的类
     private             Class<?>                         type;
     // 增强后的类，如果没有增强标记，该属性为空
-    private             Class<?>                         enhanceType;
+    private             Class<?>             enhanceType;
     private Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
     private EnhanceManager[]                 orderedAopManagers;
     private EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;

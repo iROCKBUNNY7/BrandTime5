@@ -1,20 +1,19 @@
 package com.jfireframework.context.test.function;
 
-import com.jfireframework.baseutil.bytecode.annotation.AnnotationMetadata;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabase;
-import com.jfireframework.jfire.core.prepare.support.annotaion.AnnotationDatabaseImpl;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
+import com.jfireframework.baseutil.bytecode.support.DefaultAnnotationContextFactory;
 import org.junit.Test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@AnnodatationDatabaseTest.test1(value = RetentionPolicy.RUNTIME, value2 = "22", value3 = AnnodatationDatabaseTest.class, value5 = @AnnodatationDatabaseTest.test2("kk"),value6 = {@AnnodatationDatabaseTest.test2("gg")})
+@AnnodatationDatabaseTest.test1(value = RetentionPolicy.RUNTIME, value2 = "22", value3 = AnnodatationDatabaseTest.class, value5 = @AnnodatationDatabaseTest.test2("kk"), value6 = {@AnnodatationDatabaseTest.test2("gg")})
 public class AnnodatationDatabaseTest
 {
-    private AnnotationDatabase annotationDatabase = new AnnotationDatabaseImpl(Thread.currentThread().getContextClassLoader());
+    private AnnotationContextFactory annotationDatabase = new DefaultAnnotationContextFactory();
 
     @Retention(RetentionPolicy.RUNTIME)
     public @interface test1
@@ -28,6 +27,7 @@ public class AnnodatationDatabaseTest
         Class value4() default String.class;
 
         test2 value5();
+
         test2[] value6();
     }
 
@@ -40,14 +40,14 @@ public class AnnodatationDatabaseTest
     @Test
     public void test()
     {
-        List<AnnotationMetadata> annotaionOnClass   = annotationDatabase.getAnnotaionOnClass(AnnodatationDatabaseTest.class.getName());
-        AnnotationMetadata       annotationInstance = annotaionOnClass.get(0);
-        test1                    annotation         = (test1) annotationInstance.annotation();
+        AnnotationContext annotationContext = annotationDatabase.get(AnnodatationDatabaseTest.class, Thread.currentThread().getContextClassLoader());
+        test1             test1             = annotationContext.getAnnotation(test1.class);
+        test1             annotation        = test1;
         assertEquals("22", annotation.value2());
         assertEquals(RetentionPolicy.RUNTIME, annotation.value()[0]);
         assertEquals(AnnodatationDatabaseTest.class, annotation.value3());
         assertEquals(String.class, annotation.value4());
         assertEquals("kk", annotation.value5().value());
-        assertEquals("gg",annotation.value6()[0].value());
+        assertEquals("gg", annotation.value6()[0].value());
     }
 }

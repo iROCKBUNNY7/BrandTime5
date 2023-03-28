@@ -8,7 +8,6 @@ import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.BeanDefinition;
-import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfireframework.jfire.core.beandescriptor.MethodBeanDescriptor;

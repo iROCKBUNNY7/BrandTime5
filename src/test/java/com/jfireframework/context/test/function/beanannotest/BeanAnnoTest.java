@@ -1,6 +1,5 @@
 package com.jfireframework.context.test.function.beanannotest;
 
-import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import org.junit.Assert;
 import org.junit.Test;

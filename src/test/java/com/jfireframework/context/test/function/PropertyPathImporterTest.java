@@ -1,6 +1,5 @@
 package com.jfireframework.context.test.function;
 
-import com.jfireframework.jfire.core.JfireBootstrap;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.core.prepare.annotation.PropertyPath;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;

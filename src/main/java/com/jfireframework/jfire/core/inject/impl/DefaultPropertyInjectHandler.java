@@ -1,13 +1,15 @@
 package com.jfireframework.jfire.core.inject.impl;
 
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.encrypt.Base64Tool;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
+import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.inject.InjectHandler;
 import com.jfireframework.jfire.core.inject.notated.PropertyRead;
 import com.jfireframework.jfire.exception.InjectTypeException;
 import com.jfireframework.jfire.exception.InjectValueException;
-import com.jfireframework.jfire.util.Utils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -22,18 +24,20 @@ public class DefaultPropertyInjectHandler implements InjectHandler
     private Inject        inject;
 
     @Override
-    public void init(Field field, EnvironmentTmp environment)
+    public void init(Field field, ApplicationContext applicationContext)
     {
         valueAccessor = new ValueAccessor(field);
-        PropertyRead propertyRead = Utils.ANNOTATION_UTIL.getAnnotation(PropertyRead.class, field);
-        String       propertyName = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
+        AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        AnnotationContext        annotationContext        = annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader());
+        PropertyRead             propertyRead             = annotationContext.getAnnotation(PropertyRead.class);
+        String                   propertyName             = StringUtil.isNotBlank(propertyRead.value()) ? propertyRead.value() : field.getName();
         if (StringUtil.isNotBlank(System.getProperty(propertyName)))
         {
             propertyValue = System.getProperty(propertyName);
         }
-        else if (StringUtil.isNotBlank(environment.getProperty(propertyName)))
+        else if (StringUtil.isNotBlank(applicationContext.getEnv().getProperty(propertyName)))
         {
-            propertyValue = environment.getProperty(propertyName);
+            propertyValue = applicationContext.getEnv().getProperty(propertyName);
         }
         else
         {
@@ -129,7 +133,8 @@ public class DefaultPropertyInjectHandler implements InjectHandler
             try
             {
                 valueAccessor.setObject(instance, value);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new InjectValueException(e);
             }
@@ -206,7 +211,8 @@ public class DefaultPropertyInjectHandler implements InjectHandler
             try
             {
                 value = this.getClass().getClassLoader().loadClass(propertyValue);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new InjectValueException(e);
             }

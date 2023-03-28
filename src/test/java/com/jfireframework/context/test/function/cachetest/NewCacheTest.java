@@ -1,7 +1,6 @@
 package com.jfireframework.context.test.function.cachetest;
 
 import com.jfireframework.context.test.function.base.data.House;
-import com.jfireframework.jfire.core.JfireBootstrap;
 import org.junit.Test;
 
 public class NewCacheTest

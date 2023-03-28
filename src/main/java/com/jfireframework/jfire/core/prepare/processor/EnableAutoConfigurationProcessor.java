@@ -2,7 +2,6 @@ package com.jfireframework.jfire.core.prepare.processor;
 
 import com.jfireframework.baseutil.TRACEID;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
-import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;

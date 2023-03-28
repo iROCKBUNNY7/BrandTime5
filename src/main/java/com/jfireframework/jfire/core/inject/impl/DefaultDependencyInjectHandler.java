@@ -1,6 +1,7 @@
 package com.jfireframework.jfire.core.inject.impl;
 
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ValueAccessor;
 import com.jfireframework.jfire.core.ApplicationContext;
@@ -12,7 +13,6 @@ import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import com.jfireframework.jfire.exception.InjectTypeException;
 import com.jfireframework.jfire.exception.InjectValueException;
 import com.jfireframework.jfire.exception.MapKeyMethodCanNotFindException;
-import com.jfireframework.jfire.util.Utils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.*;
@@ -71,11 +71,11 @@ public class DefaultDependencyInjectHandler implements InjectHandler
         {
             Field                    field                    = valueAccessor.getField();
             AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
-            annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader()).get;
-            Resource resource = annotationUtil.getAnnotation(Resource.class, field);
-            String   beanName = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
-            beanDefinition = environment.getBeanDefinition(beanName);
-            if (beanDefinition == null)
+            AnnotationContext        annotationContext        = annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader());
+            Resource                 resource                 = annotationContext.getAnnotation(Resource.class);
+            String                   beanName                 = StringUtil.isNotBlank(resource.name()) ? resource.name() : field.getType().getName();
+            beanDefinition = applicationContext.getBeanDefinition(beanName);
+            if (beanDefinition == null && annotationContext.isAnnotationPresent(CanBeNull.class) == false)
             {
                 throw new InjectValueException("无法找到属性:" + field.getDeclaringClass().getSimpleName() + "." + field.getName() + "可以注入的bean，需要的bean名称:" + beanName);
             }
@@ -101,21 +101,23 @@ public class DefaultDependencyInjectHandler implements InjectHandler
 
         AbstractInject()
         {
-            Field    field     = valueAccessor.getField();
-            Class<?> fieldType = field.getType();
-            Resource resource  = Utils.ANNOTATION_UTIL.getAnnotation(Resource.class, field);
+            Field                    field                    = valueAccessor.getField();
+            Class<?>                 fieldType                = field.getType();
+            AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+            AnnotationContext        annotationContext        = annotationContextFactory.get(field, Thread.currentThread().getContextClassLoader());
+            Resource                 resource                 = annotationContext.getAnnotation(Resource.class);
             // 如果定义了名称，就寻找特定名称的Bean
             if (StringUtil.isNotBlank(resource.name()))
             {
-                beanDefinition = environment.getBeanDefinition(resource.name());
-                if (beanDefinition == null && Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field) == false)
+                beanDefinition = applicationContext.getBeanDefinition(resource.name());
+                if (beanDefinition == null && annotationContext.isAnnotationPresent(CanBeNull.class) == false)
                 {
                     throw new BeanDefinitionCanNotFindException(resource.name());
                 }
             }
             else
             {
-                List<BeanDefinition> list = environment.getBeanDefinitionByAbstract(fieldType);
+                List<BeanDefinition> list = applicationContext.getBeanDefinitions(fieldType);
                 if (list.size() > 1)
                 {
                     throw new BeanDefinitionCanNotFindException(list, fieldType);
@@ -124,7 +126,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 {
                     beanDefinition = list.get(0);
                 }
-                else if (Utils.ANNOTATION_UTIL.isPresent(CanBeNull.class, field))
+                else if (annotationContext.isAnnotationPresent(CanBeNull.class))
                 {
                     //可为空，允许
                     return;
@@ -171,7 +173,7 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
             Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-            List<BeanDefinition> list    = environment.getBeanDefinitionByAbstract(rawType);
+            List<BeanDefinition> list    = applicationContext.getBeanDefinitions(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
             if (List.class.isAssignableFrom(field.getType()))
             {
@@ -243,12 +245,13 @@ public class DefaultDependencyInjectHandler implements InjectHandler
                 throw new InjectTypeException(field.toGenericString() + "不是泛型定义，无法找到需要注入的Bean类型");
             }
             Class<?>             rawType = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[1];
-            List<BeanDefinition> list    = environment.getBeanDefinitionByAbstract(rawType);
+            List<BeanDefinition> list    = applicationContext.getBeanDefinitions(rawType);
             beanDefinitions = list.toArray(new BeanDefinition[list.size()]);
-            if (Utils.ANNOTATION_UTIL.isPresent(MapKeyMethodName.class, field))
+            AnnotationContext annotationContext = applicationContext.getAnnotationContextFactory().get(field, Thread.currentThread().getContextClassLoader());
+            if (annotationContext.isAnnotationPresent(MapKeyMethodName.class))
             {
                 mapKeyType = MapKeyType.METHOD;
-                String methodName = Utils.ANNOTATION_UTIL.getAnnotation(MapKeyMethodName.class, field).value();
+                String methodName = annotationContext.getAnnotation(MapKeyMethodName.class).value();
                 try
                 {
                     method = rawType.getMethod(methodName);
