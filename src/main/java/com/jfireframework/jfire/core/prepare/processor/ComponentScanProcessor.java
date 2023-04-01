@@ -9,6 +9,7 @@ import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.bytecode.util.BytecodeUtil;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
 import com.jfireframework.jfire.core.JfireContext;
+import com.jfireframework.jfire.core.aop.EnhanceManager;
 import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
@@ -38,7 +39,7 @@ public class ComponentScanProcessor implements JfirePrepare
         List<String>             classNames               = new LinkedList<String>();
         for (Class<?> each : configurationClassSet)
         {
-            AnnotationContext annotationContext = annotationContextFactory.get(each, classLoader);
+            AnnotationContext annotationContext = annotationContextFactory.get(each);
             if (annotationContext.isAnnotationPresent(ComponentScan.class))
             {
                 ComponentScan componentScan = annotationContext.getAnnotation(ComponentScan.class);
@@ -60,7 +61,7 @@ public class ComponentScanProcessor implements JfirePrepare
                 {
                     continue;
                 }
-                AnnotationContext annotationContext = annotationContextFactory.get(resourceName, classLoader);
+                AnnotationContext annotationContext = annotationContextFactory.get(resourceName);
                 if (annotationContext.isAnnotationPresent(Resource.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
@@ -75,6 +76,14 @@ public class ComponentScanProcessor implements JfirePrepare
                     if (jfireContext.registerConfiguration(ckass))
                     {
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
+                        needRefresh = true;
+                    }
+                }
+                else if (classFile.hasInterface(JfirePrepare.class) || classFile.hasInterface(EnhanceManager.class))
+                {
+                    Class<?> ckass = classLoader.loadClass(each);
+                    if (jfireContext.registerClass(ckass) != -1)
+                    {
                         needRefresh = true;
                     }
                 }
