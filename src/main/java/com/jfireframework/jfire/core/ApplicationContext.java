@@ -35,5 +35,4 @@ public interface ApplicationContext
 
     AnnotationContextFactory getAnnotationContextFactory();
 
-    Collection<Class<?>> getConfigurationClassSet();
 }

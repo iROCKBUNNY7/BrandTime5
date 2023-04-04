@@ -14,12 +14,12 @@ public class ProfileSelectorProcessor implements JfirePrepare
 {
 
     @Override
-    public boolean prepare(JfireContext jfireContext)
+    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
     {
         String activeAttribute = jfireContext.getEnv().getProperty(ProfileSelector.activePropertyName);
         if (StringUtil.isNotBlank(activeAttribute) == false)
         {
-            return true;
+            return JfireContext.NeedRefresh.NO;
         }
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
@@ -37,7 +37,7 @@ public class ProfileSelectorProcessor implements JfirePrepare
                 }
             }
         }
-        return true;
+        return JfireContext.NeedRefresh.NO;
     }
 
     @Override

@@ -97,7 +97,6 @@ public class BeanDefinition
             beanFactoryBeanDefinition = jfireContext.getBeanFactory(beanDescriptor);
             initPostConstructMethod();
             initInjectHandlers();
-            initEnhance();
             initAwareContextInit();
         }
     }
@@ -110,9 +109,9 @@ public class BeanDefinition
         }
     }
 
-    private void initEnhance()
+    public void initEnhance()
     {
-        if (aopManagers.size() == 0)
+        if (aopManagers.size() == 0 || cachedSingtonInstance != null)
         {
             orderedAopManagers = new EnhanceManager[0];
             return;
@@ -347,14 +346,15 @@ public class BeanDefinition
         {
             return instance;
         }
-        if (orderedAopManagers.length != 0)
+        Object originInstance;
+        originInstance = instance = beanFactory.getBean(beanDescriptor);
+        if (orderedAopManagers != null && orderedAopManagers.length != 0)
         {
             try
             {
                 SetHost newInstance = (SetHost) enhanceType.newInstance();
-                newInstance.setAopHost(beanFactory.getBean(beanDescriptor));
+                newInstance.setAopHost(originInstance);
                 instance = newInstance;
-                map.put(beanName, instance);
                 for (EnhanceCallbackForBeanInstance each : enhanceCallbackForBeanInstances)
                 {
                     each.run(instance);
@@ -365,16 +365,12 @@ public class BeanDefinition
                 throw new NewBeanInstanceException(e);
             }
         }
-        if (instance == null)
-        {
-            instance = beanFactory.getBean(beanDescriptor);
-            map.put(beanName, instance);
-        }
+        map.put(beanName, instance);
         if (injectHandlers.length != 0)
         {
             for (InjectHandler each : injectHandlers)
             {
-                each.inject(instance);
+                each.inject(originInstance);
             }
         }
         if (postConstructMethod != null)

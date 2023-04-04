@@ -3,8 +3,10 @@ package com.jfireframework.context.test.function.beanannotest;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
 import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import com.jfireframework.jfire.util.Utils;
 
 import javax.annotation.Resource;
 
@@ -12,7 +14,7 @@ import javax.annotation.Resource;
 public class MyBeanImport
 {
     @Resource
-    private ApplicationContext context;
+    private JfireContext context;
 
     @Bean(name = "person6")
     public Person importBean()

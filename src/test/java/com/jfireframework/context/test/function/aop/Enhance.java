@@ -91,4 +91,16 @@ public class Enhance
         System.out.println("dada");
         Verify.equal("aaaa", point.getE().getMessage(), "捕获到正确的异常");
     }
+
+    @Before("getHomeName()")
+    public void home1(ProceedPoint point)
+    {
+        System.out.println("before getHomeName");
+    }
+
+    @Before("getHome()")
+    public void home2(ProceedPoint point)
+    {
+        System.out.println("before getHome");
+    }
 }

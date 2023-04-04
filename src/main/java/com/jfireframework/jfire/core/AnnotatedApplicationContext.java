@@ -26,30 +26,29 @@ import com.jfireframework.jfire.exception.BeanDefinitionCanNotFindException;
 import javax.annotation.Resource;
 import javax.tools.JavaCompiler;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class AnnotatedApplicationContext implements JfireContext
 {
-    protected Map<String, BeanDefinition>                   beanDefinitionMap         = new HashMap<String, BeanDefinition>();
-    protected ConcurrentMap<Class<?>, List<BeanDefinition>> classToBeanDefinitionsMap = new ConcurrentHashMap<Class<?>, List<BeanDefinition>>();
-    private   Environment                                   environment               = new Environment.EnvironmentImpl();
-    private   AnnotationContextFactory                      annotationContextFactory  = new SupportOverrideAttributeAnnotationContextFactory();
-    private   Set<Class<?>>                                 configurationClassSet     = new HashSet<Class<?>>();
-    private   Set<Class<? extends JfirePrepare>>            jfirePrepareClassSet      = new HashSet<Class<? extends JfirePrepare>>();
-    private   Set<Class<? extends EnhanceManager>>          enhanceManagerClassSet    = new HashSet<Class<? extends EnhanceManager>>();
-    private   Set<Class<?>>                                 unRemovableBeanClass      = new HashSet<Class<?>>();
-    private   JavaCompiler                                  javaCompiler;
-    private   CompileHelper                                 compileHelper;
-    private   boolean                                       firstRefresh              = false;
+    protected Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
+    private   Environment                 environment                = new Environment.EnvironmentImpl();
+    private   AnnotationContextFactory    annotationContextFactory   = new SupportOverrideAttributeAnnotationContextFactory();
+    private   Map<String, BeanDefinition> unRemovableBeanDefinition  = new HashMap<String, BeanDefinition>();
+    private   JavaCompiler                javaCompiler;
+    private   CompileHelper               compileHelper;
+    private   boolean                     firstRefresh               = false;
+    private   boolean                     configurationClassSetBuild = false;
+    private   Set<Class<?>>               configurationClassSet      = new HashSet<Class<?>>();
+    private   Class<?>                    bootStarpClass;
 
     public AnnotatedApplicationContext(Class<?> bootStarpClass)
     {
+        this.bootStarpClass = bootStarpClass;
         registerConfiguration(bootStarpClass);
     }
 
     public AnnotatedApplicationContext(Class<?> bootStarpClass, JavaCompiler javaCompiler)
     {
+        this.bootStarpClass = bootStarpClass;
         registerConfiguration(bootStarpClass);
         setJavaCompiler(javaCompiler);
     }
@@ -91,9 +90,9 @@ public class AnnotatedApplicationContext implements JfireContext
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
 
-    private void registerApplicationContext()
+    private void registerJfireContext()
     {
-        BeanDefinition beanDefinition = new BeanDefinition("applicationContext", ApplicationContext.class, this);
+        BeanDefinition beanDefinition = new BeanDefinition("jfireContext", JfireContext.class, this);
         registerBeanDefinition(beanDefinition);
     }
 
@@ -101,58 +100,45 @@ public class AnnotatedApplicationContext implements JfireContext
     public void refresh()
     {
         firstRefresh = true;
-        TRACEID.newTraceId();
+        configurationClassSetBuild = false;
+        if (TRACEID.currentTraceId() == null)
+        {
+            TRACEID.newTraceId();
+        }
         beanDefinitionMap.clear();
-        registerApplicationContext();
+        registerJfireContext();
         registerDefaultBeanFactory();
         registerAnnotationContextFactory();
         registerDefaultMethodBeanFatory();
-        registerEnhanceManager(AopEnhanceManager.class);
-        registerEnhanceManager(TransactionAopManager.class);
-        registerEnhanceManager(CacheAopManager.class);
-        registerEnhanceManager(ValidateAopManager.class);
+        registerBean(AopEnhanceManager.class);
+        registerBean(TransactionAopManager.class);
+        registerBean(CacheAopManager.class);
+        registerBean(ValidateAopManager.class);
         registerJfirePrepare(ConfigurationProcessor.class);
-        boolean needRefresh = false;
-        for (Class<?> each : configurationClassSet)
-        {
-            AnnotationContext annotationContext = annotationContextFactory.get(each, Thread.currentThread().getContextClassLoader());
-            if (annotationContext.isAnnotationPresent(Import.class))
-            {
-                List<Import> imports = annotationContext.getAnnotations(Import.class);
-                for (Import anImport : imports)
-                {
-                    for (Class<?> importClass : anImport.value())
-                    {
-                        int registerClass = registerClass(importClass);
-                        if (registerClass == 1 || registerClass == 2 || registerClass == 3)
-                        {
-                            needRefresh = true;
-                        }
-                    }
-                }
-            }
-        }
-        if (needRefresh)
+        beanDefinitionMap.putAll(unRemovableBeanDefinition);
+        if (processConfigurationImports())
         {
             refresh();
             return;
         }
-        for (Class<?> unRemovableBeanClass : unRemovableBeanClass)
+        if (processJfirePrepare() == NeedRefresh.YES)
         {
-            registerClass(unRemovableBeanClass);
+            refresh();
+            return;
         }
+        if (beanDefinitionMap.isEmpty())
+        {
+            return;
+        }
+        invokeBeanDefinitionInitMethod();
+        aopScan();
+        awareContextInit();
+    }
+
+    private NeedRefresh processJfirePrepare()
+    {
         List<JfirePrepare> jfirePrepares = new ArrayList<JfirePrepare>();
-        for (Class<?> each : jfirePrepareClassSet)
-        {
-            try
-            {
-                jfirePrepares.add((JfirePrepare) each.newInstance());
-            }
-            catch (Throwable e)
-            {
-                ReflectUtil.throwException(e);
-            }
-        }
+        jfirePrepares.addAll(getBeans(JfirePrepare.class));
         Collections.sort(jfirePrepares, new Comparator<JfirePrepare>()
         {
             @Override
@@ -163,45 +149,65 @@ public class AnnotatedApplicationContext implements JfireContext
         });
         for (JfirePrepare each : jfirePrepares)
         {
-            if (each.prepare(this) == false)
+            if (each.prepare(this) == NeedRefresh.YES)
             {
-                return;
+                return NeedRefresh.YES;
             }
         }
-        if (beanDefinitionMap.isEmpty())
+        return NeedRefresh.NO;
+    }
+
+    private boolean processConfigurationImports()
+    {
+        boolean needRefresh = false;
+        for (Class<?> each : getConfigurationClassSet())
         {
-            return;
+            AnnotationContext annotationContext = annotationContextFactory.get(each);
+            if (annotationContext.isAnnotationPresent(Import.class))
+            {
+                List<Import> imports = annotationContext.getAnnotations(Import.class);
+                for (Import anImport : imports)
+                {
+                    for (Class<?> importClass : anImport.value())
+                    {
+                        RegisterResult registerClass = registerClass(importClass);
+                        if (registerClass == RegisterResult.JFIREPREPARE || registerClass == RegisterResult.CONFIGURATION)
+                        {
+                            needRefresh = NEED_REFRESH;
+                        }
+                    }
+                }
+            }
         }
-        aopScan();
-        invokeBeanDefinitionInitMethod();
-        awareContextInit();
+        return needRefresh;
     }
 
     @Override
-    public int registerClass(Class<?> ckass)
+    public RegisterResult registerClass(Class<?> ckass)
     {
         if (JfirePrepare.class.isAssignableFrom(ckass))
         {
-            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? 1 : -1;
+            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? RegisterResult.JFIREPREPARE : RegisterResult.NODATA;
         }
         else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
         {
-            return registerConfiguration(ckass) ? 2 : -1;
-        }
-        else if (EnhanceManager.class.isAssignableFrom(ckass))
-        {
-            return registerEnhanceManager((Class<? extends EnhanceManager>) ckass) ? 3 : -1;
+            return registerConfiguration(ckass) ? RegisterResult.CONFIGURATION : RegisterResult.NODATA;
         }
         else
         {
-            return registerBean(ckass) ? 4 : -1;
+            return registerBean((Class<? extends EnhanceManager>) ckass) ? RegisterResult.BEAN : RegisterResult.NODATA;
         }
     }
 
     @Override
     public boolean registerBean(Class<?> ckass)
     {
-        AnnotationContext annotationContext = annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader());
+        return registerBean(ckass, false);
+    }
+
+    private boolean registerBean(Class<?> ckass, boolean unremoveable)
+    {
+        AnnotationContext annotationContext = annotationContextFactory.get(ckass);
         String            beanName;
         boolean           prototype;
         if (annotationContext.isAnnotationPresent(Resource.class))
@@ -214,6 +220,10 @@ public class AnnotatedApplicationContext implements JfireContext
         {
             beanName = ckass.getName();
             prototype = false;
+        }
+        if (unremoveable && unRemovableBeanDefinition.containsKey(beanName))
+        {
+            return false;
         }
         BeanDescriptor beanDescriptor;
         if (annotationContext.isAnnotationPresent(SelectBeanFactory.class))
@@ -237,7 +247,15 @@ public class AnnotatedApplicationContext implements JfireContext
             beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, DefaultClassBeanFactory.class);
         }
         BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
-        return registerBeanDefinition(beanDefinition);
+        if (unremoveable)
+        {
+            unRemovableBeanDefinition.put(beanDefinition.getBeanName(), beanDefinition);
+            return true;
+        }
+        else
+        {
+            return registerBeanDefinition(beanDefinition);
+        }
     }
 
     @Override
@@ -246,34 +264,64 @@ public class AnnotatedApplicationContext implements JfireContext
         return beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition) == null;
     }
 
-    @Override
-    public boolean registerConfiguration(Class<?> ckass)
+    private boolean registerConfiguration(Class<?> ckass)
     {
-        return configurationClassSet.add(ckass);
+        String beanName = ckass.getName();
+        if (unRemovableBeanDefinition.containsKey(beanName))
+        {
+            return false;
+        }
+        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
+        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
+        unRemovableBeanDefinition.put(beanDefinition.getBeanName(), beanDefinition);
+        return true;
     }
 
-    @Override
-    public boolean registerJfirePrepare(Class<? extends JfirePrepare> ckass)
+    private boolean registerJfirePrepare(Class<? extends JfirePrepare> ckass)
     {
-        return jfirePrepareClassSet.add(ckass);
-    }
-
-    @Override
-    public boolean registerEnhanceManager(Class<? extends EnhanceManager> ckass)
-    {
-        return enhanceManagerClassSet.add(ckass);
-    }
-
-    @Override
-    public Collection<Class<?>> getConfigurationClassSet()
-    {
-        return configurationClassSet;
+        String beanName = ckass.getName();
+        if (unRemovableBeanDefinition.containsKey(beanName))
+        {
+            return false;
+        }
+        try
+        {
+            BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, ckass.newInstance());
+            unRemovableBeanDefinition.put(beanName, beanDefinition);
+        }
+        catch (Throwable e)
+        {
+            ReflectUtil.throwException(e);
+        }
+        return true;
     }
 
     @Override
     public void setJavaCompiler(JavaCompiler javaCompiler)
     {
         this.javaCompiler = javaCompiler;
+    }
+
+    @Override
+    public Set<Class<?>> getConfigurationClassSet()
+    {
+        if (configurationClassSetBuild == false)
+        {
+            configurationClassSet.clear();
+            for (BeanDefinition value : beanDefinitionMap.values())
+            {
+                if (annotationContextFactory.get(value.getType()).isAnnotationPresent(Configuration.class))
+                {
+                    configurationClassSet.add(value.getType());
+                }
+            }
+            if (bootStarpClass != null)
+            {
+                configurationClassSet.add(bootStarpClass);
+            }
+            configurationClassSetBuild = true;
+        }
+        return configurationClassSet;
     }
 
     @Override
@@ -315,17 +363,7 @@ public class AnnotatedApplicationContext implements JfireContext
     private void aopScan()
     {
         LinkedList<EnhanceManager> list = new LinkedList<EnhanceManager>();
-        for (Class<? extends EnhanceManager> each : enhanceManagerClassSet)
-        {
-            try
-            {
-                list.add(each.newInstance());
-            }
-            catch (Throwable e)
-            {
-                ReflectUtil.throwException(e);
-            }
-        }
+        list.addAll(getBeans(EnhanceManager.class));
         Collections.sort(list, new Comparator<EnhanceManager>()
         {
             @Override
@@ -338,6 +376,10 @@ public class AnnotatedApplicationContext implements JfireContext
         {
             aopManager.scan(this);
         }
+        for (BeanDefinition each : beanDefinitionMap.values())
+        {
+            each.initEnhance();
+        }
     }
 
     @Override
@@ -349,15 +391,14 @@ public class AnnotatedApplicationContext implements JfireContext
     @Override
     public BeanDefinition getBeanDefinition(Class<?> ckass)
     {
-        List<BeanDefinition> beanDefinitions = getBeanDefinitions(ckass);
-        if (beanDefinitions.isEmpty())
+        for (BeanDefinition each : beanDefinitionMap.values())
         {
-            return null;
+            if (ckass == each.getType() || ckass.isAssignableFrom(each.getType()))
+            {
+                return each;
+            }
         }
-        else
-        {
-            return beanDefinitions.get(0);
-        }
+        return null;
     }
 
     @Override
@@ -403,19 +444,13 @@ public class AnnotatedApplicationContext implements JfireContext
 
     public List<BeanDefinition> getBeanDefinitions(Class<?> ckass)
     {
-        List<BeanDefinition> beanDefinitions = classToBeanDefinitionsMap.get(ckass);
-        if (beanDefinitions == null)
+        List<BeanDefinition> beanDefinitions = new LinkedList<BeanDefinition>();
+        for (BeanDefinition each : beanDefinitionMap.values())
         {
-            beanDefinitions = new LinkedList<BeanDefinition>();
-            for (BeanDefinition each : beanDefinitionMap.values())
+            if (ckass == each.getType() || ckass.isAssignableFrom(each.getType()))
             {
-                if (ckass == each.getType() || ckass.isAssignableFrom(each.getType()))
-                {
-                    beanDefinitions.add(each);
-                }
+                beanDefinitions.add(each);
             }
-            classToBeanDefinitionsMap.putIfAbsent(ckass, beanDefinitions);
-            beanDefinitions = classToBeanDefinitionsMap.get(ckass);
         }
         return beanDefinitions;
     }
@@ -448,7 +483,13 @@ public class AnnotatedApplicationContext implements JfireContext
     @Override
     public void register(Class<?> ckass)
     {
-        unRemovableBeanClass.add(ckass);
-        registerBean(ckass);
+        if (JfirePrepare.class.isAssignableFrom(ckass))
+        {
+            registerJfirePrepare((Class<? extends JfirePrepare>) ckass);
+        }
+        else
+        {
+            registerBean((Class<?>) ckass, true);
+        }
     }
 }

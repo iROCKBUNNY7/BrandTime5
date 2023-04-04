@@ -6,11 +6,11 @@ import com.jfireframework.jfire.core.JfireContext;
 public interface JfirePrepare
 {
     /**
-     * 执行预处理流程，如果返回true意味着继续后续的处理，否则中断当前流程
+     * 执行预处理流程，如果返回true意味着需要中断后续流程，直接刷新容器。
      *
      * @return
      */
-    boolean prepare(JfireContext context);
+    JfireContext.NeedRefresh prepare(JfireContext context);
 
     int order();
 }

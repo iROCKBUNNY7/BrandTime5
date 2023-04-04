@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class AopTest
 {
@@ -110,5 +111,14 @@ public class AopTest
         TxManager txManager = context.getBean(TxManager.class);
         Assert.assertTrue(txManager.isBeginTransAction());
         Assert.assertTrue(txManager.isCommit());
+    }
+
+    @Test
+    public void testAopAndFiled()
+    {
+        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        context.register(Home.class);
+        Person person = context.getBean(Person.class);
+        assertNotNull(person.getHome());
     }
 }

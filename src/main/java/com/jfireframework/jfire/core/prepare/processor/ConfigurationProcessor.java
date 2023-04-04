@@ -21,6 +21,7 @@ import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.ConfigBefore;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
+import com.jfireframework.jfire.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class ConfigurationProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
     @Override
-    public boolean prepare(JfireContext jfireContext)
+    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
     {
         List<Class<?>> list = new ArrayList<Class<?>>(jfireContext.getConfigurationClassSet());
         logOrder(list);
@@ -64,7 +65,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 {
                     for (String error : errorMessage.getList())
                     {
-                        logger.debug("traceId:{} 配置类:{}不符合条件:{}", each, error, TRACEID.currentTraceId());
+                        logger.debug("traceId:{} 配置类:{}不符合条件:{}", TRACEID.currentTraceId(), each, error);
                     }
                     continue;
                 }
@@ -109,7 +110,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 }
             }
         }
-        return true;
+        return JfireContext.NeedRefresh.NO;
     }
 
     @Override

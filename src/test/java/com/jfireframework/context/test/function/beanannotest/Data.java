@@ -8,6 +8,7 @@ import com.jfireframework.jfire.core.prepare.annotation.Import;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
+import jdk.nashorn.internal.ir.ReturnNode;
 
 import javax.annotation.Resource;
 
@@ -21,10 +22,10 @@ public class Data
     {
 
         @Override
-        public boolean prepare(JfireContext context)
+        public JfireContext.NeedRefresh prepare(JfireContext context)
         {
             context.getEnv().putProperty("name", "linbin");
-            return true;
+            return JfireContext.NeedRefresh.NO;
         }
 
         @Override

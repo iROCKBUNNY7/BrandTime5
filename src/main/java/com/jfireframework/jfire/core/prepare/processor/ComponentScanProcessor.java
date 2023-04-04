@@ -14,6 +14,8 @@ import com.jfireframework.jfire.core.prepare.JfirePrepare;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
 import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfireframework.jfire.util.JfirePreparedConstant;
+import com.jfireframework.jfire.util.Utils;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,12 @@ public class ComponentScanProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
     @Override
-    public boolean prepare(JfireContext jfireContext)
+    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
     {
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
-        Collection<Class<?>>     configurationClassSet    = jfireContext.getConfigurationClassSet();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         List<String>             classNames               = new LinkedList<String>();
-        for (Class<?> each : configurationClassSet)
+        for (Class<?> each : jfireContext.getConfigurationClassSet())
         {
             AnnotationContext annotationContext = annotationContextFactory.get(each);
             if (annotationContext.isAnnotationPresent(ComponentScan.class))
@@ -73,16 +74,16 @@ public class ComponentScanProcessor implements JfirePrepare
                 else if (annotationContext.isAnnotationPresent(Configuration.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerConfiguration(ckass))
+                    if (jfireContext.registerClass(ckass)!= JfireContext.RegisterResult.NODATA)
                     {
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         needRefresh = true;
                     }
                 }
-                else if (classFile.hasInterface(JfirePrepare.class) || classFile.hasInterface(EnhanceManager.class))
+                else if (classFile.hasInterface(JfirePrepare.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerClass(ckass) != -1)
+                    if (jfireContext.registerClass(ckass) == JfireContext.RegisterResult.JFIREPREPARE)
                     {
                         needRefresh = true;
                     }
@@ -95,12 +96,11 @@ public class ComponentScanProcessor implements JfirePrepare
         }
         if (needRefresh)
         {
-            jfireContext.refresh();
-            return false;
+            return JfireContext.NeedRefresh.YES;
         }
         else
         {
-            return true;
+            return JfireContext.NeedRefresh.NO;
         }
     }
 

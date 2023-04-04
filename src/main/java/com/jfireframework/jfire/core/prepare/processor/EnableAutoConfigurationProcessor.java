@@ -22,7 +22,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     private static final int    offset        = directoryName.length();
 
     @Override
-    public boolean prepare(JfireContext jfireContext)
+    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
     {
         try
         {
@@ -65,18 +65,17 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
             }
             if (hasNewConfiguration)
             {
-                jfireContext.refresh();
-                return false;
+                return JfireContext.NeedRefresh.YES;
             }
             else
             {
-                return true;
+                return JfireContext.NeedRefresh.NO;
             }
         }
         catch (Exception e)
         {
             ReflectUtil.throwException(e);
-            return false;
+            return JfireContext.NeedRefresh.NO;
         }
     }
 
@@ -90,7 +89,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     {
         String   traceId  = TRACEID.currentTraceId();
         Class<?> configor = Thread.currentThread().getContextClassLoader().loadClass(className);
-        if (jfireContext.registerConfiguration(configor))
+        if (jfireContext.registerClass(configor) != JfireContext.RegisterResult.NODATA)
         {
             logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
             return true;

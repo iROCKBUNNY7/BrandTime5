@@ -3,16 +3,26 @@ package com.jfireframework.jfire.util;
 import com.jfireframework.baseutil.IniReader;
 import com.jfireframework.baseutil.IniReader.IniFile;
 import com.jfireframework.baseutil.StringUtil;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContext;
+import com.jfireframework.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfireframework.baseutil.reflect.ReflectUtil;
+import com.jfireframework.jfire.core.ApplicationContext;
+import com.jfireframework.jfire.core.BeanDefinition;
+import com.jfireframework.jfire.core.JfireContext;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utils
 {
+
     public static IniFile processPath(String path)
     {
         InputStream inputStream = null;
@@ -41,11 +51,13 @@ public class Utils
                 throw new UnsupportedOperationException("不支持的资源识别前缀:" + path);
             }
             return IniReader.read(inputStream, Charset.forName("utf8"));
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             ReflectUtil.throwException(e);
             return null;
-        } finally
+        }
+        finally
         {
             try
             {
@@ -54,7 +66,8 @@ public class Utils
                     inputStream.close();
                     inputStream = null;
                 }
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
             }
         }

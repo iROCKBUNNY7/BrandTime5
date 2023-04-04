@@ -1,5 +1,6 @@
 package com.jfireframework.jfire.core.prepare.annotation;
 
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfireframework.jfire.core.prepare.processor.EnableAutoConfigurationProcessor;
 
 import java.lang.annotation.ElementType;

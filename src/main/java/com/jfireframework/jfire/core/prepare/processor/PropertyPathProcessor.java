@@ -13,7 +13,7 @@ public class PropertyPathProcessor implements JfirePrepare
 {
 
     @Override
-    public boolean prepare(JfireContext jfireContext)
+    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
     {
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
@@ -35,7 +35,7 @@ public class PropertyPathProcessor implements JfirePrepare
                 }
             }
         }
-        return true;
+        return JfireContext.NeedRefresh.NO;
     }
 
     @Override

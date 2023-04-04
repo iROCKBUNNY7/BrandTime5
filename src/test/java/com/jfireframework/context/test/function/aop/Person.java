@@ -10,6 +10,8 @@ public class Person
 {
     private String name        = "林斌";
     private int    invokeCount = 0;
+    @Resource
+    private Home   home;
 
     public String sayHello(String word)
     {
@@ -83,6 +85,16 @@ public class Person
         invokeCount++;
         String name = "12";
         System.out.println("自动关闭");
+    }
+
+    public String getHomeName()
+    {
+        return home.getName();
+    }
+
+    public Home getHome()
+    {
+        return home;
     }
 
     public int invokeCount()

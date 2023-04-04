@@ -9,6 +9,7 @@ import com.jfireframework.jfire.core.JfireContext;
 import com.jfireframework.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfireframework.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfireframework.jfire.core.prepare.annotation.condition.provide.ConditionOnAnnotation.OnAnnotation;
+import com.jfireframework.jfire.util.Utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
@@ -34,7 +35,6 @@ public @interface ConditionOnAnnotation
         {
             ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
             ValuePair[]              value                    = metadata.getAttribyte("value").getArray();
-            Collection<Class<?>>     configurationClassSet    = context.getConfigurationClassSet();
             AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
             for (ValuePair each : value)
             {
@@ -49,7 +49,7 @@ public @interface ConditionOnAnnotation
                     return false;
                 }
                 boolean has = false;
-                for (Class<?> configurationClass : configurationClassSet)
+                for (Class<?> configurationClass : context.getConfigurationClassSet())
                 {
                     AnnotationContext annotationContext = annotationContextFactory.get(configurationClass, classLoader);
                     if (annotationContext.isAnnotationPresent(aClass))

@@ -54,10 +54,11 @@ public class ParamFieldTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(ForProperty.class);
+        ApplicationContext context = new AnnotatedApplicationContext();
+        context.register(ForProperty.class);
         context.register(ParamFieldTest.class);
         context.register(ForProperty.class);
-        ParamFieldTest data  = context.getBean(ParamFieldTest.class);
+        ParamFieldTest data = context.getBean(ParamFieldTest.class);
         Assert.assertArrayEquals(new int[]{1, 2}, data.f1);
         Assert.assertEquals("aaa", data.f2);
         Assert.assertEquals(1, data.f3.intValue());
@@ -82,7 +83,7 @@ public class ParamFieldTest
     {
 
         @Override
-        public boolean prepare(JfireContext context)
+        public JfireContext.NeedRefresh prepare(JfireContext context)
         {
             Environment environment = context.getEnv();
             environment.putProperty("f1", "1,2");
@@ -99,7 +100,7 @@ public class ParamFieldTest
             environment.putProperty("f12", "xx,rr");
             environment.putProperty("f13", ParamFieldTest.class.getName());
             environment.putProperty("f14", "test1");
-            return true;
+            return JfireContext.NeedRefresh.NO;
         }
 
         @Override

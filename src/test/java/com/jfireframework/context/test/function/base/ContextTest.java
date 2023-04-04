@@ -7,6 +7,7 @@ import com.jfireframework.context.test.function.loader.Home;
 import com.jfireframework.jfire.core.AnnotatedApplicationContext;
 import com.jfireframework.jfire.core.ApplicationContext;
 import com.jfireframework.jfire.core.prepare.annotation.ComponentScan;
+import com.jfireframework.jfire.core.prepare.annotation.configuration.Configuration;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
