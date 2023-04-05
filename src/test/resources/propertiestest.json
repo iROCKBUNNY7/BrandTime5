@@ -1,6 +1,6 @@
 {
   "scanPackageNames": [
-    "com.jfireframework.context.test.function.base"
+    "com.jfirer.jfire.test.function.base"
   ],
   "propertyPaths": [
     "classpath:propertiestest.properties"
@@ -10,7 +10,7 @@
   },
   "beanDefinitions": [
     {
-      "beanName": "com.jfireframework.context.test.function.base.data.ImmutablePerson",
+      "beanName": "com.jfirer.jfire.test.function.base.data.ImmutablePerson",
       "params": {
         "name": "林斌",
         "age": "${age}||25",
