@@ -12,12 +12,30 @@
         Jfire is a IOC and AOP container. Provides a transparent object management. And provide a simple and efficient
         AOP API operation. At the same time also supports transparent transaction management.
     </description>
+    <url>http://jfirer.com</url>
     <properties>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:http://git.oschina.net/eric_ds</connection>
+        <developerConnection>scm:git:http://git.oschina.net/eric_ds</developerConnection>
+        <url>http://git.oschina.net/eric_ds</url>
+    </scm>
+    <developers>
+        <developer>
+            <name>linbin</name>
+            <email>eric@jfire.cn</email>
+        </developer>
+    </developers>
     <dependencies>
         <dependency>
             <groupId>com.jfirer</groupId>
@@ -63,12 +81,6 @@
             <version>4.12</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>com.jfirer</groupId>
-            <artifactId>jfireEL</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
     <build>
         <finalName>jfire</finalName>
@@ -106,4 +118,74 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Gpg Signature -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <doclint>none</doclint>
+                                    <charset>UTF-8</charset>
+                                    <docencoding>UTF-8</docencoding>
+                                    <encoding>UTF-8</encoding>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>oss</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>oss</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 </project>

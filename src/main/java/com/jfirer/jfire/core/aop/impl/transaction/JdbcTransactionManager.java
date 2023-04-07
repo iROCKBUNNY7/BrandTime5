@@ -100,6 +100,7 @@ public abstract class JdbcTransactionManager implements TransactionManager
     {
         ConnectionHolder connectionHolder = CONTEXT.get();
         connectionHolder.close();
+        CONTEXT.remove();
         if (state.propagation() == Propagation.REQUIRES_NEW)
         {
             ConnectionHolder prev = connectionHolder.getPrev();
