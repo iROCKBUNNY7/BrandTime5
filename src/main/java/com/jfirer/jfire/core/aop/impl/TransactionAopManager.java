@@ -82,7 +82,7 @@ public class TransactionAopManager implements EnhanceManager
             if (method.getReturnType() != void.class)
             {
                 cache.append(SmcHelper.getReferenceName(method.getReturnType(), classModel)).append(" result = ").append(origin.generateInvoke()).append(";\r\n");
-                cache.append(transFieldName).append(".commit();\r\n");
+                cache.append(transFieldName).append(".commit(").append(transactionStateName).append(");\r\n");
                 cache.append("return result;\r\n");
             }
             else
