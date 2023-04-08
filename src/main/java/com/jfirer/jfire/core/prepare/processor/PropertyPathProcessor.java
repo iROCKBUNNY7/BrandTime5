@@ -3,7 +3,7 @@ package com.jfirer.jfire.core.prepare.processor;
 import com.jfirer.baseutil.IniReader;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.core.prepare.annotation.PropertyPath;
 import com.jfirer.jfire.util.JfirePreparedConstant;
@@ -13,7 +13,7 @@ public class PropertyPathProcessor implements JfirePrepare
 {
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
@@ -35,7 +35,7 @@ public class PropertyPathProcessor implements JfirePrepare
                 }
             }
         }
-        return JfireContext.NeedRefresh.NO;
+        return ApplicationContext.NeedRefresh.NO;
     }
 
     @Override

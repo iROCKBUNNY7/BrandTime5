@@ -28,7 +28,7 @@ import javax.tools.JavaCompiler;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-public class AnnotatedApplicationContext implements JfireContext
+public class AnnotatedApplicationContext implements ApplicationContext
 {
     protected Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
     private   Environment                 environment                = new Environment.EnvironmentImpl();
@@ -91,9 +91,9 @@ public class AnnotatedApplicationContext implements JfireContext
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
 
-    private void registerJfireContext()
+    private void registerApplicationContext()
     {
-        BeanDefinition beanDefinition = new BeanDefinition("jfireContext", JfireContext.class, this);
+        BeanDefinition beanDefinition = new BeanDefinition("jfireContext", ApplicationContext.class, this);
         registerBeanDefinition(beanDefinition);
     }
 
@@ -107,7 +107,7 @@ public class AnnotatedApplicationContext implements JfireContext
             TRACEID.newTraceId();
         }
         beanDefinitionMap.clear();
-        registerJfireContext();
+        registerApplicationContext();
         registerDefaultBeanFactory();
         registerAnnotationContextFactory();
         registerDefaultMethodBeanFatory();
@@ -117,12 +117,12 @@ public class AnnotatedApplicationContext implements JfireContext
         registerBean(ValidateAopManager.class);
         registerJfirePrepare(ConfigurationProcessor.class);
         beanDefinitionMap.putAll(unRemovableBeanDefinition);
-        if (processConfigurationImports())
+        if (processConfigurationImports()== ApplicationContext.NeedRefresh.YES)
         {
             refresh();
             return;
         }
-        if (processJfirePrepare() == NeedRefresh.YES)
+        if (processJfirePrepare() == ApplicationContext.NeedRefresh.YES)
         {
             refresh();
             return;
@@ -150,17 +150,17 @@ public class AnnotatedApplicationContext implements JfireContext
         });
         for (JfirePrepare each : jfirePrepares)
         {
-            if (each.prepare(this) == NeedRefresh.YES)
+            if (each.prepare(this) == ApplicationContext.NeedRefresh.YES)
             {
-                return NeedRefresh.YES;
+                return ApplicationContext.NeedRefresh.YES;
             }
         }
-        return NeedRefresh.NO;
+        return ApplicationContext.NeedRefresh.NO;
     }
 
-    private boolean processConfigurationImports()
+    private NeedRefresh processConfigurationImports()
     {
-        boolean needRefresh = false;
+        NeedRefresh needRefresh = ApplicationContext.NeedRefresh.NO;
         for (Class<?> each : getConfigurationClassSet())
         {
             AnnotationContext annotationContext = annotationContextFactory.get(each);
@@ -172,9 +172,9 @@ public class AnnotatedApplicationContext implements JfireContext
                     for (Class<?> importClass : anImport.value())
                     {
                         RegisterResult registerClass = registerClass(importClass);
-                        if (registerClass == RegisterResult.JFIREPREPARE || registerClass == RegisterResult.CONFIGURATION)
+                        if (registerClass == ApplicationContext.RegisterResult.JFIREPREPARE || registerClass == ApplicationContext.RegisterResult.CONFIGURATION)
                         {
-                            needRefresh = NEED_REFRESH;
+                            needRefresh = ApplicationContext.NeedRefresh.YES;
                         }
                     }
                 }
@@ -188,15 +188,15 @@ public class AnnotatedApplicationContext implements JfireContext
     {
         if (JfirePrepare.class.isAssignableFrom(ckass))
         {
-            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? RegisterResult.JFIREPREPARE : RegisterResult.NODATA;
+            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
         }
         else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
         {
-            return registerConfiguration(ckass) ? RegisterResult.CONFIGURATION : RegisterResult.NODATA;
+            return registerConfiguration(ckass) ? ApplicationContext.RegisterResult.CONFIGURATION : ApplicationContext.RegisterResult.NODATA;
         }
         else
         {
-            return registerBean(ckass) ? RegisterResult.BEAN : RegisterResult.NODATA;
+            return registerBean(ckass) ? ApplicationContext.RegisterResult.BEAN : ApplicationContext.RegisterResult.NODATA;
         }
     }
 

@@ -2,7 +2,7 @@ package com.jfirer.jfire.core.prepare.processor;
 
 import com.jfirer.baseutil.TRACEID;
 import com.jfirer.baseutil.reflect.ReflectUtil;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.util.JfirePreparedConstant;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
     private static final int    offset        = directoryName.length();
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         try
         {
@@ -65,17 +65,17 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
             }
             if (hasNewConfiguration)
             {
-                return JfireContext.NeedRefresh.YES;
+                return ApplicationContext.NeedRefresh.YES;
             }
             else
             {
-                return JfireContext.NeedRefresh.NO;
+                return ApplicationContext.NeedRefresh.NO;
             }
         }
         catch (Exception e)
         {
             ReflectUtil.throwException(e);
-            return JfireContext.NeedRefresh.NO;
+            return ApplicationContext.NeedRefresh.NO;
         }
     }
 
@@ -85,11 +85,11 @@ public class EnableAutoConfigurationProcessor implements JfirePrepare
         return JfirePreparedConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
-    boolean registgerAutoConfigor(String className, JfireContext jfireContext) throws ClassNotFoundException
+    boolean registgerAutoConfigor(String className, ApplicationContext jfireContext) throws ClassNotFoundException
     {
         String   traceId  = TRACEID.currentTraceId();
         Class<?> configor = Thread.currentThread().getContextClassLoader().loadClass(className);
-        if (jfireContext.registerClass(configor) != JfireContext.RegisterResult.NODATA)
+        if (jfireContext.registerClass(configor) != ApplicationContext.RegisterResult.NODATA)
         {
             logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
             return true;

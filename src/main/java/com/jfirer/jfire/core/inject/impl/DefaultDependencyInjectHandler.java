@@ -4,8 +4,8 @@ import com.jfirer.baseutil.StringUtil;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.reflect.ValueAccessor;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanDefinition;
-import com.jfirer.jfire.core.JfireContext;
 import com.jfirer.jfire.core.inject.InjectHandler;
 import com.jfirer.jfire.core.inject.notated.CanBeNull;
 import com.jfirer.jfire.core.inject.notated.MapKeyMethodName;
@@ -20,12 +20,12 @@ import java.util.*;
 
 public class DefaultDependencyInjectHandler implements InjectHandler
 {
-    private JfireContext  context;
-    private Inject        inject;
+    private ApplicationContext context;
+    private Inject             inject;
     private ValueAccessor valueAccessor;
 
     @Override
-    public void init(Field field, JfireContext context)
+    public void init(Field field, ApplicationContext context)
     {
         if (field.getType().isPrimitive())
         {

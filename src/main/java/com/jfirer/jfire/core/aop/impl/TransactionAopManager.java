@@ -7,8 +7,8 @@ import com.jfirer.baseutil.smc.SmcHelper;
 import com.jfirer.baseutil.smc.model.ClassModel;
 import com.jfirer.baseutil.smc.model.FieldModel;
 import com.jfirer.baseutil.smc.model.MethodModel;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanDefinition;
-import com.jfirer.jfire.core.JfireContext;
 import com.jfirer.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfirer.jfire.core.aop.EnhanceManager;
 import com.jfirer.jfire.core.aop.impl.transaction.TransactionManager;
@@ -24,7 +24,7 @@ public class TransactionAopManager implements EnhanceManager
     private BeanDefinition transactionBeandefinition;
 
     @Override
-    public void scan(JfireContext applicationContext)
+    public void scan(ApplicationContext applicationContext)
     {
         AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -44,7 +44,7 @@ public class TransactionAopManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, JfireContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext applicationContext, String hostFieldName)
     {
         if (transactionBeandefinition == null)
         {

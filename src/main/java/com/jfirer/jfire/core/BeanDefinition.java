@@ -52,7 +52,7 @@ public class BeanDefinition
     // 标注@PostConstruct的方法
     private             Method                           postConstructMethod;
     private             InjectHandler[]                  injectHandlers;
-    private             JfireContext                     jfireContext;
+    private             ApplicationContext               jfireContext;
     private             BeanDescriptor                   beanDescriptor;
     private             BeanFactory                      beanFactory;
     private             BeanDefinition                   beanFactoryBeanDefinition;
@@ -85,7 +85,7 @@ public class BeanDefinition
         setAwareContextInit(false);
     }
 
-    public void init(JfireContext jfireContext)
+    public void init(ApplicationContext jfireContext)
     {
         this.jfireContext = jfireContext;
         if (cachedSingtonInstance == null)

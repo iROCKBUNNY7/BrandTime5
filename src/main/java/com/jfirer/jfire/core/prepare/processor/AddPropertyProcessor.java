@@ -2,7 +2,7 @@ package com.jfirer.jfire.core.prepare.processor;
 
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.core.prepare.annotation.AddProperty;
 import com.jfirer.jfire.util.JfirePreparedConstant;
@@ -11,7 +11,7 @@ public class AddPropertyProcessor implements JfirePrepare
 {
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -35,7 +35,7 @@ public class AddPropertyProcessor implements JfirePrepare
                 }
             }
         }
-        return JfireContext.NeedRefresh.NO;
+        return ApplicationContext.NeedRefresh.NO;
     }
 
     public int order()

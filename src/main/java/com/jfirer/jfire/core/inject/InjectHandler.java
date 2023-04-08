@@ -1,6 +1,6 @@
 package com.jfirer.jfire.core.inject;
 
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,7 +22,7 @@ public interface InjectHandler
         Class<InjectHandler> value();
     }
 
-    void init(Field field, JfireContext context);
+    void init(Field field, ApplicationContext context);
 
     void inject(Object instance);
 }

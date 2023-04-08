@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.beanannotest;
 
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.inject.notated.PropertyRead;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
@@ -21,10 +21,10 @@ public class Data
     {
 
         @Override
-        public JfireContext.NeedRefresh prepare(JfireContext context)
+        public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
         {
             context.getEnv().putProperty("name", "linbin");
-            return JfireContext.NeedRefresh.NO;
+            return ApplicationContext.NeedRefresh.NO;
         }
 
         @Override

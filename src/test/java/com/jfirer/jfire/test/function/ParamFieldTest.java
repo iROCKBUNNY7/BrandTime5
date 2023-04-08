@@ -3,10 +3,8 @@ package com.jfirer.jfire.test.function;
 import com.jfirer.jfire.core.AnnotatedApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.Environment;
-import com.jfirer.jfire.core.JfireContext;
 import com.jfirer.jfire.core.inject.notated.PropertyRead;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
-import com.jfirer.jfire.core.prepare.annotation.Import;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -78,12 +76,11 @@ public class ParamFieldTest
         Assert.assertEquals(name.test1, data.f14);
     }
 
-    @Import(ForProperty.class)
     public static class ForProperty implements JfirePrepare
     {
 
         @Override
-        public JfireContext.NeedRefresh prepare(JfireContext context)
+        public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
         {
             Environment environment = context.getEnv();
             environment.putProperty("f1", "1,2");
@@ -100,7 +97,7 @@ public class ParamFieldTest
             environment.putProperty("f12", "xx,rr");
             environment.putProperty("f13", ParamFieldTest.class.getName());
             environment.putProperty("f14", "test1");
-            return JfireContext.NeedRefresh.NO;
+            return ApplicationContext.NeedRefresh.NO;
         }
 
         @Override

@@ -38,11 +38,6 @@
     </developers>
     <dependencies>
         <dependency>
-            <groupId>com.jfirer</groupId>
-            <artifactId>jfireEl</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.2</version>
@@ -85,9 +80,18 @@
             <groupId>com.jfirer</groupId>
             <artifactId>jfireEL</artifactId>
             <version>1.0</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ylzpay-public</id>
+            <url>https://nexus.ylzpay.com/repository/maven-snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>ylzpay-public</id>
+            <url>https://nexus.ylzpay.com/repository/maven-release</url>
+        </repository>
+    </distributionManagement>
     <build>
         <finalName>jfire</finalName>
         <plugins>

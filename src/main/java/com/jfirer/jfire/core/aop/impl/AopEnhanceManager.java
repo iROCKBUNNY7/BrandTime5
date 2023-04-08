@@ -9,8 +9,8 @@ import com.jfirer.baseutil.smc.SmcHelper;
 import com.jfirer.baseutil.smc.model.ClassModel;
 import com.jfirer.baseutil.smc.model.FieldModel;
 import com.jfirer.baseutil.smc.model.MethodModel;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanDefinition;
-import com.jfirer.jfire.core.JfireContext;
 import com.jfirer.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfirer.jfire.core.aop.EnhanceManager;
 import com.jfirer.jfire.core.aop.ProceedPoint;
@@ -38,7 +38,7 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public void scan(JfireContext context)
+    public void scan(ApplicationContext context)
     {
         AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -60,7 +60,7 @@ public class AopEnhanceManager implements EnhanceManager
     }
 
     @Override
-    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, JfireContext applicationContext, String hostFieldName)
+    public EnhanceCallbackForBeanInstance enhance(ClassModel classModel, final Class<?> type, ApplicationContext applicationContext, String hostFieldName)
     {
         PriorityQueue<BeanDefinition> queue                    = findAspectClass(type, applicationContext);
         List<String>                  fieldNames               = new ArrayList<String>();
@@ -410,7 +410,7 @@ public class AopEnhanceManager implements EnhanceManager
         }
     }
 
-    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, JfireContext applicationContext)
+    private PriorityQueue<BeanDefinition> findAspectClass(Class<?> type, ApplicationContext applicationContext)
     {
         final ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         final AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();

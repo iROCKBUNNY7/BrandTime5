@@ -1,7 +1,7 @@
 package com.jfirer.jfire.core.aop;
 
 import com.jfirer.baseutil.smc.model.ClassModel;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,7 +25,7 @@ public interface EnhanceManager
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，则将自身放入其AopManager集合中。 该方法仅会在环境初始化时调用一次
      */
-    void scan(JfireContext jfireContext);
+    void scan(ApplicationContext jfireContext);
 
     /**
      * 执行增强操作
@@ -35,7 +35,7 @@ public interface EnhanceManager
      * @param context       上下文
      * @param hostFieldName 被增强类实例
      */
-    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, JfireContext context, String hostFieldName);
+    EnhanceCallbackForBeanInstance enhance(ClassModel classModel, Class<?> type, ApplicationContext context, String hostFieldName);
 
     /**
      * 该AOP生效顺序。数字越小生效越快

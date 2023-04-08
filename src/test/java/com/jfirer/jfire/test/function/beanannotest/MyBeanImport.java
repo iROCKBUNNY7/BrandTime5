@@ -2,7 +2,7 @@ package com.jfirer.jfire.test.function.beanannotest;
 
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
 
@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 public class MyBeanImport
 {
     @Resource
-    private JfireContext context;
+    private ApplicationContext context;
 
     @Bean(name = "person6")
     public Person importBean()

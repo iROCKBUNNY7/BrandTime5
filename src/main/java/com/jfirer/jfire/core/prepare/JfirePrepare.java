@@ -1,7 +1,10 @@
 package com.jfirer.jfire.core.prepare;
 
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 
+/**
+ * 实现了该接口的实现类，在容器启动前会直接以反射方式被实例化
+ */
 public interface JfirePrepare
 {
     /**
@@ -9,7 +12,7 @@ public interface JfirePrepare
      *
      * @return
      */
-    JfireContext.NeedRefresh prepare(JfireContext context);
+    ApplicationContext.NeedRefresh prepare(ApplicationContext context);
 
     int order();
 }

@@ -2,7 +2,7 @@ package com.jfirer.jfire.core.prepare.annotation.condition.provide;
 
 import com.jfirer.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfirer.baseutil.bytecode.annotation.ValuePair;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfirer.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfirer.jfire.core.prepare.annotation.condition.provide.ConditionOnMissBeanType.OnMissBeanType;
@@ -25,7 +25,7 @@ public @interface ConditionOnMissBeanType
         }
 
         @Override
-        protected boolean handleSelectAnnoType(JfireContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ApplicationContext applicationContext, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             ValuePair[] value       = metadata.getAttribyte("value").getArray();

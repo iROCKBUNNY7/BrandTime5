@@ -4,7 +4,7 @@ import com.jfirer.baseutil.bytecode.annotation.AnnotationMetadata;
 import com.jfirer.baseutil.bytecode.annotation.ValuePair;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfirer.jfire.core.prepare.annotation.condition.ErrorMessage;
 
@@ -27,7 +27,7 @@ public @interface ConditionOnAnnotation
         }
 
         @Override
-        protected boolean handleSelectAnnoType(JfireContext context, AnnotationMetadata metadata, ErrorMessage errorMessage)
+        protected boolean handleSelectAnnoType(ApplicationContext context, AnnotationMetadata metadata, ErrorMessage errorMessage)
         {
             ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
             ValuePair[]              value                    = metadata.getAttribyte("value").getArray();

@@ -8,7 +8,7 @@ import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.bytecode.util.BytecodeUtil;
 import com.jfirer.baseutil.reflect.ReflectUtil;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -29,7 +29,7 @@ public class ComponentScanProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
@@ -70,7 +70,7 @@ public class ComponentScanProcessor implements JfirePrepare
                 else if (annotationContext.isAnnotationPresent(Configuration.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerClass(ckass)!= JfireContext.RegisterResult.NODATA)
+                    if (jfireContext.registerClass(ckass)!= ApplicationContext.RegisterResult.NODATA)
                     {
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         needRefresh = true;
@@ -79,7 +79,7 @@ public class ComponentScanProcessor implements JfirePrepare
                 else if (classFile.hasInterface(JfirePrepare.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerClass(ckass) == JfireContext.RegisterResult.JFIREPREPARE)
+                    if (jfireContext.registerClass(ckass) == ApplicationContext.RegisterResult.JFIREPREPARE)
                     {
                         needRefresh = true;
                     }
@@ -92,11 +92,11 @@ public class ComponentScanProcessor implements JfirePrepare
         }
         if (needRefresh)
         {
-            return JfireContext.NeedRefresh.YES;
+            return ApplicationContext.NeedRefresh.YES;
         }
         else
         {
-            return JfireContext.NeedRefresh.NO;
+            return ApplicationContext.NeedRefresh.NO;
         }
     }
 

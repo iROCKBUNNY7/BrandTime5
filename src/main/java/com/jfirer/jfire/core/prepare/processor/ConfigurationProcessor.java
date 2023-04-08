@@ -7,8 +7,8 @@ import com.jfirer.baseutil.bytecode.annotation.ValuePair;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.reflect.ReflectUtil;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanDefinition;
-import com.jfirer.jfire.core.JfireContext;
 import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfirer.jfire.core.beandescriptor.MethodBeanDescriptor;
@@ -34,7 +34,7 @@ public class ConfigurationProcessor implements JfirePrepare
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         List<Class<?>> list = new ArrayList<Class<?>>(jfireContext.getConfigurationClassSet());
         logOrder(list);
@@ -109,7 +109,7 @@ public class ConfigurationProcessor implements JfirePrepare
                 }
             }
         }
-        return JfireContext.NeedRefresh.NO;
+        return ApplicationContext.NeedRefresh.NO;
     }
 
     @Override
@@ -288,7 +288,7 @@ public class ConfigurationProcessor implements JfirePrepare
      * @param errorMessage
      * @return
      */
-    private boolean matchCondition(JfireContext jfireContext, AnnotationMetadata conditional, AnnotationContext annotationContext, ErrorMessage errorMessage)
+    private boolean matchCondition(ApplicationContext jfireContext, AnnotationMetadata conditional, AnnotationContext annotationContext, ErrorMessage errorMessage)
     {
         boolean     match       = true;
         ValuePair[] value       = conditional.getAttribyte("value").getArray();
@@ -312,7 +312,7 @@ public class ConfigurationProcessor implements JfirePrepare
         return match;
     }
 
-    private void registerMethodBeanDefinition(Method method, JfireContext jfireContext, AnnotationContext annotationContextOnMethod)
+    private void registerMethodBeanDefinition(Method method, ApplicationContext jfireContext, AnnotationContext annotationContextOnMethod)
     {
         Bean           bean                 = annotationContextOnMethod.getAnnotation(Bean.class);
         String         beanName             = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
@@ -322,7 +322,7 @@ public class ConfigurationProcessor implements JfirePrepare
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
     }
 
-    private Class<?> registerConfigurationBeanDefinition(Class<?> ckass, JfireContext jfireContext)
+    private Class<?> registerConfigurationBeanDefinition(Class<?> ckass, ApplicationContext jfireContext)
     {
         BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
         BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);

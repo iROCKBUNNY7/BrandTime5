@@ -4,7 +4,7 @@ import com.jfirer.baseutil.IniReader;
 import com.jfirer.baseutil.StringUtil;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
-import com.jfirer.jfire.core.JfireContext;
+import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.JfirePrepare;
 import com.jfirer.jfire.core.prepare.annotation.ProfileSelector;
 import com.jfirer.jfire.util.JfirePreparedConstant;
@@ -14,12 +14,12 @@ public class ProfileSelectorProcessor implements JfirePrepare
 {
 
     @Override
-    public JfireContext.NeedRefresh prepare(JfireContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
     {
         String activeAttribute = jfireContext.getEnv().getProperty(ProfileSelector.activePropertyName);
         if (StringUtil.isNotBlank(activeAttribute) == false)
         {
-            return JfireContext.NeedRefresh.NO;
+            return ApplicationContext.NeedRefresh.NO;
         }
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
@@ -37,7 +37,7 @@ public class ProfileSelectorProcessor implements JfirePrepare
                 }
             }
         }
-        return JfireContext.NeedRefresh.NO;
+        return ApplicationContext.NeedRefresh.NO;
     }
 
     @Override
