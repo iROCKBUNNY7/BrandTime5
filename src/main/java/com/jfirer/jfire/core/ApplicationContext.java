@@ -2,6 +2,7 @@ package com.jfirer.jfire.core;
 
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 public interface ApplicationContext
@@ -19,6 +20,8 @@ public interface ApplicationContext
      */
     void register(Class<?> ckass);
 
+    List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> ckass);
+
     /**
      * 刷新上下文
      */
@@ -28,5 +31,4 @@ public interface ApplicationContext
     Environment getEnv();
 
     AnnotationContextFactory getAnnotationContextFactory();
-
 }

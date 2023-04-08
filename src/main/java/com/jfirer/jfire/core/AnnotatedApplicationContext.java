@@ -25,6 +25,7 @@ import com.jfirer.jfire.exception.BeanDefinitionCanNotFindException;
 
 import javax.annotation.Resource;
 import javax.tools.JavaCompiler;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 public class AnnotatedApplicationContext implements JfireContext
@@ -491,5 +492,21 @@ public class AnnotatedApplicationContext implements JfireContext
         {
             registerBean(ckass, true);
         }
+    }
+
+    @Override
+    public List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> ckass)
+    {
+        List<BeanDefinition> list = new ArrayList<BeanDefinition>();
+        for (BeanDefinition each : beanDefinitionMap.values())
+        {
+            Class<?>          type              = each.getType();
+            AnnotationContext annotationContext = annotationContextFactory.get(type);
+            if (annotationContext.isAnnotationPresent(ckass))
+            {
+                list.add(each);
+            }
+        }
+        return list;
     }
 }
