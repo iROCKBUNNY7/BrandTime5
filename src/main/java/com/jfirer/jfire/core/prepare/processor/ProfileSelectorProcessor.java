@@ -5,12 +5,12 @@ import com.jfirer.baseutil.StringUtil;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.ProfileSelector;
-import com.jfirer.jfire.util.JfirePreparedConstant;
+import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
 import com.jfirer.jfire.util.Utils;
 
-public class ProfileSelectorProcessor implements JfirePrepare
+public class ProfileSelectorProcessor implements ApplicationContextPrepare
 {
 
     @Override
@@ -43,6 +43,6 @@ public class ProfileSelectorProcessor implements JfirePrepare
     @Override
     public int order()
     {
-        return JfirePreparedConstant.PROFILE_SELECTOR_ORDER;
+        return ApplicationContextPreparedConstant.PROFILE_SELECTOR_ORDER;
     }
 }

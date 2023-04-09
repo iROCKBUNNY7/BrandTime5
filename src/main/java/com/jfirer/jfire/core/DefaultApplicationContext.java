@@ -17,7 +17,7 @@ import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfirer.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfirer.jfire.core.beanfactory.DefaultMethodBeanFactory;
 import com.jfirer.jfire.core.beanfactory.SelectBeanFactory;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.Import;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfirer.jfire.core.prepare.processor.ConfigurationProcessor;
@@ -28,7 +28,7 @@ import javax.tools.JavaCompiler;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-public class AnnotatedApplicationContext implements ApplicationContext
+public class DefaultApplicationContext implements ApplicationContext
 {
     protected Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
     private   Environment                 environment                = new Environment.EnvironmentImpl();
@@ -41,24 +41,24 @@ public class AnnotatedApplicationContext implements ApplicationContext
     private   Set<Class<?>>               configurationClassSet      = new HashSet<Class<?>>();
     private   Class<?>                    bootStarpClass;
 
-    public AnnotatedApplicationContext(Class<?> bootStarpClass)
+    public DefaultApplicationContext(Class<?> bootStarpClass)
     {
         this.bootStarpClass = bootStarpClass;
         registerConfiguration(bootStarpClass);
     }
 
-    public AnnotatedApplicationContext(Class<?> bootStarpClass, JavaCompiler javaCompiler)
+    public DefaultApplicationContext(Class<?> bootStarpClass, JavaCompiler javaCompiler)
     {
         this.bootStarpClass = bootStarpClass;
         registerConfiguration(bootStarpClass);
         setJavaCompiler(javaCompiler);
     }
 
-    public AnnotatedApplicationContext()
+    public DefaultApplicationContext()
     {
     }
 
-    public AnnotatedApplicationContext(JavaCompiler javaCompiler)
+    public DefaultApplicationContext(JavaCompiler javaCompiler)
     {
         setJavaCompiler(javaCompiler);
     }
@@ -138,17 +138,17 @@ public class AnnotatedApplicationContext implements ApplicationContext
 
     private NeedRefresh processJfirePrepare()
     {
-        List<JfirePrepare> jfirePrepares = new ArrayList<JfirePrepare>();
-        jfirePrepares.addAll(getBeans(JfirePrepare.class));
-        Collections.sort(jfirePrepares, new Comparator<JfirePrepare>()
+        List<ApplicationContextPrepare> jfirePrepares = new ArrayList<ApplicationContextPrepare>();
+        jfirePrepares.addAll(getBeans(ApplicationContextPrepare.class));
+        Collections.sort(jfirePrepares, new Comparator<ApplicationContextPrepare>()
         {
             @Override
-            public int compare(JfirePrepare o1, JfirePrepare o2)
+            public int compare(ApplicationContextPrepare o1, ApplicationContextPrepare o2)
             {
                 return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
-        for (JfirePrepare each : jfirePrepares)
+        for (ApplicationContextPrepare each : jfirePrepares)
         {
             if (each.prepare(this) == ApplicationContext.NeedRefresh.YES)
             {
@@ -186,9 +186,9 @@ public class AnnotatedApplicationContext implements ApplicationContext
     @Override
     public RegisterResult registerClass(Class<?> ckass)
     {
-        if (JfirePrepare.class.isAssignableFrom(ckass))
+        if (ApplicationContextPrepare.class.isAssignableFrom(ckass))
         {
-            return registerJfirePrepare((Class<? extends JfirePrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
+            return registerJfirePrepare((Class<? extends ApplicationContextPrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
         }
         else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
         {
@@ -278,7 +278,7 @@ public class AnnotatedApplicationContext implements ApplicationContext
         return true;
     }
 
-    private boolean registerJfirePrepare(Class<? extends JfirePrepare> ckass)
+    private boolean registerJfirePrepare(Class<? extends ApplicationContextPrepare> ckass)
     {
         String beanName = ckass.getName();
         if (unRemovableBeanDefinition.containsKey(beanName))
@@ -346,9 +346,9 @@ public class AnnotatedApplicationContext implements ApplicationContext
     {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values())
         {
-            if (JfireAwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
+            if (ApplicationContextAwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
             {
-                ((JfireAwareContextInited) beanDefinition.getBean()).awareContextInited(this);
+                ((ApplicationContextAwareContextInited) beanDefinition.getBean()).aware(this);
             }
         }
     }
@@ -484,9 +484,9 @@ public class AnnotatedApplicationContext implements ApplicationContext
     @Override
     public void register(Class<?> ckass)
     {
-        if (JfirePrepare.class.isAssignableFrom(ckass))
+        if (ApplicationContextPrepare.class.isAssignableFrom(ckass))
         {
-            registerJfirePrepare((Class<? extends JfirePrepare>) ckass);
+            registerJfirePrepare((Class<? extends ApplicationContextPrepare>) ckass);
         }
         else
         {

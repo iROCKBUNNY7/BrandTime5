@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.inject.notated.PropertyRead;
 import com.jfirer.jfire.core.prepare.annotation.PropertyPath;
@@ -36,7 +36,7 @@ public class PropertyPathImporterTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(Test1.class);
+        ApplicationContext context = new DefaultApplicationContext(Test1.class);
         context.register(PropertyPathImporterTest.class);
         PropertyPathImporterTest test = context.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);
@@ -48,7 +48,7 @@ public class PropertyPathImporterTest
     @Test
     public void test2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(Test2.class);
+        ApplicationContext context = new DefaultApplicationContext(Test2.class);
         context.register(PropertyPathImporterTest.class);
         PropertyPathImporterTest test = context.getBean(PropertyPathImporterTest.class);
         Assert.assertEquals(12, test.age);

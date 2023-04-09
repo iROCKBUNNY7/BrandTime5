@@ -4,12 +4,12 @@ import com.jfirer.baseutil.IniReader;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.PropertyPath;
-import com.jfirer.jfire.util.JfirePreparedConstant;
+import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
 import com.jfirer.jfire.util.Utils;
 
-public class PropertyPathProcessor implements JfirePrepare
+public class PropertyPathProcessor implements ApplicationContextPrepare
 {
 
     @Override
@@ -41,6 +41,6 @@ public class PropertyPathProcessor implements JfirePrepare
     @Override
     public int order()
     {
-        return JfirePreparedConstant.DEFAULT_ORDER;
+        return ApplicationContextPreparedConstant.DEFAULT_ORDER;
     }
 }

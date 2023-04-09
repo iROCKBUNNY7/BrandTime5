@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.beanannotest;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.exception.BeanDefinitionCanNotFindException;
 import org.junit.Assert;
@@ -15,7 +15,7 @@ public class BeanAnnoTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(Data.class);
+        ApplicationContext context = new DefaultApplicationContext(Data.class);
         Person             person  = context.getBean("person");
         Assert.assertTrue(person != null);
         Person person2;
@@ -27,7 +27,7 @@ public class BeanAnnoTest
         {
             assertTrue(e instanceof BeanDefinitionCanNotFindException);
         }
-        context = new AnnotatedApplicationContext(Data.class);
+        context = new DefaultApplicationContext(Data.class);
         Properties properties = new Properties();
         properties.put("person2", "pass");
         context.getEnv().addProperties(properties);

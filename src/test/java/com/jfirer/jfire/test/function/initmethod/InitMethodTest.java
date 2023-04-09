@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.initmethod;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -19,7 +19,7 @@ public class InitMethodTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(InitMethodTestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(InitMethodTestScan.class);
         Person             person  = context.getBean(Person.class);
         Assert.assertEquals(23, person.getAge());
         Assert.assertEquals("林斌", person.getName());

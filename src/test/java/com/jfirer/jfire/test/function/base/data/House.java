@@ -1,12 +1,12 @@
 package com.jfirer.jfire.test.function.base.data;
 
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.JfireAwareContextInited;
+import com.jfirer.jfire.core.ApplicationContextAwareContextInited;
 
 import javax.annotation.Resource;
 
 @Resource
-public class House implements JfireAwareContextInited
+public class House implements ApplicationContextAwareContextInited
 {
     private String          name;
     @Resource
@@ -33,7 +33,7 @@ public class House implements JfireAwareContextInited
     }
 
     @Override
-    public void awareContextInited(ApplicationContext environment)
+    public void aware(ApplicationContext environment)
     {
         name = "林斌的房子";
     }

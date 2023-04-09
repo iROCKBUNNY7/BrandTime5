@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.inject.notated.CanBeNull;
 import org.junit.Assert;
@@ -57,7 +57,7 @@ public class DiTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(ForDi1.class);
         context.register(ForDi2.class);
         context.register(Holder.class);
@@ -71,7 +71,7 @@ public class DiTest
     @Test
     public void test_2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(ForDi1.class);
         context.register(Holder2.class);
         Holder2 holder = context.getBean(Holder2.class);
@@ -84,7 +84,7 @@ public class DiTest
     @Test
     public void test_3()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(Holder3.class);
         Holder3 holder = context.getBean(Holder3.class);
         Assert.assertNull(holder.di);

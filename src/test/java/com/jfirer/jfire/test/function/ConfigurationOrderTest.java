@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Bean;
@@ -129,7 +129,7 @@ public class ConfigurationOrderTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(ConfigurationOrderTest.class);
+        ApplicationContext context = new DefaultApplicationContext(ConfigurationOrderTest.class);
         Assert.assertEquals(1, ((Person) context.getBean("person")).getAge());
         Assert.assertEquals(2, ((Person) context.getBean("person2")).getAge());
         Assert.assertEquals(3, ((Person) context.getBean("person3")).getAge());

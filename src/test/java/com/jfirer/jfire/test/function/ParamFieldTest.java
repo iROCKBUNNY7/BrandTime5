@@ -1,10 +1,10 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.Environment;
 import com.jfirer.jfire.core.inject.notated.PropertyRead;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class ParamFieldTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(ForProperty.class);
         context.register(ParamFieldTest.class);
         context.register(ForProperty.class);
@@ -76,7 +76,7 @@ public class ParamFieldTest
         Assert.assertEquals(name.test1, data.f14);
     }
 
-    public static class ForProperty implements JfirePrepare
+    public static class ForProperty implements ApplicationContextPrepare
     {
 
         @Override

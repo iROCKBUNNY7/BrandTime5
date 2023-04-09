@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.cachetest;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.test.function.base.data.House;
 import com.jfirer.jfire.test.function.base.data.MutablePerson;
@@ -12,7 +12,7 @@ public class CacheTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(CacheTarget.class);
         context.register(DemoCache.class);
         context.register(CacheManagerTest.class);
@@ -49,7 +49,7 @@ public class CacheTest
     @Test
     public void test_2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(CacheTarget.class);
         context.register(DemoCache.class);
         context.register(CacheManagerTest.class);
@@ -66,7 +66,7 @@ public class CacheTest
     @Test
     public void test_3()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(CacheTarget.class);
         context.register(DemoCache.class);
         context.register(CacheManagerTest.class);
@@ -83,7 +83,7 @@ public class CacheTest
     @Test
     public void test_4()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(CacheTarget.class);
         context.register(DemoCache.class);
         context.register(CacheManagerTest.class);

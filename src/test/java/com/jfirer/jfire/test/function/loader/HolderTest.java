@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.loader;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -19,7 +19,7 @@ public class HolderTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(HolderTestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(HolderTestScan.class);
         Person             person  = context.getBean(Person.class);
         Assert.assertEquals("name", person.getName());
         Home home = context.getBean(Home.class);

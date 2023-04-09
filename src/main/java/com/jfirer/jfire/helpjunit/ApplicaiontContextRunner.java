@@ -1,6 +1,6 @@
 package com.jfirer.jfire.helpjunit;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import org.junit.rules.RunRules;
 import org.junit.rules.TestRule;
@@ -11,11 +11,11 @@ import org.junit.runners.model.Statement;
 
 import java.util.List;
 
-public class JfireRunner extends BlockJUnit4ClassRunner
+public class ApplicaiontContextRunner extends BlockJUnit4ClassRunner
 {
     private Class<?> klass;
 
-    public JfireRunner(Class<?> klass) throws InitializationError
+    public ApplicaiontContextRunner(Class<?> klass) throws InitializationError
     {
         super(klass);
         this.klass = klass;
@@ -68,7 +68,7 @@ public class JfireRunner extends BlockJUnit4ClassRunner
 
     protected Object createTest()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(klass);
+        ApplicationContext context = new DefaultApplicationContext(klass);
         return context.getBean(klass);
     }
 }

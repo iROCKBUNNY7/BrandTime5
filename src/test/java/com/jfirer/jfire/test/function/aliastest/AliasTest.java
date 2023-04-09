@@ -2,7 +2,7 @@ package com.jfirer.jfire.test.function.aliastest;
 
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.bytecode.support.SupportOverrideAttributeAnnotationContextFactory;
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -51,7 +51,7 @@ public class AliasTest
     @Test
     public void test2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(aliasCompopntScan.class);
+        ApplicationContext context = new DefaultApplicationContext(aliasCompopntScan.class);
         SingleDemo         demo    = context.getBean("demo");
         assertFalse(demo == null);
     }

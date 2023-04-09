@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.aop;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -23,7 +23,7 @@ public class AopTest
     @Test
     public void beforetest()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         person.sayHello("你好");
         Enhance enhance = context.getBean(Enhance.class);
@@ -36,7 +36,7 @@ public class AopTest
     @Test
     public void testAround()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         person.testInts(new int[]{1, 2, 3});
         assertEquals(1, person.invokeCount());
@@ -48,7 +48,7 @@ public class AopTest
     @Test
     public void testOrder()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         person.order();
         assertEquals("EnhanceForOrder_enhance", EnhanceForOrder.result);
@@ -60,7 +60,7 @@ public class AopTest
     @Test
     public void testOrder2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         person.order2("林斌", 25);
         Enhance enhance = context.getBean(Enhance.class);
@@ -70,7 +70,7 @@ public class AopTest
     @Test
     public void testMyname()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         assertEquals("林斌你好", person.myName("你好"));
     }
@@ -78,7 +78,7 @@ public class AopTest
     @Test
     public void testForVoidReturn()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         assertEquals(0, person.invokeCount());
         person.testForVoidReturn();
@@ -88,7 +88,7 @@ public class AopTest
     @Test
     public void testThrow()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         try
         {
@@ -104,7 +104,7 @@ public class AopTest
     @Test
     public void testTx()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         Person             person  = context.getBean(Person.class);
         person.tx();
         person.autoClose();
@@ -116,7 +116,7 @@ public class AopTest
     @Test
     public void testAopAndFiled()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(AopTtestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(AopTtestScan.class);
         context.register(Home.class);
         Person person = context.getBean(Person.class);
         assertNotNull(person.getHome());

@@ -3,11 +3,11 @@ package com.jfirer.jfire.core.prepare.processor;
 import com.jfirer.baseutil.bytecode.support.AnnotationContext;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.AddProperty;
-import com.jfirer.jfire.util.JfirePreparedConstant;
+import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
 
-public class AddPropertyProcessor implements JfirePrepare
+public class AddPropertyProcessor implements ApplicationContextPrepare
 {
 
     @Override
@@ -40,6 +40,6 @@ public class AddPropertyProcessor implements JfirePrepare
 
     public int order()
     {
-        return JfirePreparedConstant.DEFAULT_ORDER;
+        return ApplicationContextPreparedConstant.DEFAULT_ORDER;
     }
 }

@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.validate;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.aop.support.validate.JfireMethodValidatorImpl;
 import org.junit.Assert;
@@ -14,7 +14,7 @@ public class ValidateTest
     @Test
     public void test_2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(JfireMethodValidatorImpl.class);
         context.register(Person.class);
         Person person = context.getBean(Person.class);

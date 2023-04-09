@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -36,7 +36,7 @@ public class ConfigBeanTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(ConfigBeanTest.class);
+        ApplicationContext context = new DefaultApplicationContext(ConfigBeanTest.class);
         Home               home    = context.getBean(Home.class);
         Person             person  = context.getBean(Person.class);
         Assert.assertNotNull(person);

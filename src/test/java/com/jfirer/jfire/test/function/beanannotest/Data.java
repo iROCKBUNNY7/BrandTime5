@@ -2,7 +2,7 @@ package com.jfirer.jfire.test.function.beanannotest;
 
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.inject.notated.PropertyRead;
-import com.jfirer.jfire.core.prepare.JfirePrepare;
+import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.Import;
 import com.jfirer.jfire.core.prepare.annotation.condition.Conditional;
@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 @Import({HouseProvider.class, Data.NameProperty.class})
 public class Data
 {
-    public static class NameProperty implements JfirePrepare
+    public static class NameProperty implements ApplicationContextPrepare
     {
 
         @Override

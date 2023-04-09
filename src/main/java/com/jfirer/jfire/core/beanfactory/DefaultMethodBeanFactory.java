@@ -1,6 +1,5 @@
 package com.jfirer.jfire.core.beanfactory;
 
-import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanFactory;
@@ -13,9 +12,7 @@ import java.lang.reflect.Method;
 public class DefaultMethodBeanFactory implements BeanFactory
 {
     @Resource
-    private AnnotationContextFactory annotationContextFactory;
-    @Resource
-    private ApplicationContext       applicationContext;
+    private ApplicationContext applicationContext;
 
     @Override
     public <E> E getBean(BeanDescriptor beanDescriptor)
@@ -54,5 +51,4 @@ public class DefaultMethodBeanFactory implements BeanFactory
             return null;
         }
     }
-
 }

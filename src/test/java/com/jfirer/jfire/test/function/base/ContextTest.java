@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function.base;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.test.function.base.data.House;
@@ -29,7 +29,7 @@ public class ContextTest
     @Test
     public void testConstruction()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(ContextTestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(ContextTestScan.class);
         baseTest(context);
     }
 
@@ -49,7 +49,7 @@ public class ContextTest
     @Test
     public void testDirect()
     {
-        ApplicationContext context = new AnnotatedApplicationContext();
+        ApplicationContext context = new DefaultApplicationContext();
         context.register(House.class);
         context.register(MutablePerson.class);
         context.register(ImmutablePerson.class);
@@ -61,7 +61,7 @@ public class ContextTest
     @Test
     public void testInit2()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(ContextTestScan.class);
+        ApplicationContext context = new DefaultApplicationContext(ContextTestScan.class);
         assertEquals("林斌的房子", context.getBean(House.class).getName());
         assertEquals("林斌的房子", ((House) context.getBean(House.class.getName())).getName());
     }

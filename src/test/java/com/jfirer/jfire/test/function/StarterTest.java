@@ -1,6 +1,6 @@
 package com.jfirer.jfire.test.function;
 
-import com.jfirer.jfire.core.AnnotatedApplicationContext;
+import com.jfirer.jfire.core.DefaultApplicationContext;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.prepare.annotation.EnableAutoConfiguration;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
@@ -20,7 +20,7 @@ public class StarterTest
     @Test
     public void test()
     {
-        ApplicationContext context = new AnnotatedApplicationContext(StarterTest.class);
+        ApplicationContext context = new DefaultApplicationContext(StarterTest.class);
         MyStarter          myStarter   = context.getBean(MyStarter.class);
         Assert.assertNotNull(myStarter);
     }
