@@ -9,10 +9,10 @@ import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.bytecode.util.BytecodeUtil;
 import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
+import com.jfirer.jfire.core.prepare.ContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.ComponentScan;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
-import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
+import com.jfirer.jfire.util.PrepareConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * 负责在路径之下扫描具备@Resource和@Configuration注解的类
  */
-public class ComponentScanProcessor implements ApplicationContextPrepare
+public class ComponentScanProcessor implements ContextPrepare
 {
     private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
@@ -76,7 +76,7 @@ public class ComponentScanProcessor implements ApplicationContextPrepare
                         needRefresh = true;
                     }
                 }
-                else if (classFile.hasInterface(ApplicationContextPrepare.class))
+                else if (classFile.hasInterface(ContextPrepare.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
                     if (jfireContext.registerClass(ckass) == ApplicationContext.RegisterResult.JFIREPREPARE)
@@ -103,6 +103,6 @@ public class ComponentScanProcessor implements ApplicationContextPrepare
     @Override
     public int order()
     {
-        return ApplicationContextPreparedConstant.DEFAULT_ORDER;
+        return PrepareConstant.DEFAULT_ORDER;
     }
 }

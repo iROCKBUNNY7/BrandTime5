@@ -1,6 +1,6 @@
 package com.jfirer.jfire.util;
 
-public class ApplicationContextPreparedConstant
+public class PrepareConstant
 {
     public static final int ENABLE_AUTO_CONFIGURATION = -100;
     public static final int DEFAULT_ORDER             = 0;

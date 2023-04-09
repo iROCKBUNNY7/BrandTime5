@@ -5,7 +5,7 @@ package com.jfirer.jfire.core;
  *
  * @author 林斌
  */
-public interface ApplicationContextAwareContextInited
+public interface ContextAwareContextInited
 {
 
     /**

@@ -70,7 +70,7 @@ public class BeanDefinition
             type = beanDescriptor.getDescriptorMethod().getReturnType();
         }
         setPrototype(beanDescriptor.isPrototype());
-        if (ApplicationContextAwareContextInited.class.isAssignableFrom(type))
+        if (ContextAwareContextInited.class.isAssignableFrom(type))
         {
             setAwareContextInit(true);
         }
@@ -99,7 +99,7 @@ public class BeanDefinition
 
     private void initAwareContextInit()
     {
-        if (ApplicationContextAwareContextInited.class.isAssignableFrom(type))
+        if (ContextAwareContextInited.class.isAssignableFrom(type))
         {
             setAwareContextInit(true);
         }

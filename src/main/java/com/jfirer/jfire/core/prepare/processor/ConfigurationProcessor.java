@@ -13,14 +13,14 @@ import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
 import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfirer.jfire.core.beandescriptor.MethodBeanDescriptor;
 import com.jfirer.jfire.core.beanfactory.DefaultClassBeanFactory;
-import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
+import com.jfirer.jfire.core.prepare.ContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.condition.Condition;
 import com.jfirer.jfire.core.prepare.annotation.condition.Conditional;
 import com.jfirer.jfire.core.prepare.annotation.condition.ErrorMessage;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Bean;
 import com.jfirer.jfire.core.prepare.annotation.configuration.ConfigAfter;
 import com.jfirer.jfire.core.prepare.annotation.configuration.ConfigBefore;
-import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
+import com.jfirer.jfire.util.PrepareConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ConfigurationProcessor implements ApplicationContextPrepare
+public class ConfigurationProcessor implements ContextPrepare
 {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
@@ -115,7 +115,7 @@ public class ConfigurationProcessor implements ApplicationContextPrepare
     @Override
     public int order()
     {
-        return ApplicationContextPreparedConstant.CONFIGURATION_ORDER;
+        return PrepareConstant.CONFIGURATION_ORDER;
     }
 
     private void logOrder(List<Class<?>> list)

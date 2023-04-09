@@ -17,7 +17,7 @@ import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfirer.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfirer.jfire.core.beanfactory.DefaultMethodBeanFactory;
 import com.jfirer.jfire.core.beanfactory.SelectBeanFactory;
-import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
+import com.jfirer.jfire.core.prepare.ContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.Import;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfirer.jfire.core.prepare.processor.ConfigurationProcessor;
@@ -138,17 +138,17 @@ public class DefaultApplicationContext implements ApplicationContext
 
     private NeedRefresh processJfirePrepare()
     {
-        List<ApplicationContextPrepare> jfirePrepares = new ArrayList<ApplicationContextPrepare>();
-        jfirePrepares.addAll(getBeans(ApplicationContextPrepare.class));
-        Collections.sort(jfirePrepares, new Comparator<ApplicationContextPrepare>()
+        List<ContextPrepare> jfirePrepares = new ArrayList<ContextPrepare>();
+        jfirePrepares.addAll(getBeans(ContextPrepare.class));
+        Collections.sort(jfirePrepares, new Comparator<ContextPrepare>()
         {
             @Override
-            public int compare(ApplicationContextPrepare o1, ApplicationContextPrepare o2)
+            public int compare(ContextPrepare o1, ContextPrepare o2)
             {
                 return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
-        for (ApplicationContextPrepare each : jfirePrepares)
+        for (ContextPrepare each : jfirePrepares)
         {
             if (each.prepare(this) == ApplicationContext.NeedRefresh.YES)
             {
@@ -186,9 +186,9 @@ public class DefaultApplicationContext implements ApplicationContext
     @Override
     public RegisterResult registerClass(Class<?> ckass)
     {
-        if (ApplicationContextPrepare.class.isAssignableFrom(ckass))
+        if (ContextPrepare.class.isAssignableFrom(ckass))
         {
-            return registerJfirePrepare((Class<? extends ApplicationContextPrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
+            return registerJfirePrepare((Class<? extends ContextPrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
         }
         else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
         {
@@ -278,7 +278,7 @@ public class DefaultApplicationContext implements ApplicationContext
         return true;
     }
 
-    private boolean registerJfirePrepare(Class<? extends ApplicationContextPrepare> ckass)
+    private boolean registerJfirePrepare(Class<? extends ContextPrepare> ckass)
     {
         String beanName = ckass.getName();
         if (unRemovableBeanDefinition.containsKey(beanName))
@@ -346,9 +346,9 @@ public class DefaultApplicationContext implements ApplicationContext
     {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values())
         {
-            if (ApplicationContextAwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
+            if (ContextAwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
             {
-                ((ApplicationContextAwareContextInited) beanDefinition.getBean()).aware(this);
+                ((ContextAwareContextInited) beanDefinition.getBean()).aware(this);
             }
         }
     }
@@ -484,9 +484,9 @@ public class DefaultApplicationContext implements ApplicationContext
     @Override
     public void register(Class<?> ckass)
     {
-        if (ApplicationContextPrepare.class.isAssignableFrom(ckass))
+        if (ContextPrepare.class.isAssignableFrom(ckass))
         {
-            registerJfirePrepare((Class<? extends ApplicationContextPrepare>) ckass);
+            registerJfirePrepare((Class<? extends ContextPrepare>) ckass);
         }
         else
         {

@@ -3,8 +3,8 @@ package com.jfirer.jfire.core.prepare.processor;
 import com.jfirer.baseutil.TRACEID;
 import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.prepare.ApplicationContextPrepare;
-import com.jfirer.jfire.util.ApplicationContextPreparedConstant;
+import com.jfirer.jfire.core.prepare.ContextPrepare;
+import com.jfirer.jfire.util.PrepareConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,7 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class EnableAutoConfigurationProcessor implements ApplicationContextPrepare
+public class EnableAutoConfigurationProcessor implements ContextPrepare
 {
     private static final Logger logger        = LoggerFactory.getLogger(EnableAutoConfigurationProcessor.class);
     private static final String directoryName = "META-INF/autoconfig/";
@@ -82,7 +82,7 @@ public class EnableAutoConfigurationProcessor implements ApplicationContextPrepa
     @Override
     public int order()
     {
-        return ApplicationContextPreparedConstant.ENABLE_AUTO_CONFIGURATION;
+        return PrepareConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
     boolean registgerAutoConfigor(String className, ApplicationContext jfireContext) throws ClassNotFoundException
