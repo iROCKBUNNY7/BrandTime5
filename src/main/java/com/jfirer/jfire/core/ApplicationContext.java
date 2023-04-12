@@ -84,8 +84,6 @@ public interface ApplicationContext
      */
     boolean registerBeanDefinition(BeanDefinition beanDefinition);
 
-    void setJavaCompiler(JavaCompiler javaCompiler);
-
     Set<Class<?>> getConfigurationClassSet();
 
     CompileHelper getCompileHelper();

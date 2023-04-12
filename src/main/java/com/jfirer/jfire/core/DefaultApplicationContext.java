@@ -24,7 +24,6 @@ import com.jfirer.jfire.core.prepare.processor.ConfigurationProcessor;
 import com.jfirer.jfire.exception.BeanDefinitionCanNotFindException;
 
 import javax.annotation.Resource;
-import javax.tools.JavaCompiler;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
@@ -34,7 +33,6 @@ public class DefaultApplicationContext implements ApplicationContext
     private   Environment                 environment                = new Environment.EnvironmentImpl();
     private   AnnotationContextFactory    annotationContextFactory   = new SupportOverrideAttributeAnnotationContextFactory();
     private   Map<String, BeanDefinition> unRemovableBeanDefinition  = new HashMap<String, BeanDefinition>();
-    private   JavaCompiler                javaCompiler;
     private   CompileHelper               compileHelper;
     private   boolean                     firstRefresh               = false;
     private   boolean                     configurationClassSetBuild = false;
@@ -43,24 +41,24 @@ public class DefaultApplicationContext implements ApplicationContext
 
     public DefaultApplicationContext(Class<?> bootStarpClass)
     {
-        this.bootStarpClass = bootStarpClass;
-        registerConfiguration(bootStarpClass);
+        this(bootStarpClass, new CompileHelper());
     }
 
-    public DefaultApplicationContext(Class<?> bootStarpClass, JavaCompiler javaCompiler)
+    public DefaultApplicationContext(Class<?> bootStarpClass, CompileHelper compileHelper)
     {
         this.bootStarpClass = bootStarpClass;
         registerConfiguration(bootStarpClass);
-        setJavaCompiler(javaCompiler);
+        this.compileHelper = compileHelper;
     }
 
     public DefaultApplicationContext()
     {
+        compileHelper = new CompileHelper();
     }
 
-    public DefaultApplicationContext(JavaCompiler javaCompiler)
+    public DefaultApplicationContext(CompileHelper compileHelper)
     {
-        setJavaCompiler(javaCompiler);
+        this.compileHelper = compileHelper;
     }
 
     private void refreshIfNeed()
@@ -117,7 +115,7 @@ public class DefaultApplicationContext implements ApplicationContext
         registerBean(ValidateAopManager.class);
         registerJfirePrepare(ConfigurationProcessor.class);
         beanDefinitionMap.putAll(unRemovableBeanDefinition);
-        if (processConfigurationImports()== ApplicationContext.NeedRefresh.YES)
+        if (processConfigurationImports() == ApplicationContext.NeedRefresh.YES)
         {
             refresh();
             return;
@@ -298,12 +296,6 @@ public class DefaultApplicationContext implements ApplicationContext
     }
 
     @Override
-    public void setJavaCompiler(JavaCompiler javaCompiler)
-    {
-        this.javaCompiler = javaCompiler;
-    }
-
-    @Override
     public Set<Class<?>> getConfigurationClassSet()
     {
         if (configurationClassSetBuild == false)
@@ -332,8 +324,11 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             return compileHelper;
         }
-        compileHelper = javaCompiler == null ? new CompileHelper() : new CompileHelper(Thread.currentThread().getContextClassLoader(), javaCompiler);
-        return compileHelper;
+        else
+        {
+            compileHelper = new CompileHelper();
+            return compileHelper;
+        }
     }
 
     @Override
