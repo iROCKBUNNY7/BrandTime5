@@ -124,6 +124,7 @@ public class BeanDefinition
             }
         });
         ClassModel classModel = new ClassModel(type.getSimpleName() + "$AOP$" + EnhanceManager.classNameCounter.getAndIncrement());
+        classModel.setPackageName(type.getPackage().getName());
         if (type.isInterface())
         {
             classModel.addInterface(type);
