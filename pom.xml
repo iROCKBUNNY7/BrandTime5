@@ -83,14 +83,16 @@
         </dependency>
     </dependencies>
     <distributionManagement>
-        <snapshotRepository>
-            <id>ylzpay-public</id>
-            <url>https://nexus.ylzpay.com/repository/maven-snapshot</url>
-        </snapshotRepository>
         <repository>
-            <id>ylzpay-public</id>
-            <url>https://nexus.ylzpay.com/repository/maven-release</url>
+            <id>nexus</id>
+            <name>nexus</name>
+            <url>https://nexus.ylzpay.com/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>nexus-snapshot</id>
+            <name>nexus</name>
+            <url>https://nexus.ylzpay.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
     <build>
         <finalName>jfire</finalName>

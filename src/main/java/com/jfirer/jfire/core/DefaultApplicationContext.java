@@ -194,7 +194,7 @@ public class DefaultApplicationContext implements ApplicationContext
         }
         else
         {
-            return registerBean(ckass) ? ApplicationContext.RegisterResult.BEAN : ApplicationContext.RegisterResult.NODATA;
+            return registerBean(ckass, true) ? ApplicationContext.RegisterResult.BEAN : ApplicationContext.RegisterResult.NODATA;
         }
     }
 
