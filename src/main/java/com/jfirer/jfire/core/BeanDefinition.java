@@ -37,7 +37,6 @@ public class BeanDefinition
         }
     };
     private             boolean                          prototype;
-    private             boolean                          awareContextInit;
     // 如果是单例的情况，后续只会使用该实例
     private volatile    Object                           cachedSingtonInstance;
     /******/
@@ -52,7 +51,7 @@ public class BeanDefinition
     // 标注@PostConstruct的方法
     private             Method                           postConstructMethod;
     private             InjectHandler[]                  injectHandlers;
-    private             ApplicationContext               jfireContext;
+    private             ApplicationContext               context;
     private             BeanDescriptor                   beanDescriptor;
     private             BeanFactory                      beanFactory;
     private             BeanDefinition                   beanFactoryBeanDefinition;
@@ -70,10 +69,6 @@ public class BeanDefinition
             type = beanDescriptor.getDescriptorMethod().getReturnType();
         }
         setPrototype(beanDescriptor.isPrototype());
-        if (ContextAwareContextInited.class.isAssignableFrom(type))
-        {
-            setAwareContextInit(true);
-        }
     }
 
     public BeanDefinition(String beanName, Class<?> type, Object beanInstance)
@@ -82,28 +77,19 @@ public class BeanDefinition
         this.type = type;
         cachedSingtonInstance = beanInstance;
         setPrototype(false);
-        setAwareContextInit(false);
     }
 
-    public void init(ApplicationContext jfireContext)
+    public void init(ApplicationContext context)
     {
-        this.jfireContext = jfireContext;
+        this.context = context;
         if (cachedSingtonInstance == null)
         {
-            beanFactoryBeanDefinition = jfireContext.getBeanFactory(beanDescriptor);
+            beanFactoryBeanDefinition = context.getBeanFactory(beanDescriptor);
             initPostConstructMethod();
             initInjectHandlers();
-            initAwareContextInit();
         }
     }
 
-    private void initAwareContextInit()
-    {
-        if (ContextAwareContextInited.class.isAssignableFrom(type))
-        {
-            setAwareContextInit(true);
-        }
-    }
 
     public void initEnhance()
     {
@@ -142,9 +128,9 @@ public class BeanDefinition
         addInvokeHostPublicMethod(classModel, hostFieldName);
         for (int i = 0; i < orderedAopManagers.length; i++)
         {
-            enhanceCallbackForBeanInstances[i] = orderedAopManagers[i].enhance(classModel, type, jfireContext, hostFieldName);
+            enhanceCallbackForBeanInstances[i] = orderedAopManagers[i].enhance(classModel, type, context, hostFieldName);
         }
-        CompileHelper compiler = jfireContext.getCompileHelper();
+        CompileHelper compiler = context.getCompileHelper();
         try
         {
             enhanceType = compiler.compile(classModel);
@@ -213,14 +199,14 @@ public class BeanDefinition
         {
             Class<?>                 type                     = this.type;
             boolean                  find                     = false;
-            AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
+            AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
             while (type != Object.class)
             {
                 for (Method each : type.getDeclaredMethods())
                 {
                     if (each.getParameterTypes().length == 0)
                     {
-                        if (annotationContextFactory.get(each, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(PostConstruct.class))
+                        if (annotationContextFactory.get(each).isAnnotationPresent(PostConstruct.class))
                         {
                             postConstructMethod = each;
                             postConstructMethod.setAccessible(true);
@@ -257,7 +243,7 @@ public class BeanDefinition
                     try
                     {
                         InjectHandler newInstance = customDiHanlder.value().newInstance();
-                        newInstance.init(each, jfireContext);
+                        newInstance.init(each, context);
                         list.add(newInstance);
                     }
                     catch (Exception e)
@@ -268,13 +254,13 @@ public class BeanDefinition
                 else if (each.isAnnotationPresent(Resource.class))
                 {
                     DefaultDependencyInjectHandler injectHandler = new DefaultDependencyInjectHandler();
-                    injectHandler.init(each, jfireContext);
+                    injectHandler.init(each, context);
                     list.add(injectHandler);
                 }
                 else if (each.isAnnotationPresent(PropertyRead.class))
                 {
                     DefaultPropertyInjectHandler injectHandler = new DefaultPropertyInjectHandler();
-                    injectHandler.init(each, jfireContext);
+                    injectHandler.init(each, context);
                     list.add(injectHandler);
                 }
             }
@@ -430,10 +416,6 @@ public class BeanDefinition
         this.prototype = prototype;
     }
 
-    private void setAwareContextInit(boolean awareContextInit)
-    {
-        this.awareContextInit = awareContextInit;
-    }
 
     public String getBeanName()
     {

@@ -1,12 +1,12 @@
 package com.jfirer.jfire.test.function.base.data;
 
 import com.jfirer.jfire.core.ApplicationContext;
-import com.jfirer.jfire.core.ContextAwareContextInited;
+import com.jfirer.jfire.core.AwareContextInited;
 
 import javax.annotation.Resource;
 
 @Resource
-public class House implements ContextAwareContextInited
+public class House implements AwareContextInited
 {
     private String          name;
     @Resource

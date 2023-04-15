@@ -29,10 +29,14 @@ import java.util.*;
 
 public class DefaultApplicationContext implements ApplicationContext
 {
+    /**
+     * 只有Configuration注解下并且有Conditional注解的情况下，才会有Bean是否被注册的可能。
+     * 如果支持每一轮刷新都根据不同的环境变量或者其他条件满足来增减Bean定义会变得较为复杂，而且实际上也没有遇到这样的场景。
+     * 因为目前简化为只支持Bean定义不断增多。
+     */
     protected Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
     private   Environment                 environment                = new Environment.EnvironmentImpl();
     private   AnnotationContextFactory    annotationContextFactory   = new SupportOverrideAttributeAnnotationContextFactory();
-    private   Map<String, BeanDefinition> unRemovableBeanDefinition  = new HashMap<String, BeanDefinition>();
     private   CompileHelper               compileHelper;
     private   boolean                     firstRefresh               = false;
     private   boolean                     configurationClassSetBuild = false;
@@ -47,7 +51,7 @@ public class DefaultApplicationContext implements ApplicationContext
     public DefaultApplicationContext(Class<?> bootStarpClass, CompileHelper compileHelper)
     {
         this.bootStarpClass = bootStarpClass;
-        registerConfiguration(bootStarpClass);
+        register(bootStarpClass);
         this.compileHelper = compileHelper;
     }
 
@@ -104,17 +108,15 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             TRACEID.newTraceId();
         }
-        beanDefinitionMap.clear();
         registerApplicationContext();
         registerDefaultBeanFactory();
         registerAnnotationContextFactory();
         registerDefaultMethodBeanFatory();
-        registerBean(AopEnhanceManager.class);
-        registerBean(TransactionAopManager.class);
-        registerBean(CacheAopManager.class);
-        registerBean(ValidateAopManager.class);
+        register(AopEnhanceManager.class);
+        register(TransactionAopManager.class);
+        register(CacheAopManager.class);
+        register(ValidateAopManager.class);
         registerJfirePrepare(ConfigurationProcessor.class);
-        beanDefinitionMap.putAll(unRemovableBeanDefinition);
         if (processConfigurationImports() == ApplicationContext.NeedRefresh.YES)
         {
             refresh();
@@ -169,8 +171,8 @@ public class DefaultApplicationContext implements ApplicationContext
                 {
                     for (Class<?> importClass : anImport.value())
                     {
-                        RegisterResult registerClass = registerClass(importClass);
-                        if (registerClass == ApplicationContext.RegisterResult.JFIREPREPARE || registerClass == ApplicationContext.RegisterResult.CONFIGURATION)
+                        RegisterResult registerClass = register(importClass);
+                        if (registerClass == ApplicationContext.RegisterResult.PREPARE || registerClass == ApplicationContext.RegisterResult.CONFIGURATION)
                         {
                             needRefresh = ApplicationContext.NeedRefresh.YES;
                         }
@@ -182,29 +184,23 @@ public class DefaultApplicationContext implements ApplicationContext
     }
 
     @Override
-    public RegisterResult registerClass(Class<?> ckass)
+    public RegisterResult register(Class<?> ckass)
     {
         if (ContextPrepare.class.isAssignableFrom(ckass))
         {
-            return registerJfirePrepare((Class<? extends ContextPrepare>) ckass) ? ApplicationContext.RegisterResult.JFIREPREPARE : ApplicationContext.RegisterResult.NODATA;
+            return registerJfirePrepare((Class<? extends ContextPrepare>) ckass) ? ApplicationContext.RegisterResult.PREPARE : ApplicationContext.RegisterResult.NODATA;
         }
-        else if (annotationContextFactory.get(ckass, Thread.currentThread().getContextClassLoader()).isAnnotationPresent(Configuration.class))
+        else if (annotationContextFactory.get(ckass).isAnnotationPresent(Configuration.class))
         {
-            return registerConfiguration(ckass) ? ApplicationContext.RegisterResult.CONFIGURATION : ApplicationContext.RegisterResult.NODATA;
+            return registerBean(ckass) ? ApplicationContext.RegisterResult.CONFIGURATION : ApplicationContext.RegisterResult.NODATA;
         }
         else
         {
-            return registerBean(ckass, true) ? ApplicationContext.RegisterResult.BEAN : ApplicationContext.RegisterResult.NODATA;
+            return registerBean(ckass) ? ApplicationContext.RegisterResult.BEAN : ApplicationContext.RegisterResult.NODATA;
         }
     }
 
-    @Override
-    public boolean registerBean(Class<?> ckass)
-    {
-        return registerBean(ckass, false);
-    }
-
-    private boolean registerBean(Class<?> ckass, boolean unremoveable)
+    private boolean registerBean(Class<?> ckass)
     {
         AnnotationContext annotationContext = annotationContextFactory.get(ckass);
         String            beanName;
@@ -220,7 +216,7 @@ public class DefaultApplicationContext implements ApplicationContext
             beanName = ckass.getName();
             prototype = false;
         }
-        if (unremoveable && unRemovableBeanDefinition.containsKey(beanName))
+        if (beanDefinitionMap.containsKey(beanName))
         {
             return false;
         }
@@ -246,15 +242,8 @@ public class DefaultApplicationContext implements ApplicationContext
             beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, DefaultClassBeanFactory.class);
         }
         BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
-        if (unremoveable)
-        {
-            unRemovableBeanDefinition.put(beanDefinition.getBeanName(), beanDefinition);
-            return true;
-        }
-        else
-        {
-            return registerBeanDefinition(beanDefinition);
-        }
+        beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
+        return true;
     }
 
     @Override
@@ -263,30 +252,17 @@ public class DefaultApplicationContext implements ApplicationContext
         return beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition) == null;
     }
 
-    private boolean registerConfiguration(Class<?> ckass)
-    {
-        String beanName = ckass.getName();
-        if (unRemovableBeanDefinition.containsKey(beanName))
-        {
-            return false;
-        }
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
-        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
-        unRemovableBeanDefinition.put(beanDefinition.getBeanName(), beanDefinition);
-        return true;
-    }
-
     private boolean registerJfirePrepare(Class<? extends ContextPrepare> ckass)
     {
         String beanName = ckass.getName();
-        if (unRemovableBeanDefinition.containsKey(beanName))
+        if (beanDefinitionMap.containsKey(beanName))
         {
             return false;
         }
         try
         {
             BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, ckass.newInstance());
-            unRemovableBeanDefinition.put(beanName, beanDefinition);
+            beanDefinitionMap.put(beanName, beanDefinition);
         }
         catch (Throwable e)
         {
@@ -341,9 +317,9 @@ public class DefaultApplicationContext implements ApplicationContext
     {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values())
         {
-            if (ContextAwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
+            if (AwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
             {
-                ((ContextAwareContextInited) beanDefinition.getBean()).aware(this);
+                ((AwareContextInited) beanDefinition.getBean()).aware(this);
             }
         }
     }
@@ -474,19 +450,6 @@ public class DefaultApplicationContext implements ApplicationContext
             throw new BeanDefinitionCanNotFindException(beanName);
         }
         return (E) beanDefinition.getBean();
-    }
-
-    @Override
-    public void register(Class<?> ckass)
-    {
-        if (ContextPrepare.class.isAssignableFrom(ckass))
-        {
-            registerJfirePrepare((Class<? extends ContextPrepare>) ckass);
-        }
-        else
-        {
-            registerBean(ckass, true);
-        }
     }
 
     @Override

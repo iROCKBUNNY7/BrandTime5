@@ -29,12 +29,12 @@ public class ComponentScanProcessor implements ContextPrepare
     private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
     @Override
-    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
     {
-        AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
         List<String>             classNames               = new LinkedList<String>();
-        for (Class<?> each : jfireContext.getConfigurationClassSet())
+        for (Class<?> each : context.getConfigurationClassSet())
         {
             AnnotationContext annotationContext = annotationContextFactory.get(each);
             if (annotationContext.isAnnotationPresent(ComponentScan.class))
@@ -62,7 +62,7 @@ public class ComponentScanProcessor implements ContextPrepare
                 if (annotationContext.isAnnotationPresent(Resource.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerBean(ckass))
+                    if (context.register(ckass)!= ApplicationContext.RegisterResult.NODATA)
                     {
                         logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
                     }
@@ -70,7 +70,7 @@ public class ComponentScanProcessor implements ContextPrepare
                 else if (annotationContext.isAnnotationPresent(Configuration.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerClass(ckass)!= ApplicationContext.RegisterResult.NODATA)
+                    if (context.register(ckass)!= ApplicationContext.RegisterResult.NODATA)
                     {
                         logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         needRefresh = true;
@@ -79,7 +79,7 @@ public class ComponentScanProcessor implements ContextPrepare
                 else if (classFile.hasInterface(ContextPrepare.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (jfireContext.registerClass(ckass) == ApplicationContext.RegisterResult.JFIREPREPARE)
+                    if (context.register(ckass) == ApplicationContext.RegisterResult.PREPARE)
                     {
                         needRefresh = true;
                     }

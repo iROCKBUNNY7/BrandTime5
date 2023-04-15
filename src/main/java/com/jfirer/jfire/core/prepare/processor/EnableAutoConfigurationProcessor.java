@@ -22,13 +22,13 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
     private static final int    offset        = directoryName.length();
 
     @Override
-    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
     {
         try
         {
-            ClassLoader      classLoader         = Thread.currentThread().getContextClassLoader();
-            Enumeration<URL> resources           = classLoader.getResources(directoryName);
-            boolean          hasNewConfiguration = false;
+            ClassLoader                    classLoader = Thread.currentThread().getContextClassLoader();
+            Enumeration<URL>               resources   = classLoader.getResources(directoryName);
+            ApplicationContext.NeedRefresh needRefresh = ApplicationContext.NeedRefresh.NO;
             while (resources.hasMoreElements())
             {
                 URL url = resources.nextElement();
@@ -43,7 +43,7 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
                         if (nextElement.getName().startsWith(directoryName) && nextElement.isDirectory() == false)
                         {
                             String value = nextElement.getName().substring(offset);
-                            hasNewConfiguration = registgerAutoConfigor(value, jfireContext);
+                            needRefresh = registgerAutoConfigor(value, context) ? ApplicationContext.NeedRefresh.YES : needRefresh;
                         }
                     }
                 }
@@ -57,20 +57,13 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
                             if (each.isDirectory() == false)
                             {
                                 String value = each.getName();
-                                hasNewConfiguration = registgerAutoConfigor(value, jfireContext);
+                                needRefresh = registgerAutoConfigor(value, context) ? ApplicationContext.NeedRefresh.YES : needRefresh;
                             }
                         }
                     }
                 }
             }
-            if (hasNewConfiguration)
-            {
-                return ApplicationContext.NeedRefresh.YES;
-            }
-            else
-            {
-                return ApplicationContext.NeedRefresh.NO;
-            }
+            return needRefresh;
         }
         catch (Exception e)
         {
@@ -85,18 +78,31 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
         return PrepareConstant.ENABLE_AUTO_CONFIGURATION;
     }
 
-    boolean registgerAutoConfigor(String className, ApplicationContext jfireContext) throws ClassNotFoundException
+    /**
+     * 将自动注册类执行注册。如果注册结果是Bean或者没有注册，则返回false，意味着不需要刷新。如果是配置或者是准备接口，则返回true，意味着需要刷新。
+     *
+     * @param className
+     * @param context
+     * @return
+     * @throws ClassNotFoundException
+     */
+    boolean registgerAutoConfigor(String className, ApplicationContext context) throws ClassNotFoundException
     {
         String   traceId  = TRACEID.currentTraceId();
         Class<?> configor = Thread.currentThread().getContextClassLoader().loadClass(className);
-        if (jfireContext.registerClass(configor) != ApplicationContext.RegisterResult.NODATA)
+        switch (context.register(configor))
         {
-            logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
-            return true;
-        }
-        else
-        {
-            return false;
+            case CONFIGURATION:
+                ;
+            case PREPARE:
+            {
+                logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
+                return true;
+            }
+            case BEAN:
+            case NODATA:
+            default:
+                return false;
         }
     }
 }

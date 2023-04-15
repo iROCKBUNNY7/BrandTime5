@@ -10,9 +10,7 @@ import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanDefinition;
 import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
-import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
 import com.jfirer.jfire.core.beandescriptor.MethodBeanDescriptor;
-import com.jfirer.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfirer.jfire.core.prepare.ContextPrepare;
 import com.jfirer.jfire.core.prepare.annotation.condition.Condition;
 import com.jfirer.jfire.core.prepare.annotation.condition.Conditional;
@@ -34,27 +32,26 @@ public class ConfigurationProcessor implements ContextPrepare
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationProcessor.class);
 
     @Override
-    public ApplicationContext.NeedRefresh prepare(ApplicationContext jfireContext)
+    public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
     {
-        List<Class<?>> list = new ArrayList<Class<?>>(jfireContext.getConfigurationClassSet());
+        List<Class<?>> list = new ArrayList<Class<?>>(context.getConfigurationClassSet());
         logOrder(list);
-        list = new SortList(list, jfireContext.getAnnotationContextFactory()).sort();
+        list = new SortList(list, context.getAnnotationContextFactory()).sort();
         logger.trace("traceId:{} 修正排序完毕", TRACEID.currentTraceId());
         logOrder(list);
         ErrorMessage             errorMessage             = new ErrorMessage();
-        AnnotationContextFactory annotationContextFactory = jfireContext.getAnnotationContextFactory();
-        ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         for (Class<?> each : list)
         {
             errorMessage.clear();
-            AnnotationContext        annotationContextOnClass = annotationContextFactory.get(each, classLoader);
+            AnnotationContext        annotationContextOnClass = annotationContextFactory.get(each);
             List<AnnotationMetadata> conditionalAnnotations   = annotationContextOnClass.getAnnotationMetadatas(Conditional.class);
             if (!conditionalAnnotations.isEmpty())
             {
                 boolean pass = true;
                 for (AnnotationMetadata conditional : conditionalAnnotations)
                 {
-                    if (!matchCondition(jfireContext, conditional, annotationContextOnClass, errorMessage))
+                    if (!matchCondition(context, conditional, annotationContextOnClass, errorMessage))
                     {
                         pass = false;
                         break;
@@ -69,11 +66,10 @@ public class ConfigurationProcessor implements ContextPrepare
                     continue;
                 }
             }
-            jfireContext.registerBean(each);
             Class<?> ckass = each;
             for (Method method : ckass.getDeclaredMethods())
             {
-                AnnotationContext annotationContextOnMethod = annotationContextFactory.get(method, classLoader);
+                AnnotationContext annotationContextOnMethod = annotationContextFactory.get(method);
                 if (annotationContextOnMethod.isAnnotationPresent(Bean.class) == false)
                 {
                     continue;
@@ -81,7 +77,7 @@ public class ConfigurationProcessor implements ContextPrepare
                 // 没有包含条件的直接注册
                 else if (annotationContextOnMethod.isAnnotationPresent(Conditional.class) == false)
                 {
-                    registerMethodBeanDefinition(method, jfireContext, annotationContextOnMethod);
+                    registerMethodBeanDefinition(method, context, annotationContextOnMethod);
                 }
                 // 判断条件是否成功
                 else
@@ -89,7 +85,7 @@ public class ConfigurationProcessor implements ContextPrepare
                     boolean pass = true;
                     for (AnnotationMetadata conditional : annotationContextOnMethod.getAnnotationMetadatas(Conditional.class))
                     {
-                        if (matchCondition(jfireContext, conditional, annotationContextOnMethod, errorMessage) == false)
+                        if (matchCondition(context, conditional, annotationContextOnMethod, errorMessage) == false)
                         {
                             pass = false;
                             break;
@@ -97,7 +93,7 @@ public class ConfigurationProcessor implements ContextPrepare
                     }
                     if (pass)
                     {
-                        registerMethodBeanDefinition(method, jfireContext, annotationContextOnMethod);
+                        registerMethodBeanDefinition(method, context, annotationContextOnMethod);
                     }
                     else
                     {
@@ -282,13 +278,13 @@ public class ConfigurationProcessor implements ContextPrepare
     /**
      * 判断条件注解中的条件是否被符合
      *
-     * @param jfireContext
+     * @param context
      * @param conditional
      * @param annotationContext 在元素上的注解集合。元素可能为class也可能为member
      * @param errorMessage
      * @return
      */
-    private boolean matchCondition(ApplicationContext jfireContext, AnnotationMetadata conditional, AnnotationContext annotationContext, ErrorMessage errorMessage)
+    private boolean matchCondition(ApplicationContext context, AnnotationMetadata conditional, AnnotationContext annotationContext, ErrorMessage errorMessage)
     {
         boolean     match       = true;
         ValuePair[] value       = conditional.getAttribyte("value").getArray();
@@ -298,7 +294,7 @@ public class ConfigurationProcessor implements ContextPrepare
             try
             {
                 Condition instance = (Condition) (classLoader.loadClass(each.getClassName())).newInstance();
-                if (instance.match(jfireContext, annotationContext, errorMessage) == false)
+                if (instance.match(context, annotationContext, errorMessage) == false)
                 {
                     match = false;
                     break;
@@ -312,36 +308,13 @@ public class ConfigurationProcessor implements ContextPrepare
         return match;
     }
 
-    private void registerMethodBeanDefinition(Method method, ApplicationContext jfireContext, AnnotationContext annotationContextOnMethod)
+    private void registerMethodBeanDefinition(Method method, ApplicationContext context, AnnotationContext annotationContextOnMethod)
     {
         Bean           bean                 = annotationContextOnMethod.getAnnotation(Bean.class);
         String         beanName             = StringUtil.isNotBlank(bean.name()) ? bean.name() : method.getName();
         BeanDescriptor beanDescriptor       = new MethodBeanDescriptor(method, beanName, bean.prototype());
         BeanDefinition methodBeanDefinition = new BeanDefinition(beanDescriptor);
-        jfireContext.registerBeanDefinition(methodBeanDefinition);
+        context.registerBeanDefinition(methodBeanDefinition);
         logger.debug("traceId:{} 注册方法Bean:{}", TRACEID.currentTraceId(), method.getDeclaringClass().getSimpleName() + "." + method.getName());
-    }
-
-    private Class<?> registerConfigurationBeanDefinition(Class<?> ckass, ApplicationContext jfireContext)
-    {
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(ckass, ckass.getName(), false, DefaultClassBeanFactory.class);
-        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
-        jfireContext.registerBeanDefinition(beanDefinition);
-        logger.debug("traceId:{} 将配置类:{}注册为一个单例Bean", TRACEID.currentTraceId(), ckass.getName());
-        return ckass;
-    }
-
-    private static final String conditionalName = Conditional.class.getName().replace('.', '/');
-
-    void findConditionalInstance(AnnotationMetadata annotationMetadata, List<AnnotationMetadata> list)
-    {
-        if (annotationMetadata.isAnnotation(conditionalName))
-        {
-            list.add(annotationMetadata);
-        }
-        for (AnnotationMetadata presentAnnotation : annotationMetadata.getPresentAnnotations())
-        {
-            findConditionalInstance(presentAnnotation, list);
-        }
     }
 }

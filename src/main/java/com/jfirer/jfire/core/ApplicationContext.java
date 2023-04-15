@@ -4,7 +4,6 @@ import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.smc.compiler.CompileHelper;
 import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
 
-import javax.tools.JavaCompiler;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
@@ -17,13 +16,6 @@ public interface ApplicationContext
     <E> List<E> getBeans(Class<E> ckass);
 
     <E> E getBean(String beanName);
-
-    /**
-     * 提供给接口使用者进行手动注册一个Bean
-     *
-     * @param ckass
-     */
-    void register(Class<?> ckass);
 
     List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> ckass);
 
@@ -67,15 +59,8 @@ public interface ApplicationContext
      *
      * @param ckass
      */
-    RegisterResult registerClass(Class<?> ckass);
+    RegisterResult register(Class<?> ckass);
 
-    /**
-     * 解析Ckass，并且生成一个Bean定义。
-     *
-     * @param ckass
-     * @return
-     */
-    boolean registerBean(Class<?> ckass);
 
     /**
      * 注册Bean定义，注册成功返回true。如果Bean名称相同，则不再注册，直接返回false。
@@ -95,6 +80,6 @@ public interface ApplicationContext
 
     enum RegisterResult
     {
-        JFIREPREPARE, CONFIGURATION, BEAN, NODATA
+        PREPARE, CONFIGURATION, BEAN, NODATA
     }
 }
