@@ -12,8 +12,9 @@ import com.jfirer.jfire.core.aop.impl.AopEnhanceManager;
 import com.jfirer.jfire.core.aop.impl.CacheAopManager;
 import com.jfirer.jfire.core.aop.impl.TransactionAopManager;
 import com.jfirer.jfire.core.aop.impl.ValidateAopManager;
-import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
-import com.jfirer.jfire.core.beandescriptor.ClassBeanDescriptor;
+import com.jfirer.jfire.core.beandescriptor.ClassReflectInstanceDescriptor;
+import com.jfirer.jfire.core.beandescriptor.InstanceDescriptor;
+import com.jfirer.jfire.core.beandescriptor.SelectedBeanFactoryInstanceDescriptor;
 import com.jfirer.jfire.core.beanfactory.DefaultClassBeanFactory;
 import com.jfirer.jfire.core.beanfactory.DefaultMethodBeanFactory;
 import com.jfirer.jfire.core.beanfactory.SelectBeanFactory;
@@ -75,8 +76,8 @@ public class DefaultApplicationContext implements ApplicationContext
 
     private void registerDefaultMethodBeanFatory()
     {
-        BeanDescriptor beanDescriptor = new ClassBeanDescriptor(DefaultMethodBeanFactory.class, "defaultMethodBeanFactory", false, DefaultClassBeanFactory.class);
-        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
+        InstanceDescriptor instanceDescriptor = new ClassReflectInstanceDescriptor( DefaultMethodBeanFactory.class);
+        BeanDefinition     beanDefinition = new BeanDefinition("defaultMethodBeanFactory", DefaultMethodBeanFactory.class, false,instanceDescriptor);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
 
@@ -220,17 +221,17 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             return false;
         }
-        BeanDescriptor beanDescriptor;
+        InstanceDescriptor instanceDescriptor;
         if (annotationContext.isAnnotationPresent(SelectBeanFactory.class))
         {
             SelectBeanFactory selectBeanFactory = annotationContext.getAnnotation(SelectBeanFactory.class);
             if (StringUtil.isNotBlank(selectBeanFactory.value()))
             {
-                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.value());
+                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.value(),ckass);
             }
             else if (selectBeanFactory.beanFactoryType() != Object.class)
             {
-                beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, selectBeanFactory.beanFactoryType());
+                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.beanFactoryType(),ckass);
             }
             else
             {
@@ -239,9 +240,9 @@ public class DefaultApplicationContext implements ApplicationContext
         }
         else
         {
-            beanDescriptor = new ClassBeanDescriptor(ckass, beanName, prototype, DefaultClassBeanFactory.class);
+            instanceDescriptor = new ClassReflectInstanceDescriptor(ckass);
         }
-        BeanDefinition beanDefinition = new BeanDefinition(beanDescriptor);
+        BeanDefinition beanDefinition = new BeanDefinition(beanName,ckass,prototype,instanceDescriptor);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
         return true;
     }
@@ -380,7 +381,7 @@ public class DefaultApplicationContext implements ApplicationContext
     }
 
     @Override
-    public BeanDefinition getBeanFactory(BeanDescriptor beanDescriptor)
+    public BeanDefinition getBeanFactory(InstanceDescriptor beanDescriptor)
     {
         if (StringUtil.isNotBlank(beanDescriptor.selectedBeanFactoryBeanName()))
         {

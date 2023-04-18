@@ -2,7 +2,7 @@ package com.jfirer.jfire.core;
 
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.smc.compiler.CompileHelper;
-import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfirer.jfire.core.beandescriptor.InstanceDescriptor;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -39,7 +39,7 @@ public interface ApplicationContext
      * @param beanDescriptor
      * @return
      */
-    BeanDefinition getBeanFactory(BeanDescriptor beanDescriptor);
+    BeanDefinition getBeanFactory(InstanceDescriptor beanDescriptor);
 
     Collection<BeanDefinition> getAllBeanDefinitions();
 

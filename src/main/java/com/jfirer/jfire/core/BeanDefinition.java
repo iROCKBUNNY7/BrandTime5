@@ -10,7 +10,7 @@ import com.jfirer.jfire.core.aop.EnhanceCallbackForBeanInstance;
 import com.jfirer.jfire.core.aop.EnhanceManager;
 import com.jfirer.jfire.core.aop.ProceedPoint;
 import com.jfirer.jfire.core.aop.ProceedPointImpl;
-import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfirer.jfire.core.beandescriptor.InstanceDescriptor;
 import com.jfirer.jfire.core.inject.InjectHandler;
 import com.jfirer.jfire.core.inject.impl.DefaultDependencyInjectHandler;
 import com.jfirer.jfire.core.inject.impl.DefaultPropertyInjectHandler;
@@ -38,67 +38,56 @@ public class BeanDefinition
     };
     private             boolean                          prototype;
     // 如果是单例的情况，后续只会使用该实例
-    private volatile    Object                           cachedSingtonInstance;
+    private volatile    Object                           cachedSingletonInstance;
     /******/
     // 该Bean的类
     private             Class<?>                         type;
     // 增强后的类，如果没有增强标记，该属性为空
     private             Class<?>                         enhanceType;
     private             Set<EnhanceManager>              aopManagers        = new HashSet<EnhanceManager>();
-    private             EnhanceManager[]                 orderedAopManagers;
     private             EnhanceCallbackForBeanInstance[] enhanceCallbackForBeanInstances;
     private             String                           beanName;
     // 标注@PostConstruct的方法
     private             Method                           postConstructMethod;
     private             InjectHandler[]                  injectHandlers;
     private             ApplicationContext               context;
-    private             BeanDescriptor                   beanDescriptor;
-    private             BeanFactory                      beanFactory;
+    private             InstanceDescriptor               instanceDescriptor;
     private             BeanDefinition                   beanFactoryBeanDefinition;
 
-    public BeanDefinition(BeanDescriptor beanDescriptor)
+    public BeanDefinition(String beanName, Class type, boolean prototype, InstanceDescriptor instanceDescriptor)
     {
-        this.beanDescriptor = beanDescriptor;
-        this.beanName = beanDescriptor.beanName();
-        if (beanDescriptor.getDescriptorClass() != null)
-        {
-            type = beanDescriptor.getDescriptorClass();
-        }
-        else
-        {
-            type = beanDescriptor.getDescriptorMethod().getReturnType();
-        }
-        setPrototype(beanDescriptor.isPrototype());
+        this.beanName = beanName;
+        this.prototype = prototype;
+        this.type = type;
+        this.instanceDescriptor = instanceDescriptor;
     }
 
-    public BeanDefinition(String beanName, Class<?> type, Object beanInstance)
+    public BeanDefinition(String beanName, Class<?> type, Object outterInstance)
     {
         this.beanName = beanName;
         this.type = type;
-        cachedSingtonInstance = beanInstance;
-        setPrototype(false);
+        cachedSingletonInstance = outterInstance;
+        prototype = false;
     }
 
     public void init(ApplicationContext context)
     {
         this.context = context;
-        if (cachedSingtonInstance == null)
+        if (cachedSingletonInstance == null)
         {
-            beanFactoryBeanDefinition = context.getBeanFactory(beanDescriptor);
+            beanFactoryBeanDefinition = context.getBeanFactory(instanceDescriptor);
             initPostConstructMethod();
             initInjectHandlers();
         }
     }
 
-
     public void initEnhance()
     {
-        if (aopManagers.size() == 0 || cachedSingtonInstance != null)
+        if (aopManagers.size() == 0 || cachedSingletonInstance != null)
         {
-            orderedAopManagers = new EnhanceManager[0];
             return;
         }
-        orderedAopManagers = aopManagers.toArray(new EnhanceManager[aopManagers.size()]);
+        EnhanceManager[] orderedAopManagers = aopManagers.toArray(new EnhanceManager[aopManagers.size()]);
         enhanceCallbackForBeanInstances = new EnhanceCallbackForBeanInstance[orderedAopManagers.length];
         Arrays.sort(orderedAopManagers, new Comparator<EnhanceManager>()
         {
@@ -291,49 +280,41 @@ public class BeanDefinition
      */
     public Object getBean()
     {
-        if (isPropertype())
+        if (prototype)
         {
             return buildInstance();
         }
-        else if (cachedSingtonInstance != null)
+        else if (cachedSingletonInstance != null)
         {
-            return cachedSingtonInstance;
+            return cachedSingletonInstance;
         }
         else
         {
             synchronized (this)
             {
-                if (cachedSingtonInstance != null)
+                if (cachedSingletonInstance != null)
                 {
-                    return cachedSingtonInstance;
+                    return cachedSingletonInstance;
                 }
-                cachedSingtonInstance = buildInstance();
-                return cachedSingtonInstance;
+                cachedSingletonInstance = buildInstance();
+                return cachedSingletonInstance;
             }
         }
     }
 
-    private boolean isPropertype()
-    {
-        return prototype;
-    }
-
     private synchronized Object buildInstance()
     {
-        if (beanFactory == null)
-        {
-            beanFactory = (BeanFactory) beanFactoryBeanDefinition.getBean();
-        }
-        Map<String, Object> map       = tmpBeanInstanceMap.get();
-        boolean             cleanMark = map.isEmpty();
-        Object              instance  = map.get(beanName);
+        BeanFactory         beanFactory = (BeanFactory) beanFactoryBeanDefinition.getBean();
+        Map<String, Object> map         = tmpBeanInstanceMap.get();
+        boolean             cleanMark   = map.isEmpty();
+        Object              instance    = map.get(beanName);
         if (instance != null)
         {
             return instance;
         }
         Object originInstance;
-        originInstance = instance = beanFactory.getBean(beanDescriptor);
-        if (orderedAopManagers != null && orderedAopManagers.length != 0)
+        originInstance = instance = beanFactory.getInstance(instanceDescriptor);
+        if (enhanceCallbackForBeanInstances != null && enhanceCallbackForBeanInstances.length != 0)
         {
             try
             {
@@ -410,12 +391,6 @@ public class BeanDefinition
         }
         return set.toArray(new Field[set.size()]);
     }
-
-    public void setPrototype(boolean prototype)
-    {
-        this.prototype = prototype;
-    }
-
 
     public String getBeanName()
     {

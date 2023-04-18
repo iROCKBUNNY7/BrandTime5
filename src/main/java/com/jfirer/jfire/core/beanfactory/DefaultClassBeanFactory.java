@@ -3,7 +3,7 @@ package com.jfirer.jfire.core.beanfactory;
 import com.jfirer.baseutil.bytecode.support.AnnotationContextFactory;
 import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.BeanFactory;
-import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfirer.jfire.core.beandescriptor.InstanceDescriptor;
 
 public class DefaultClassBeanFactory implements BeanFactory
 {
@@ -15,11 +15,11 @@ public class DefaultClassBeanFactory implements BeanFactory
     }
 
     @Override
-    public <E> E getBean(BeanDescriptor beanDescriptor)
+    public <E> E getInstance(InstanceDescriptor beanDescriptor)
     {
         try
         {
-            return (E) beanDescriptor.getDescriptorClass().newInstance();
+            return (E) ((Class) beanDescriptor.newInstanceDescriptor()).newInstance();
         }
         catch (Throwable e)
         {

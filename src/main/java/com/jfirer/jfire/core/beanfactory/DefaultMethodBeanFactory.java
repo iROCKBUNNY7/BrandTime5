@@ -3,7 +3,7 @@ package com.jfirer.jfire.core.beanfactory;
 import com.jfirer.baseutil.reflect.ReflectUtil;
 import com.jfirer.jfire.core.ApplicationContext;
 import com.jfirer.jfire.core.BeanFactory;
-import com.jfirer.jfire.core.beandescriptor.BeanDescriptor;
+import com.jfirer.jfire.core.beandescriptor.InstanceDescriptor;
 import com.jfirer.jfire.exception.BeanDefinitionCanNotFindException;
 
 import javax.annotation.Resource;
@@ -15,9 +15,9 @@ public class DefaultMethodBeanFactory implements BeanFactory
     private ApplicationContext applicationContext;
 
     @Override
-    public <E> E getBean(BeanDescriptor beanDescriptor)
+    public <E> E getInstance(InstanceDescriptor beanDescriptor)
     {
-        Method descriptorMethod = beanDescriptor.getDescriptorMethod();
+        Method descriptorMethod = (Method) beanDescriptor.newInstanceDescriptor();
         Object hostBean         = applicationContext.getBean(descriptorMethod.getDeclaringClass());
         if (hostBean == null)
         {
