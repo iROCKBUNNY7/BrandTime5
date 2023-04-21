@@ -24,11 +24,11 @@ public class ValidateAopManager implements EnhanceManager
     private BeanDefinition validatorBeandefinition;
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(ApplicationContext context)
     {
-        AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
-        for (BeanDefinition beanDefinition : applicationContext.getAllBeanDefinitions())
+        for (BeanDefinition beanDefinition : context.getAllBeanDefinitions())
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
@@ -40,7 +40,7 @@ public class ValidateAopManager implements EnhanceManager
                 }
             }
         }
-        validatorBeandefinition = applicationContext.getBeanDefinition(JfireMethodValidator.class);
+        validatorBeandefinition = context.getBeanDefinition(JfireMethodValidator.class);
     }
 
     @Override

@@ -20,6 +20,7 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
     private static final Logger logger        = LoggerFactory.getLogger(EnableAutoConfigurationProcessor.class);
     private static final String directoryName = "META-INF/autoconfig/";
     private static final int    offset        = directoryName.length();
+    private static final Logger LOGGER        = LoggerFactory.getLogger(EnableAutoConfigurationProcessor.class);
 
     @Override
     public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
@@ -63,6 +64,10 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
                     }
                 }
             }
+            if (needRefresh == ApplicationContext.NeedRefresh.YES)
+            {
+                LOGGER.debug("traceId:{} 自动注册过程发现有实现了ContextPrepare接口或者注解了@Configuration的Bean，需要刷新容器", TRACEID.currentTraceId());
+            }
             return needRefresh;
         }
         catch (Exception e)
@@ -93,14 +98,16 @@ public class EnableAutoConfigurationProcessor implements ContextPrepare
         switch (context.register(configor))
         {
             case CONFIGURATION:
-                ;
-            case PREPARE:
-            {
-                logger.debug("traceId:{} 自动配置发现配置类:{}", traceId, className);
+                LOGGER.debug("traceId:{} 注册自动配置类:{}，其注解@Configuration。", traceId, className);
                 return true;
-            }
+            case PREPARE:
+                logger.debug("traceId:{} 注册自动配置类:{},其实现了ContextPrepare接口", traceId, className);
+                return true;
             case BEAN:
+                LOGGER.debug("traceId:{} 注册自动配置类:{}", traceId, className);
+                return false;
             case NODATA:
+                LOGGER.debug("traceId:{} 类:{}已经存在，本次自动注册忽略", traceId, className);
             default:
                 return false;
         }

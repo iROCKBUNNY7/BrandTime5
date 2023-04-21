@@ -23,6 +23,8 @@ import com.jfirer.jfire.core.prepare.annotation.Import;
 import com.jfirer.jfire.core.prepare.annotation.configuration.Configuration;
 import com.jfirer.jfire.core.prepare.processor.ConfigurationProcessor;
 import com.jfirer.jfire.exception.BeanDefinitionCanNotFindException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.lang.annotation.Annotation;
@@ -35,14 +37,15 @@ public class DefaultApplicationContext implements ApplicationContext
      * 如果支持每一轮刷新都根据不同的环境变量或者其他条件满足来增减Bean定义会变得较为复杂，而且实际上也没有遇到这样的场景。
      * 因为目前简化为只支持Bean定义不断增多。
      */
-    protected Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
-    private   Environment                 environment                = new Environment.EnvironmentImpl();
-    private   AnnotationContextFactory    annotationContextFactory   = new SupportOverrideAttributeAnnotationContextFactory();
-    private   CompileHelper               compileHelper;
-    private   boolean                     firstRefresh               = false;
-    private   boolean                     configurationClassSetBuild = false;
-    private   Set<Class<?>>               configurationClassSet      = new HashSet<Class<?>>();
-    private   Class<?>                    bootStarpClass;
+    protected            Map<String, BeanDefinition> beanDefinitionMap          = new HashMap<String, BeanDefinition>();
+    private              Environment                 environment                = new Environment.EnvironmentImpl();
+    private              AnnotationContextFactory    annotationContextFactory   = new SupportOverrideAttributeAnnotationContextFactory();
+    private              CompileHelper               compileHelper;
+    private              boolean                     firstRefresh               = false;
+    private              boolean                     configurationClassSetBuild = false;
+    private              Set<Class<?>>               configurationClassSet      = new HashSet<Class<?>>();
+    private              Class<?>                    bootStarpClass;
+    private static final Logger                      LOGGER                     = LoggerFactory.getLogger(DefaultApplicationContext.class);
 
     public DefaultApplicationContext(Class<?> bootStarpClass)
     {
@@ -76,8 +79,8 @@ public class DefaultApplicationContext implements ApplicationContext
 
     private void registerDefaultMethodBeanFatory()
     {
-        InstanceDescriptor instanceDescriptor = new ClassReflectInstanceDescriptor( DefaultMethodBeanFactory.class);
-        BeanDefinition     beanDefinition = new BeanDefinition("defaultMethodBeanFactory", DefaultMethodBeanFactory.class, false,instanceDescriptor);
+        InstanceDescriptor instanceDescriptor = new ClassReflectInstanceDescriptor(DefaultMethodBeanFactory.class);
+        BeanDefinition     beanDefinition     = new BeanDefinition("defaultMethodBeanFactory", DefaultMethodBeanFactory.class, false, instanceDescriptor);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
     }
 
@@ -105,10 +108,7 @@ public class DefaultApplicationContext implements ApplicationContext
     {
         firstRefresh = true;
         configurationClassSetBuild = false;
-        if (TRACEID.currentTraceId() == null)
-        {
-            TRACEID.newTraceId();
-        }
+        String traceId = TRACEID.currentTraceId();
         registerApplicationContext();
         registerDefaultBeanFactory();
         registerAnnotationContextFactory();
@@ -120,11 +120,13 @@ public class DefaultApplicationContext implements ApplicationContext
         registerJfirePrepare(ConfigurationProcessor.class);
         if (processConfigurationImports() == ApplicationContext.NeedRefresh.YES)
         {
+            LOGGER.debug("traceId:{} 在配置类上处理Import注解，发现需要刷新容器", traceId);
             refresh();
             return;
         }
-        if (processJfirePrepare() == ApplicationContext.NeedRefresh.YES)
+        if (processContextPrepare() == ApplicationContext.NeedRefresh.YES)
         {
+            LOGGER.debug("traceId:{} 执行ContextPrepare接口，发现需要刷新容器", traceId);
             refresh();
             return;
         }
@@ -132,16 +134,20 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             return;
         }
+        LOGGER.debug("traceId:{} 准备执行所有BeanDefinition的init方法", traceId);
         invokeBeanDefinitionInitMethod();
+        LOGGER.debug("traceId:{} 准备获取所有的EnhanceManager，执行aopScan，并且执行BeanDefinition的initEnhance方法", traceId);
         aopScan();
+        LOGGER.debug("traceId:{} 准备获取所有的AwareContextInited接口实现，执行aware方法", traceId);
         awareContextInit();
+        LOGGER.debug("traceId:{} 容器启动完毕", traceId);
     }
 
-    private NeedRefresh processJfirePrepare()
+    private NeedRefresh processContextPrepare()
     {
-        List<ContextPrepare> jfirePrepares = new ArrayList<ContextPrepare>();
-        jfirePrepares.addAll(getBeans(ContextPrepare.class));
-        Collections.sort(jfirePrepares, new Comparator<ContextPrepare>()
+        List<ContextPrepare> contextPrepares = new ArrayList<ContextPrepare>();
+        contextPrepares.addAll(getBeans(ContextPrepare.class));
+        Collections.sort(contextPrepares, new Comparator<ContextPrepare>()
         {
             @Override
             public int compare(ContextPrepare o1, ContextPrepare o2)
@@ -149,7 +155,7 @@ public class DefaultApplicationContext implements ApplicationContext
                 return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
-        for (ContextPrepare each : jfirePrepares)
+        for (ContextPrepare each : contextPrepares)
         {
             if (each.prepare(this) == ApplicationContext.NeedRefresh.YES)
             {
@@ -175,6 +181,7 @@ public class DefaultApplicationContext implements ApplicationContext
                         RegisterResult registerClass = register(importClass);
                         if (registerClass == ApplicationContext.RegisterResult.PREPARE || registerClass == ApplicationContext.RegisterResult.CONFIGURATION)
                         {
+                            LOGGER.debug("traceId:{} 导入类:{},注册成功后需要刷新容器", TRACEID.currentTraceId(), importClass);
                             needRefresh = ApplicationContext.NeedRefresh.YES;
                         }
                     }
@@ -227,11 +234,11 @@ public class DefaultApplicationContext implements ApplicationContext
             SelectBeanFactory selectBeanFactory = annotationContext.getAnnotation(SelectBeanFactory.class);
             if (StringUtil.isNotBlank(selectBeanFactory.value()))
             {
-                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.value(),ckass);
+                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.value(), ckass);
             }
             else if (selectBeanFactory.beanFactoryType() != Object.class)
             {
-                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.beanFactoryType(),ckass);
+                instanceDescriptor = new SelectedBeanFactoryInstanceDescriptor(selectBeanFactory.beanFactoryType(), ckass);
             }
             else
             {
@@ -242,8 +249,9 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             instanceDescriptor = new ClassReflectInstanceDescriptor(ckass);
         }
-        BeanDefinition beanDefinition = new BeanDefinition(beanName,ckass,prototype,instanceDescriptor);
+        BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, prototype, instanceDescriptor);
         beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
+        LOGGER.debug("traceId:{} 注册Bean:{}", TRACEID.currentTraceId(), ckass);
         return true;
     }
 
@@ -264,6 +272,7 @@ public class DefaultApplicationContext implements ApplicationContext
         {
             BeanDefinition beanDefinition = new BeanDefinition(beanName, ckass, ckass.newInstance());
             beanDefinitionMap.put(beanName, beanDefinition);
+            LOGGER.debug("traceId:{} 注册bean:{}，其实现了ContextPrepare接口", TRACEID.currentTraceId(), ckass);
         }
         catch (Throwable e)
         {
@@ -316,11 +325,13 @@ public class DefaultApplicationContext implements ApplicationContext
 
     private void awareContextInit()
     {
+        String traceId = TRACEID.currentTraceId();
         for (BeanDefinition beanDefinition : beanDefinitionMap.values())
         {
             if (AwareContextInited.class.isAssignableFrom(beanDefinition.getType()))
             {
                 ((AwareContextInited) beanDefinition.getBean()).aware(this);
+                LOGGER.debug("traceId:{} Bean：{}执行aware方法", traceId, beanDefinition.getBeanName());
             }
         }
     }
@@ -345,8 +356,10 @@ public class DefaultApplicationContext implements ApplicationContext
                 return o1.order() > o2.order() ? 1 : o1.order() == o2.order() ? 0 : -1;
             }
         });
+        String traceId = TRACEID.currentTraceId();
         for (EnhanceManager aopManager : list)
         {
+            LOGGER.debug("traceId:{} 增强类:{}执行AOP扫描", traceId, aopManager.getClass().getName());
             aopManager.scan(this);
         }
         for (BeanDefinition each : beanDefinitionMap.values())

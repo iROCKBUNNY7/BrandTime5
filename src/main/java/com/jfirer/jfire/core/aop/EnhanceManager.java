@@ -25,7 +25,7 @@ public interface EnhanceManager
     /**
      * 扫描环境中所有的BeanDefinition，如果发现其符合增强条件，则将自身放入其AopManager集合中。 该方法仅会在环境初始化时调用一次
      */
-    void scan(ApplicationContext jfireContext);
+    void scan(ApplicationContext context);
 
     /**
      * 执行增强操作

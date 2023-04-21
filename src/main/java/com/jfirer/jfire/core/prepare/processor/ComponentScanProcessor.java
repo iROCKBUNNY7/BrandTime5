@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class ComponentScanProcessor implements ContextPrepare
 {
-    private static final Logger logger = LoggerFactory.getLogger(ComponentScanProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentScanProcessor.class);
 
     @Override
     public ApplicationContext.NeedRefresh prepare(ApplicationContext context)
@@ -62,17 +62,17 @@ public class ComponentScanProcessor implements ContextPrepare
                 if (annotationContext.isAnnotationPresent(Resource.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (context.register(ckass)!= ApplicationContext.RegisterResult.NODATA)
+                    if (context.register(ckass) != ApplicationContext.RegisterResult.NODATA)
                     {
-                        logger.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
+                        LOGGER.debug("traceId:{} 扫描发现类:{}", TRACEID.currentTraceId(), ckass.getName());
                     }
                 }
                 else if (annotationContext.isAnnotationPresent(Configuration.class))
                 {
                     Class<?> ckass = classLoader.loadClass(each);
-                    if (context.register(ckass)!= ApplicationContext.RegisterResult.NODATA)
+                    if (context.register(ckass) != ApplicationContext.RegisterResult.NODATA)
                     {
-                        logger.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
+                        LOGGER.debug("traceId:{} 扫描发现候选配置类:{}", TRACEID.currentTraceId(), each);
                         needRefresh = true;
                     }
                 }
@@ -81,6 +81,7 @@ public class ComponentScanProcessor implements ContextPrepare
                     Class<?> ckass = classLoader.loadClass(each);
                     if (context.register(ckass) == ApplicationContext.RegisterResult.PREPARE)
                     {
+                        LOGGER.debug("traceId:{} 扫描发现类:{},其实现了ContextPrepare接口", TRACEID.currentTraceId(), each);
                         needRefresh = true;
                     }
                 }

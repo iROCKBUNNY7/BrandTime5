@@ -28,11 +28,11 @@ public class CacheAopManager implements EnhanceManager
     private BeanDefinition cacheBeanDefinition;
 
     @Override
-    public void scan(ApplicationContext applicationContext)
+    public void scan(ApplicationContext context)
     {
-        AnnotationContextFactory annotationContextFactory = applicationContext.getAnnotationContextFactory();
+        AnnotationContextFactory annotationContextFactory = context.getAnnotationContextFactory();
         ClassLoader              classLoader              = Thread.currentThread().getContextClassLoader();
-        for (BeanDefinition beanDefinition : applicationContext.getAllBeanDefinitions())
+        for (BeanDefinition beanDefinition : context.getAllBeanDefinitions())
         {
             for (Method method : beanDefinition.getType().getMethods())
             {
@@ -46,7 +46,7 @@ public class CacheAopManager implements EnhanceManager
                 }
             }
         }
-        List<BeanDefinition> beanDefinitions = applicationContext.getBeanDefinitions(CacheManager.class);
+        List<BeanDefinition> beanDefinitions = context.getBeanDefinitions(CacheManager.class);
         if (beanDefinitions.isEmpty() == false)
         {
             cacheBeanDefinition = beanDefinitions.get(0);
